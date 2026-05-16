@@ -6,9 +6,9 @@ import {
   SCHOOL_HOTLINE,
   SCHOOL_WEBSITE
 } from "@/lib/constants/school";
-import { MAIL_BRAND } from "@/lib/mail-brand";
+import { MAIL_BRAND } from "@/lib/mail-brand";  //gọi hàm MAIL_BRAND để lấy giao diện email
 
-export function escapeHtml(s: string) {
+export function escapeHtml(s: string) { //chuyển đổi các ký tự đặc biệt thành HTML entities
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -17,7 +17,7 @@ export function escapeHtml(s: string) {
 }
 
 /** Khớp globals.css — callout (mailCalloutHtml). */
-export const MAIL_ACCENT = {
+export const MAIL_ACCENT = { //màu sắc cho email
   primary: "#002f6c",
   primaryDark: "#001f4a",
   success: "#027a48",
@@ -31,16 +31,16 @@ export const MAIL_ACCENT = {
   footerBg: "#1f2937"
 } as const;
 
-type MailShellOptions = {
+type MailShellOptions = { //cấu trúc email
   bodyHtml: string;
   belowCardHtml?: string;
   /** Tiêu đề lớn dưới header (HTML đã escape). */
   title?: string;
 };
 
-const FONT = 'Arial, Helvetica, sans-serif';
+const FONT = 'Arial, Helvetica, sans-serif';  //font email
 
-function buildHeader(): string {
+function buildHeader(): string { //tạo header email 
   const safeName = escapeHtml(SCHOOL_FULL_NAME);
   const safeProduct = escapeHtml(MAIL_PRODUCT_NAME);
   return `<tr>
@@ -51,7 +51,7 @@ function buildHeader(): string {
   </tr>`;
 }
 
-function buildFooter(): string {
+function buildFooter(): string { //tạo footer email 
   const safeAddr = escapeHtml(ENTERPRISE_MAIL_SIGN_OFF_ADDRESS);
   const safeHotline = escapeHtml(SCHOOL_HOTLINE);
   const safeEmail = escapeHtml(DEFAULT_SUPPORT_EMAIL);
@@ -76,14 +76,14 @@ function buildFooter(): string {
 }
 
 /** Kết thư — không dùng &lt;hr&gt;. */
-export function mailLetterClosingHtml(): string {
+export function mailLetterClosingHtml(): string { //tạo kết thư email
   return `<p style="margin:20px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${MAIL_BRAND.bodyText};text-align:justify;text-justify:inter-word;">
   Trân trọng,<br/>
   <strong style="color:${MAIL_BRAND.titleColor};">Phòng Đào tạo</strong>
 </p>`.trim();
 }
 
-export function buildMailShell({ bodyHtml, belowCardHtml, title }: MailShellOptions): string {
+export function buildMailShell({ bodyHtml, belowCardHtml, title }: MailShellOptions): string { //tạo email shell
   const safeTitle = title?.trim() ? escapeHtml(title.trim()) : "";
   const titleRow = safeTitle
     ? `<tr>
@@ -93,7 +93,7 @@ export function buildMailShell({ bodyHtml, belowCardHtml, title }: MailShellOpti
   </tr>`
     : "";
 
-  const below = belowCardHtml
+  const below = belowCardHtml 
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr><td align="center" style="padding:12px 16px 0;">
           <table role="presentation" width="${MAIL_BRAND.innerWidth}" cellpadding="0" cellspacing="0"
@@ -140,12 +140,12 @@ export function buildMailShell({ bodyHtml, belowCardHtml, title }: MailShellOpti
 </html>`;
 }
 
-export function mailCalloutHtml(
+export function mailCalloutHtml( //tạo thông báo email
   variant: "info" | "success" | "warning" | "danger",
   title: string,
   innerHtml: string
 ): string {
-  const map = {
+  const map = { //màu sắc cho thông báo email
     info: { bg: "#eff6ff", border: "#002f6c", title: "#002f6c" },
     success: { bg: "#ecfdf5", border: "#027a48", title: "#027a48" },
     warning: { bg: "#fffbeb", border: "#d97706", title: "#92400e" },

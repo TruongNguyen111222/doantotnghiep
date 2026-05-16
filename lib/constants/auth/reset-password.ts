@@ -15,3 +15,4 @@ export const RESET_PASSWORD_NETWORK_ERROR = "Không thể kết nối hệ thố
 export const RESET_PASSWORD_SUBMIT_ERROR_DEFAULT = "Đặt lại mật khẩu thất bại.";
 export const RESET_PASSWORD_SUCCESS_DEFAULT = "Đặt lại mật khẩu thành công.";
 
+//gom toàn bộ luật kiểm tra và thông báo reset password vào 1 chỗ.

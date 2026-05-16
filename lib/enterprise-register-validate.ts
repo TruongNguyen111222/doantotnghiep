@@ -1,19 +1,19 @@
 import type { EnterpriseStatus, Prisma, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth/password";
+import { hashPassword } from "@/lib/auth/password"; //gọi hàm hashPassword để hash password
 import {
   decodeEnterpriseFilePayload,
   ENTERPRISE_LICENSE_MIMES,
   ENTERPRISE_LOGO_MIMES
-} from "@/lib/enterprise-register-files";
-import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
+} from "@/lib/enterprise-register-files"; //gọi hàm decodeEnterpriseFilePayload để decode file đăng ký doanh nghiệp
+import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns"; //gọi hàm AUTH_EMAIL_REGISTER_PATTERN để kiểm tra email có hợp lệ không
 import {
   DOANHNGHIEP_REGISTER_ADDRESS_PATTERN,
   DOANHNGHIEP_REGISTER_LETTER_ONLY_PATTERN,
   DOANHNGHIEP_REGISTER_WEBSITE_PATTERN
-} from "@/lib/constants/doanhnghiep";
+} from "@/lib/constants/doanhnghiep"; //gọi hàm DOANHNGHIEP_REGISTER_ADDRESS_PATTERN để kiểm tra địa chỉ có hợp lệ không
 
-export type EnterpriseRegisterPayload = {
+export type EnterpriseRegisterPayload = { //cấu trúc dữ liệu đăng ký doanh nghiệp
   companyName?: string;
   taxCode?: string;
   businessFields?: string[];
@@ -35,14 +35,14 @@ export type EnterpriseRegisterPayload = {
   email?: string;
 };
 
-export type EnterpriseRegisterError = { field?: string; message: string; status: number };
+export type EnterpriseRegisterError = { field?: string; message: string; status: number }; //cấu trúc lỗi đăng ký doanh nghiệp
 
-export type ValidatedEnterpriseUserCreate = Prisma.UserCreateInput;
+export type ValidatedEnterpriseUserCreate = Prisma.UserCreateInput; //cấu trúc dữ liệu đăng ký doanh nghiệp
 
 /**
  * Kiểm tra toàn bộ payload đăng ký DN; trả về dữ liệu tạo User hoặc lỗi.
  */
-export async function validateEnterpriseRegisterPayload(
+export async function validateEnterpriseRegisterPayload( //validate dữ liệu đăng ký doanh nghiệp
   body: EnterpriseRegisterPayload
 ): Promise<{ ok: true; userCreate: ValidatedEnterpriseUserCreate } | { ok: false; error: EnterpriseRegisterError }> {
   const companyName = body.companyName?.trim() || "";
@@ -67,22 +67,22 @@ export async function validateEnterpriseRegisterPayload(
 
   const fail = (error: EnterpriseRegisterError) => ({ ok: false as const, error });
 
-  if (!companyName || companyName.length > 255) {
+  if (!companyName || companyName.length > 255) { //kiểm tra tên doanh nghiệp có hợp lệ không
     return fail({ field: "companyName", message: "Tên doanh nghiệp từ 1-255 ký tự.", status: 400 });
   }
 
-  const dupName = await prisma.user.findFirst({
+  const dupName = await prisma.user.findFirst({ //kiểm tra tên doanh nghiệp đã tồn tại trong hệ thống chưa
     where: { companyName: { equals: companyName, mode: "insensitive" } }
   });
   if (dupName) {
-    return fail({
+    return fail({ //trả về lỗi nếu tên doanh nghiệp đã tồn tại trong hệ thống
       field: "companyName",
       message: "Tên doanh nghiệp đã tồn tại trong hệ thống.",
       status: 409
     });
   }
 
-  if (!/^\d{10,15}$/.test(taxCode)) {
+  if (!/^\d{10,15}$/.test(taxCode)) { //kiểm tra mã số thuế có hợp lệ không
     return fail({ field: "taxCode", message: "Mã số thuế chỉ gồm số và có độ dài 10-15 ký tự.", status: 400 });
   }
 
@@ -169,7 +169,7 @@ export async function validateEnterpriseRegisterPayload(
     return fail({ field: "phone", message: "Số điện thoại đã được đăng ký.", status: 409 });
   }
 
-  const enterpriseMeta = {
+  const enterpriseMeta = { //lưu dữ liệu đăng ký doanh nghiệp vào database
     businessFields,
     province,
     ward,
@@ -189,9 +189,9 @@ export async function validateEnterpriseRegisterPayload(
     representativeTitle
   };
 
-  const passwordHash = await hashPassword(taxCode);
+  const passwordHash = await hashPassword(taxCode); //hash password
 
-  const userCreate: ValidatedEnterpriseUserCreate = {
+  const userCreate: ValidatedEnterpriseUserCreate = { //tạo dữ liệu đăng ký doanh nghiệp
     email,
     phone,
     passwordHash,
@@ -204,5 +204,5 @@ export async function validateEnterpriseRegisterPayload(
     enterpriseMeta
   };
 
-  return { ok: true, userCreate };
+  return { ok: true, userCreate }; //trả về dữ liệu đăng ký doanh nghiệp
 }

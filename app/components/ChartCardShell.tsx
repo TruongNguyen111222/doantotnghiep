@@ -1,5 +1,6 @@
 "use client";
-
+//chart sẽ mở to ra như popup/modal để xem chi tiết và có thể zoom in/out
+//quản lý UI phóng to chart khi click vào chart
 import {
   Children,
   cloneElement,

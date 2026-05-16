@@ -1,10 +1,11 @@
+//giao diện form Reset Password chỉ nhận dữ liệu r hiển thị 
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { AuthShell } from "../../components/AuthShell";
-import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
-import styles from "../../styles/forgot-password.module.css";
+import { AuthShell } from "../../components/AuthShell"; //gọi component AuthShell
+import { ChartStyleLoading } from "@/app/components/ChartStyleLoading"; //gọi component ChartStyleLoading
+import styles from "../../styles/forgot-password.module.css"; //gọi styles
 
-function EyeIcon({ hidden }: { hidden: boolean }) {
+function EyeIcon({ hidden }: { hidden: boolean }) { //hàm render ra icon eye 
   // minimalist inline SVG to avoid new deps
   if (hidden) {
     return (
@@ -42,7 +43,7 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
   );
 }
 
-export function ResetPasswordFallback() {
+export function ResetPasswordFallback() { //hàm render ra component loading
   return (
     <AuthShell>
       <h2 className={styles.title}>Đặt lại mật khẩu</h2>
@@ -53,7 +54,7 @@ export function ResetPasswordFallback() {
   );
 }
 
-type Props = {
+type Props = { //kiểu dữ liệu cho component ResetPasswordFormCard
   email: string;
   newPassword: string;
   confirmPassword: string;
@@ -67,7 +68,7 @@ type Props = {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
 };
 
-export default function ResetPasswordFormCard(props: Props) {
+export default function ResetPasswordFormCard(props: Props) { //hàm render ra component ResetPasswordFormCard
   const {
     email,
     newPassword,
@@ -80,12 +81,12 @@ export default function ResetPasswordFormCard(props: Props) {
     onNewPasswordChange,
     onConfirmPasswordChange,
     onSubmit
-  } = props;
+  } = props; //lấy dữ liệu từ props
 
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false); //trạng thái hiển thị mật khẩu mới
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); //trạng thái hiển thị xác nhận mật khẩu mới
 
-  return (
+  return ( //trả về giao diện form đăng nhập
     <AuthShell>
       <h2 className={styles.title}>Đặt lại mật khẩu</h2>
       <p className={styles.desc}>Thiết lập mật khẩu mới cho tài khoản của bạn.</p>

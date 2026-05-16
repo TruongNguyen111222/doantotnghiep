@@ -18,8 +18,8 @@ type Props = {
 };
 
 export function EnterpriseRejectedEmail(props: Props) {
-  const { greetingLine, reasons, registerLink } = props;
-  const preview = "Kết quả đăng ký tài khoản doanh nghiệp";
+  const { greetingLine, reasons, registerLink } = props; //tham số là dòng chào email, danh sách lý do và đường dẫn đăng ký
+  const preview = "Kết quả đăng ký tài khoản doanh nghiệp"; //tiêu đề email
 
   return (
     <BrandedEmailLayout preview={preview}>

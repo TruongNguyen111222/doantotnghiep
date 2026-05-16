@@ -16,14 +16,14 @@ function normalize(s: string) {
   return s
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
+    .replace(/[\u0300-\u036f]/g, "") //loại bỏ các ký tự unicode
+    .trim(); //loại bỏ khoảng trắng ở đầu và cuối
 }
 
-export default function BusinessFieldsCombobox(props: Props) {
+export default function BusinessFieldsCombobox(props: Props) { //hàm render ra combobox lĩnh vực kinh doanh 
   const { labelId, value, options, disabled, placeholder, onChange } = props;
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false); 
+  const [q, setQ] = useState(""); //query tìm kiếm
   const rootRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
 
@@ -35,7 +35,7 @@ export default function BusinessFieldsCombobox(props: Props) {
     return base.filter((o) => normalize(o).includes(nq));
   }, [options, q]);
 
-  useEffect(() => {
+  useEffect(() => { //đóng combobox khi click ngoài
     if (!open) return;
     const onDocMouseDown = (e: MouseEvent) => {
       const el = rootRef.current;
@@ -46,20 +46,20 @@ export default function BusinessFieldsCombobox(props: Props) {
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, [open]);
 
-  useEffect(() => {
+  useEffect(() => { //focus search khi combobox được mở
     if (!open) return;
     const t = window.setTimeout(() => searchRef.current?.focus(), 0);
     return () => window.clearTimeout(t);
   }, [open]);
 
-  const toggle = (opt: string) => {
+  const toggle = (opt: string) => { //thêm hoặc xóa lĩnh vực khỏi combobox
     if (disabled) return;
     if (selectedSet.has(opt)) onChange(value.filter((v) => v !== opt));
     else onChange([...value, opt]);
   };
 
-  const remove = (opt: string) => {
-    if (disabled) return;
+  const remove = (opt: string) => { //xóa lĩnh vực khỏi combobox
+    if (disabled) return; 
     onChange(value.filter((v) => v !== opt));
   };
 

@@ -1,44 +1,54 @@
 "use client";
 
-import type { InternshipBatchRow } from "@/lib/types/admin-quan-ly-dot-thuc-tap";
+import type { InternshipBatchRow } from "@/lib/types/admin-quan-ly-dot-thuc-tap"; //kiểu dữ liệu đợt thực tập
 import {
   ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE,
   ADMIN_QUAN_LY_DOT_THUC_TAP_SEMESTER_OPTIONS,
   ADMIN_QUAN_LY_DOT_THUC_TAP_STATUS_LABEL
-} from "@/lib/constants/admin-quan-ly-dot-thuc-tap";
-import { formatDateVi } from "@/lib/utils/admin-quan-ly-dot-thuc-tap-dates";
+} from "@/lib/constants/admin-quan-ly-dot-thuc-tap"; //hằng số thiết lập cho đợt thực tập
+import { formatDateVi } from "@/lib/utils/admin-quan-ly-dot-thuc-tap-dates"; //hàm tiện ích cho đợt thực tập
 
-import Pagination from "../../../components/Pagination";
-import TableIconButton from "../../../components/TableIconButton";
+import Pagination from "../../../components/Pagination"; //phân trang
+import TableIconButton from "../../../components/TableIconButton"; //icon button
 import { FiDownload, FiEdit2, FiEye, FiRefreshCw, FiTrash2 } from "react-icons/fi";
 import styles from "../../styles/dashboard.module.css";
-import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
+import { ChartStyleLoading } from "@/app/components/ChartStyleLoading"; //loading
 
-type Props = {
+type Props = { //props cho bảng đợt thực tập , nhạn dữ liệu vào để hiển thị và báo ngược lại cho component cha xử lý
   loading: boolean;
-  items: InternshipBatchRow[];
-  page: number;
-  busyId: string | null;
-  canClose: (row: InternshipBatchRow) => boolean;
-  onPageChange: (p: number) => void;
-  onView: (row: InternshipBatchRow) => void;
-  onEdit: (row: InternshipBatchRow) => void;
-  onDelete: (row: InternshipBatchRow) => void;
-  onOpenStatus: (row: InternshipBatchRow) => void;
-  onExportStudentsExcel: (row: InternshipBatchRow) => void;
+  items: InternshipBatchRow[]; //danh sách đợt thực tập
+  page: number; //trang hiện tại
+  busyId: string | null; //id đợt thực tập đang xử lý
+  canClose: (row: InternshipBatchRow) => boolean; //hàm kiểm tra xem đợt thực tập có thể đóng không 
+  onPageChange: (p: number) => void; //hàm thay đổi trang
+  onView: (row: InternshipBatchRow) => void; //hàm xem đợt thực tập
+  onEdit: (row: InternshipBatchRow) => void; //hàm sửa đợt thực tập
+  onDelete: (row: InternshipBatchRow) => void; //hàm xóa đợt thực tập
+  onOpenStatus: (row: InternshipBatchRow) => void; //hàm mở trạng thái đợt thực tập
+  onExportStudentsExcel: (row: InternshipBatchRow) => void; //hàm xuất excel danh sách sinh viên theo đợt thực tập
 };
 
-export default function AdminInternshipBatchTableSection(props: Props) {
-  const { loading, items, page, busyId, canClose, onPageChange, onView, onEdit, onDelete, onOpenStatus, onExportStudentsExcel } =
+export default function AdminInternshipBatchTableSection(props: Props) { //render bảng đợt thực tập
+  const { loading, //trạng thái loading
+    items, //danh sách đợt thực tập
+    page, //trang hiện tại
+    busyId, //id đợt thực tập đang xử lý
+    canClose, //hàm kiểm tra xem đợt thực tập có thể đóng không
+    onPageChange, //hàm thay đổi trang
+    onView, //hàm xem đợt thực tập
+    onEdit, //hàm sửa đợt thực tập
+    onDelete, //hàm xóa đợt thực tập
+    onOpenStatus, //hàm mở trạng thái đợt thực tập
+    onExportStudentsExcel } = //hàm xuất excel danh sách sinh viên theo đợt thực tập
     props;
 
-  if (loading && items.length === 0) {
-    return <ChartStyleLoading variant="compact" />;
+  if (loading && items.length === 0) { //nếu đang loading và không có đợt thực tập
+    return <ChartStyleLoading variant="compact" />; //hiển thị loading
   }
-
+//lấy danh sách đợt thực tập theo trang
   const pagedItems = items.slice((page - 1) * ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE, (page - 1) * ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE + ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE);
 
-  return (
+  return ( //render bảng đợt thực tập
     <>
       <div className={styles.tableWrap}>
         <table className={styles.dataTable}>
@@ -54,14 +64,14 @@ export default function AdminInternshipBatchTableSection(props: Props) {
             </tr>
           </thead>
           <tbody>
-            {items.length === 0 ? (
+            {items.length === 0 ? ( //nếu không có đợt thực tập
               <tr>
                 <td colSpan={7} className={styles.modulePlaceholder}>
                   Không có đợt thực tập phù hợp.
                 </td>
               </tr>
             ) : (
-              pagedItems.map((row, idx) => (
+              pagedItems.map((row, idx) => ( //render từng đợt thực tập
                 <tr key={row.id}>
                   <td data-label="STT">{(page - 1) * ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE + idx + 1}</td>
                   <td data-label="Tên đợt thực tập">{row.name}</td>
@@ -87,7 +97,7 @@ export default function AdminInternshipBatchTableSection(props: Props) {
                       <TableIconButton
                         label="Xuất Excel danh sách sinh viên theo đợt"
                         disabled={busyId !== null}
-                        onClick={() => onExportStudentsExcel(row)}
+                        onClick={() => onExportStudentsExcel(row)} //hàm xuất excel danh sách sinh viên theo đợt thực tập
                       >
                         <FiDownload size={18} />
                       </TableIconButton>
@@ -103,12 +113,12 @@ export default function AdminInternshipBatchTableSection(props: Props) {
         </table>
       </div>
 
-      <Pagination
-        page={page}
-        pageSize={ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE}
-        totalItems={items.length}
-        onPageChange={onPageChange}
-        buttonClassName={styles.btn}
+      <Pagination //phân trang
+        page={page} //trang hiện tại
+        pageSize={ADMIN_QUAN_LY_DOT_THUC_TAP_PAGE_SIZE} //số lượng đợt thực tập trên mỗi trang
+        totalItems={items.length} //tổng số đợt thực tập
+        onPageChange={onPageChange} //hàm thay đổi trang
+        buttonClassName={styles.btn} //class cho nút phân trang
       />
     </>
   );

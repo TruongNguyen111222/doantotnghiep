@@ -39,21 +39,23 @@ const HOME_EVENTS = [
   }
 ] as const;
 
-export function HomeLanding() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const sectionIds = ["gioi-thieu", "su-kien", "lien-he"] as const;
-  const [activeSection, setActiveSection] = useState<(typeof sectionIds)[number] | null>(null);
-  const activeIsHome = activeSection === null;
-  const closeMenu = () => setMenuOpen(false);
+export function HomeLanding() { 
+  const [menuOpen, setMenuOpen] = useState(false); //trạng thái menu mở/đóng
+  const sectionIds = ["gioi-thieu", "su-kien", "lien-he"] as const; //danh sách các section trên trang
+  const [activeSection, setActiveSection] = useState<(typeof sectionIds)[number] | null>(null); //trạng thái active section là section nào đang hiện
+  const activeIsHome = activeSection === null;  //trạng thái active là trang chủ
+  const closeMenu = () => setMenuOpen(false); //đóng menu
 
-  const goToTop = () => {
-    setActiveSection(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  //Hàm cuộn về đầu trang
+  const goToTop = () => { 
+    setActiveSection(null); //highlight "Trang chủ" trên menu
+    window.scrollTo({ top: 0, behavior: "smooth" }); //scroll lên đầu trang
   };
 
-  const scrollToHash = (hash: string) => {
-    const id = hash.replace(/^#/, "");
-    const el = document.getElementById(id);
+  //Khi user click vào menu "Giới thiệu", "Sự kiện", "Liên hệ" → cuộn trang đến đúng section đó, không bị header che mất.
+  const scrollToHash = (hash: string) => { 
+    const id = hash.replace(/^#/, ""); //lấy id của section
+    const el = document.getElementById(id); 
     if (!el) return;
 
     const headerEl = document.querySelector(`.${styles.header}`) as HTMLElement | null;
@@ -96,7 +98,7 @@ export function HomeLanding() {
         setActiveSection(null);
         return;
       }
-
+// 
       for (const id of sectionIds) {
         const el = document.getElementById(id);
         if (!el) continue;
@@ -114,10 +116,12 @@ export function HomeLanding() {
       void window.requestAnimationFrame(recalc);
     };
 
+    //đăng kí listener scroll và resize để tự động highlight section hiện tại.
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     recalc();
 
+    //xóa listener khi component unmount
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -125,7 +129,7 @@ export function HomeLanding() {
     };
   }, []);
 
-  return (
+  return ( //render ra các phần tử HTML
     <div className={styles.shell}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
@@ -168,7 +172,7 @@ export function HomeLanding() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  replace={item.href.startsWith("/auth")}
+                  replace={item.href.startsWith("/auth")} //nếu đường dẫn bắt đầu bằng /auth/ thì replace là true
                   className={`${styles.navLink} ${item.href === "/" && activeIsHome ? styles.navLinkActive : ""}`}
                   onClick={(e) => {
                     if (item.href === "/") {
@@ -187,7 +191,7 @@ export function HomeLanding() {
           </nav>
 
           <div className={styles.headerActions}>
-            <Link href="/auth/dangnhap" replace className={styles.loginLink}>
+            <Link href="/auth/dangnhap" replace className={styles.loginLink}> //nếu đường dẫn bắt đầu bằng /auth/ thì replace là true
               Đăng nhập
             </Link>
             <button
@@ -238,7 +242,7 @@ export function HomeLanding() {
             <Link
               key={item.href}
               href={item.href}
-              replace={item.href.startsWith("/auth")}
+              replace={item.href.startsWith("/auth")} 
               className={`${styles.navMobileLink} ${item.href === "/" && activeIsHome ? styles.navMobileLinkActive : ""}`}
               onClick={closeMenu}
             >

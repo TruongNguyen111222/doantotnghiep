@@ -1,52 +1,47 @@
  "use client";
-
+//component giao diện hiển thị chi tiết doanh nghiệp trong modal “Xem chi tiết”.
 import type { AdminEnterpriseDetail } from "@/lib/types/admin";
-import { metaRecord } from "@/lib/utils/enterprise-meta";
+import { metaRecord } from "@/lib/utils/enterprise-meta"; //xử lý thông tin doanh nghiệp
 import {
   buildEnterpriseHeadquartersAddress,
   dataUrlFromBase64,
   formatBusinessFields
-} from "@/lib/utils/enterprise-admin-display";
-import { formatAdminEnterpriseStatusLine } from "@/lib/utils/admin-enterprise-display";
-import { resolveRepresentativeTitle } from "@/lib/utils/enterprise-representative";
+} from "@/lib/utils/enterprise-admin-display"; //xử lý hiển thị cho quản lý doanh nghiệp. 
+import { formatAdminEnterpriseStatusLine } from "@/lib/utils/admin-enterprise-display"; //xử lý hiển thị trạng thái doanh nghiệp
+import { resolveRepresentativeTitle } from "@/lib/utils/enterprise-representative"; //xử lý hiển thị tên người đại diện
 import {
   buildCloudinaryImageDeliveryUrl,
   enterpriseLicensePublicIdFromStored,
   fromCloudinaryRef
 } from "@/lib/storage/cloudinary-public";
-import { downloadWithCredentials } from "@/lib/utils/client-download-blob";
+import { downloadWithCredentials } from "@/lib/utils/client-download-blob"; //xử lý tải file qua fetch (credentials) rồi blob — ổn định hơn `<a href>` với API có cookie / lỗi mạng.
 import styles from "../styles/dashboard.module.css";
 
-type Props = { item: AdminEnterpriseDetail };
+type Props = { item: AdminEnterpriseDetail }; //kiểu dữ liệu cho thành phần EnterpriseViewDetailTable
 
-export function EnterpriseViewDetailTable({ item }: Props) {
-  const m = metaRecord(item.enterpriseMeta);
-  const fields = formatBusinessFields(item.enterpriseMeta);
-  const address = buildEnterpriseHeadquartersAddress(item.enterpriseMeta);
-  const repName = typeof m.representativeName === "string" ? m.representativeName : item.fullName;
-  const titleDisplay = resolveRepresentativeTitle(item.representativeTitle, item.enterpriseMeta);
-  const licName = typeof m.businessLicenseName === "string" ? m.businessLicenseName : "—";
-  const licB64 = typeof m.businessLicenseBase64 === "string" ? m.businessLicenseBase64 : null;
-  const logoMime = typeof m.companyLogoMime === "string" ? m.companyLogoMime : "";
-  const logoB64 = typeof m.companyLogoBase64 === "string" ? m.companyLogoBase64 : null;
-  const website = typeof m.website === "string" && m.website ? m.website : null;
+export function EnterpriseViewDetailTable({ item }: Props) { //hàm hiển thị thông tin doanh nghiệp
+  const m = metaRecord(item.enterpriseMeta); //lấy metaRecord từ enterpriseMeta
+  const fields = formatBusinessFields(item.enterpriseMeta); //lấy fields từ enterpriseMeta
+  const address = buildEnterpriseHeadquartersAddress(item.enterpriseMeta); //lấy address từ enterpriseMeta
+  const repName = typeof m.representativeName === "string" ? m.representativeName : item.fullName; //lấy representativeName từ metaRecord
+  const titleDisplay = resolveRepresentativeTitle(item.representativeTitle, item.enterpriseMeta); //lấy titleDisplay từ metaRecord
+  const licName = typeof m.businessLicenseName === "string" ? m.businessLicenseName : "—"; //lấy licName từ metaRecord
+  const licB64 = typeof m.businessLicenseBase64 === "string" ? m.businessLicenseBase64 : null; //lấy licB64 từ metaRecord
+  const logoMime = typeof m.companyLogoMime === "string" ? m.companyLogoMime : ""; //lấy logoMime từ metaRecord
+  const logoB64 = typeof m.companyLogoBase64 === "string" ? m.companyLogoBase64 : null; //lấy logoB64 từ metaRecord
+  const website = typeof m.website === "string" && m.website ? m.website : null; //lấy website từ metaRecord
 
-  const licPublicId = enterpriseLicensePublicIdFromStored(
-    typeof m.businessLicensePublicId === "string" ? m.businessLicensePublicId : null
-  );
-  const logoPublicId = fromCloudinaryRef(typeof m.companyLogoPublicId === "string" ? m.companyLogoPublicId : null);
-  const licHref =
-    licB64 || licPublicId || (licName && licName !== "—")
-      ? `/api/files/enterprise-business-license/${item.id}`
-      : null;
-  const logoFromCloud = logoPublicId ? buildCloudinaryImageDeliveryUrl(logoPublicId) : null;
+  const licPublicId = enterpriseLicensePublicIdFromStored(typeof m.businessLicensePublicId === "string" ? m.businessLicensePublicId : null); //lấy licPublicId từ metaRecord
+  const logoPublicId = fromCloudinaryRef(typeof m.companyLogoPublicId === "string" ? m.companyLogoPublicId : null); //lấy logoPublicId từ metaRecord
+  const licHref = licB64 || licPublicId || (licName && licName !== "—") ? `/api/files/enterprise-business-license/${item.id}` : null; //lấy licHref từ metaRecord
+  const logoFromCloud = logoPublicId ? buildCloudinaryImageDeliveryUrl(logoPublicId) : null; //lấy logoFromCloud từ metaRecord
   const logoSrc =
     logoFromCloud ??
-    (logoB64 && logoMime.startsWith("image/") ? dataUrlFromBase64(logoMime, logoB64) : null);
+    (logoB64 && logoMime.startsWith("image/") ? dataUrlFromBase64(logoMime, logoB64) : null); //lấy logoSrc từ metaRecord
 
-  const statusLine = formatAdminEnterpriseStatusLine(item.enterpriseStatus);
+  const statusLine = formatAdminEnterpriseStatusLine(item.enterpriseStatus); //lấy statusLine từ item
 
-  return (
+  return (//trả về giao diện hiển thị thông tin doanh nghiệp
     <div className={styles.viewModalDetailTableWrap}>
       <table className={styles.viewModalDetailTable}>
         <thead>

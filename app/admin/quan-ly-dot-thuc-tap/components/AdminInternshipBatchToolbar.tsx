@@ -1,10 +1,10 @@
 "use client";
-
-import type { InternshipBatchStatus } from "@/lib/types/admin-quan-ly-dot-thuc-tap";
+//File này chính là giao diện Thanh công cụ tìm kiếm và Thao tác nhanh (Toolbar Component)
+import type { InternshipBatchStatus } from "@/lib/types/admin-quan-ly-dot-thuc-tap"; //kiểu dữ liệu đợt thực tập
 
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
+type Props = { //props cho toolbar đợt thực tập , nhạn dữ liệu vào để hiển thị và báo ngược lại cho component cha xử lý
   searchName: string;
   searchStart: string;
   searchEnd: string;
@@ -17,7 +17,7 @@ type Props = {
   onCreate: () => void;
 };
 
-export default function AdminInternshipBatchToolbar(props: Props) {
+export default function AdminInternshipBatchToolbar(props: Props) { //render toolbar đợt thực tập
   const {
     searchName,
     searchStart,

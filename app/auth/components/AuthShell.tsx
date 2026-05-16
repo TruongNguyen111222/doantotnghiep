@@ -22,7 +22,7 @@ export function AuthShell({ children, variant = "default" }: AuthShellProps) {
       </main>
     );
   }
-
+//
   return (
     <main className={styles.page}>
       <section className={styles.left}>

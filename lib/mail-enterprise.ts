@@ -1,8 +1,10 @@
+//File này chứa 2 hàm gửi email sau khi admin duyệt hoặc từ chối doanh nghiệp — 
+// khác với register-enterprise/route.ts chỉ gửi email "tiếp nhận đăng ký".
 import { createElement } from "react";
 import { render } from "@react-email/render";
-import { EnterpriseApprovedEmail } from "@/emails/enterprise-approved-email";
-import { EnterpriseRejectedEmail } from "@/emails/enterprise-rejected-email";
-import { sendMail } from "@/lib/mail";
+import { EnterpriseApprovedEmail } from "@/emails/enterprise-approved-email"; //gọi hàm EnterpriseApprovedEmail để tạo email phê duyệt
+import { EnterpriseRejectedEmail } from "@/emails/enterprise-rejected-email"; //gọi hàm EnterpriseRejectedEmail để tạo email từ chối
+import { sendMail } from "@/lib/mail"; //gọi hàm sendMail để gửi email
 import {
   DEFAULT_SUPPORT_EMAIL,
   ENTERPRISE_MAIL_SIGN_OFF_ADDRESS,
@@ -13,25 +15,25 @@ import {
   SCHOOL_HOTLINE
 } from "@/lib/constants/school";
 
-export function getPublicAppUrl() {
-  const base = process.env.APP_URL?.replace(/\/$/, "");
+export function getPublicAppUrl() { //lấy URL của ứng dụng
+  const base = process.env.APP_URL?.replace(/\/$/, ""); //lấy URL của ứng dụng từ process.env
   if (base) return base;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";
 }
 
-function supportEmail() {
-  return process.env.SUPPORT_EMAIL || DEFAULT_SUPPORT_EMAIL;
+function supportEmail() { //lấy email hỗ trợ từ process.env
+  return process.env.SUPPORT_EMAIL || DEFAULT_SUPPORT_EMAIL; //trả về email hỗ trợ
 }
 
-function greetingLine(companyName: string) {
-  return companyName.trim() ? `Kính gửi ${companyName},` : "Kính gửi Quý Doanh nghiệp,";
+function greetingLine(companyName: string) { //tạo dòng chào email
+  return companyName.trim() ? `Kính gửi ${companyName},` : "Kính gửi Quý Doanh nghiệp,"; //trả về dòng chào email
 }
 
-function buildApprovedText(companyName: string, loginPath: string, loginEmail: string): string {
+function buildApprovedText(companyName: string, loginPath: string, loginEmail: string): string { //tạo nội dung email phê duyệt
   const greet = greetingLine(companyName);
-  const school = ENTERPRISE_MAIL_SIGN_OFF_SCHOOL;
-  const support = supportEmail();
+  const school = ENTERPRISE_MAIL_SIGN_OFF_SCHOOL; //lấy tên trường từ process.env
+  const support = supportEmail(); //lấy email hỗ trợ từ process.env
   return [
     greet,
     "",
@@ -62,13 +64,13 @@ function buildApprovedText(companyName: string, loginPath: string, loginEmail: s
   ].join("\n");
 }
 
-function buildRejectedText(companyName: string, reasons: string[], registerLink: string): string {
-  const greet = greetingLine(companyName);
-  const school = ENTERPRISE_MAIL_SIGN_OFF_SCHOOL;
+function buildRejectedText(companyName: string, reasons: string[], registerLink: string): string { //tạo nội dung email từ chối
+  const greet = greetingLine(companyName); //tạo dòng chào email
+  const school = ENTERPRISE_MAIL_SIGN_OFF_SCHOOL; //lấy tên trường từ process.env
   const reasonBlock =
     reasons.length > 0
-      ? reasons.map((r, i) => `[Lý do ${i + 1}: ${r}]`).join("\n")
-      : "[Lý do: không được nêu chi tiết]";
+      ? reasons.map((r, i) => `[Lý do ${i + 1}: ${r}]`).join("\n") //tạo danh sách lý do
+      : "[Lý do: không được nêu chi tiết]"; //trả về lý do không được nêu chi tiết
   return [
     greet,
     "",
@@ -93,31 +95,31 @@ function buildRejectedText(companyName: string, reasons: string[], registerLink:
   ].join("\n");
 }
 
-export async function sendEnterpriseApprovedEmail(to: string, companyName: string, loginEmail: string) {
-  const appUrl = getPublicAppUrl();
-  const loginPath = `${appUrl}/auth/dangnhap`;
-  const subject = `${MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX} - Thông báo phê duyệt tài khoản kết nối thực tập thành công`;
-  const text = buildApprovedText(companyName, loginPath, loginEmail);
-  const html = await render(
-    createElement(EnterpriseApprovedEmail, {
-      greetingLine: greetingLine(companyName),
-      loginPath,
-      loginEmail
+export async function sendEnterpriseApprovedEmail(to: string, companyName: string, loginEmail: string) { //gửi email phê duyệt
+  const appUrl = getPublicAppUrl(); //lấy URL của ứng dụng
+  const loginPath = `${appUrl}/auth/dangnhap`; //tạo đường dẫn đăng nhập
+  const subject = `${MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX} - Thông báo phê duyệt tài khoản kết nối thực tập thành công`; //tạo tiêu đề email
+  const text = buildApprovedText(companyName, loginPath, loginEmail); //tạo nội dung email phê duyệt
+  const html = await render( //chuyển đổi nội dung email thành HTML
+    createElement(EnterpriseApprovedEmail, { //tạo email phê duyệt
+      greetingLine: greetingLine(companyName), //tạo dòng chào email
+      loginPath, //đường dẫn đăng nhập
+      loginEmail //email đăng nhập
     })
   );
-  await sendMail(to, subject, text, html);
+  await sendMail(to, subject, text, html); //gửi email phê duyệt
 }
 
-export async function sendEnterpriseRejectedEmail(to: string, reasons: string[], companyName: string) {
-  const appUrl = getPublicAppUrl();
-  const registerLink = `${appUrl}/auth/dangky`;
-  const subject = `${MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX} - Thông báo kết quả đăng ký tài khoản kết nối thực tập`;
-  const text = buildRejectedText(companyName, reasons, registerLink);
-  const html = await render(
+export async function sendEnterpriseRejectedEmail(to: string, reasons: string[], companyName: string) { //gửi email từ chối
+  const appUrl = getPublicAppUrl(); //lấy URL của ứng dụng
+  const registerLink = `${appUrl}/auth/dangky`; //tạo đường dẫn đăng ký
+  const subject = `${MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX} - Thông báo kết quả đăng ký tài khoản kết nối thực tập`; //tạo tiêu đề email
+  const text = buildRejectedText(companyName, reasons, registerLink); //tạo nội dung email từ chối  
+  const html = await render( //chuyển đổi nội dung email thành HTML
     createElement(EnterpriseRejectedEmail, {
-      greetingLine: greetingLine(companyName),
-      reasons,
-      registerLink
+      greetingLine: greetingLine(companyName), //tạo dòng chào email
+      reasons, //danh sách lý do
+      registerLink //đường dẫn đăng ký
     })
   );
   await sendMail(to, subject, text, html);

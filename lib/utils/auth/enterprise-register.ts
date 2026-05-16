@@ -1,3 +1,8 @@
+
+//trước khi gửi dữ liệu lên server, nó kiểm tra toàn bộ các trường xem người dùng điền đúng chưa. 
+// Nếu sai thì trả về danh sách lỗi để hiện lên màn hình, không gửi lên server.
+
+
 import type { FormDataState } from "@/lib/types/enterprise-register";
 import {
   ENTERPRISE_ADDRESS_PATTERN,

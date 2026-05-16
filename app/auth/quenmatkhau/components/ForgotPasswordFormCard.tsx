@@ -3,16 +3,16 @@ import type { FormEvent } from "react";
 import { AuthShell } from "../../components/AuthShell";
 import styles from "../../styles/forgot-password.module.css";
 
-type Props = {
-  email: string;
-  emailError: string;
-  submitError: string;
-  isSubmitting: boolean;
-  onEmailChange: (value: string) => void;
-  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+type Props = { //kiểu dữ liệu cho component ForgotPasswordFormCard
+  email: string; //email đăng nhập
+  emailError: string; //lỗi email
+  submitError: string; //lỗi submit
+  isSubmitting: boolean; //trạng thái đang submit
+  onEmailChange: (value: string) => void; //hàm thay đổi email
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void; //hàm submit
 };
 
-export default function ForgotPasswordFormCard({
+export default function ForgotPasswordFormCard({ //hàm render ra component ForgotPasswordFormCard
   email,
   emailError,
   submitError,
@@ -20,7 +20,7 @@ export default function ForgotPasswordFormCard({
   onEmailChange,
   onSubmit
 }: Props) {
-  return (
+  return ( //trả về giao diện form quên mật khẩu
     <AuthShell>
       <h2 className={styles.title}>Quên mật khẩu?</h2>
       <p className={styles.desc}>

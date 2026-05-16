@@ -1,3 +1,4 @@
+//layout/template email dùng chung cho toàn hệ thống.
 import { Body, Container, Head, Html, Link, Preview, Section, Text } from "@react-email/components";
 import type { ReactNode } from "react";
 import {

@@ -1,22 +1,22 @@
 "use client";
-
+//Thanh tìm kiếm + lọc doanh nghiệp -Hiển thị giao diện tìm kiếm + lọc
 import { EnterpriseStatus } from "@prisma/client";
 
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
-  searchQ: string;
-  searchStatus: string;
-  onChangeSearchQ: (v: string) => void;
-  onChangeSearchStatus: (v: string) => void;
-  onSearch: () => void;
+type Props = { //kiểu dữ liệu cho toolbar
+  searchQ: string; //từ khóa tìm kiếm
+  searchStatus: string; //trạng thái lọc
+  onChangeSearchQ: (v: string) => void; //hàm thay đổi từ khóa tìm kiếm
+  onChangeSearchStatus: (v: string) => void; //hàm thay đổi trạng thái lọc
+  onSearch: () => void; //hàm tìm kiếm
 };
 
-export default function AdminEnterpriseToolbar(props: Props) {
-  const { searchQ, searchStatus, onChangeSearchQ, onChangeSearchStatus, onSearch } = props;
+export default function AdminEnterpriseToolbar(props: Props) { //hàm tạo toolbar
+  const { searchQ, searchStatus, onChangeSearchQ, onChangeSearchStatus, onSearch } = props; //lấy dữ liệu từ props
 
-  return (
-    <div className={styles.searchToolbar}>
+  return ( //hiển thị toolbar
+    <div className={styles.searchToolbar}> 
       <div className={styles.searchField}>
         <label htmlFor="admin-dn-q">Tìm theo tên / MST</label>
         <input

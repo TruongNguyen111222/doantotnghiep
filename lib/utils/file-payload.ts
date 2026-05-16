@@ -1,8 +1,10 @@
 /** MIME suy từ tên file khi `file.type` trống. */
-export function guessMimeFromFileName(file: File): string {
-  if (file.type) return file.type;
-  const n = file.name.toLowerCase();
-  if (n.endsWith(".pdf")) return "application/pdf";
+//chuyển file (PDF, ảnh...) mà người dùng chọn thành chuỗi chữ để có thể gửi lên server qua JSON. 
+// Vì JSON không thể chứa file trực tiếp, nên phải chuyển sang dạng chữ trước.
+export function guessMimeFromFileName(file: File): string { //
+  if (file.type) return file.type; //nếu file có type thì trả về type đó
+  const n = file.name.toLowerCase();  //chuyển tên file thành chữ thường
+  if (n.endsWith(".pdf")) return "application/pdf"; //nếu file có đuôi .pdf thì trả về application/pdf
   if (n.endsWith(".doc")) return "application/msword";
   if (n.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
   if (n.endsWith(".png")) return "image/png";
@@ -12,8 +14,9 @@ export function guessMimeFromFileName(file: File): string {
   return "application/octet-stream";
 }
 
-export type FileBase64Payload = { base64: string; mime: string };
+export type FileBase64Payload = { base64: string; mime: string }; 
 
+//đọc file và chuyển thành base64 để gửi lên server
 export function readFileAsBase64Payload(file: File): Promise<FileBase64Payload> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

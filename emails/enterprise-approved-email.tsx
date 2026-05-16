@@ -1,3 +1,5 @@
+
+//template email duyệt doanh nghiệp — viết bằng React component thay vì HTML thủ công. 
 import { Button, Link, Section, Text } from "@react-email/components";
 import { BrandedEmailLayout } from "@/emails/branded-email-layout";
 import {
@@ -14,9 +16,9 @@ const success = "#027a48";
 const muted = "#64748b";
 
 type Props = {
-  greetingLine: string;
-  loginPath: string;
-  loginEmail: string;
+  greetingLine: string; //dòng chào email
+  loginPath: string; //đường dẫn đăng nhập
+  loginEmail: string; //email đăng nhập
 };
 
 export function EnterpriseApprovedEmail(props: Props) {

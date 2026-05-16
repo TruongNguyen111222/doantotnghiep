@@ -1,6 +1,7 @@
+//component loading dùng chung trong React/Next.js.
 import styles from "./chart-style-loading.module.css";
 
-export type ChartStyleLoadingProps = {
+export type ChartStyleLoadingProps = { //kiểu dữ liệu cho component loading
   /** Mặc định: Đang tải… */
   message?: string;
   className?: string;

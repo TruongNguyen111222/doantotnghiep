@@ -1,34 +1,34 @@
 "use client";
-
+//thêm hoặc sửa đợt thực tập
 import type { Dispatch, SetStateAction } from "react";
-import type { BatchFormState, InternshipBatchRow } from "@/lib/types/admin-quan-ly-dot-thuc-tap";
+import type { BatchFormState, InternshipBatchRow } from "@/lib/types/admin-quan-ly-dot-thuc-tap"; //kiểu dữ liệu đợt thực tập
 import {
   ADMIN_QUAN_LY_DOT_THUC_TAP_SEMESTER_OPTIONS,
   ADMIN_QUAN_LY_DOT_THUC_TAP_STATUS_LABEL
-} from "@/lib/constants/admin-quan-ly-dot-thuc-tap";
-import { getTodayStart, parseDateOnly } from "@/lib/utils/admin-quan-ly-dot-thuc-tap-dates";
+} from "@/lib/constants/admin-quan-ly-dot-thuc-tap"; //hằng số thiết lập cho đợt thực tập
+import { getTodayStart, parseDateOnly } from "@/lib/utils/admin-quan-ly-dot-thuc-tap-dates"; //hàm tiện ích cho đợt thực tập
 
 import styles from "../../styles/dashboard.module.css";
 import formStyles from "../../../auth/styles/register.module.css";
 
-type Props = {
+type Props = { //props cho modal sửa đợt thực tập , nhạn dữ liệu vào để hiển thị và báo ngược lại cho component cha xử lý
   editTarget: InternshipBatchRow | null;
-  form: BatchFormState;
-  fieldErrors: Record<string, string>;
-  busy: boolean;
-  onClose: () => void;
-  onSubmitCreate: () => void;
-  onSubmitEdit: () => void;
-  onOpenStatus: (t: InternshipBatchRow) => void;
-  setForm: Dispatch<SetStateAction<BatchFormState>>;
+  form: BatchFormState; //dữ liệu form đợt thực tập
+  fieldErrors: Record<string, string>; //lỗi form đợt thực tập
+  busy: boolean; //trạng thái loading
+  onClose: () => void; //hàm đóng modal
+  onSubmitCreate: () => void; //hàm tạo đợt thực tập
+  onSubmitEdit: () => void; //hàm sửa đợt thực tập
+  onOpenStatus: (t: InternshipBatchRow) => void; //hàm mở trạng thái đợt thực tập
+  setForm: Dispatch<SetStateAction<BatchFormState>>; //hàm set dữ liệu form đợt thực tập
 };
 
-export default function AdminInternshipBatchEditModal(props: Props) {
+export default function AdminInternshipBatchEditModal(props: Props) { //render modal sửa đợt thực tập
   const { editTarget, form, fieldErrors, busy, onClose, onSubmitCreate, onSubmitEdit, onOpenStatus, setForm } = props;
-  if (!editTarget) return null;
+  if (!editTarget) return null; //nếu không có đợt thực tập
 
-  return (
-    <div className={styles.modalBackdrop} role="dialog" aria-modal="true" aria-labelledby="batch-edit-title">
+  return ( //render modal sửa đợt thực tập
+    <div className={styles.modalBackdrop} role="dialog" aria-modal="true" aria-labelledby="batch-edit-title"> 
       <div className={`${styles.modal} ${styles.modalWide}`}>
         <h2 id="batch-edit-title">{editTarget.id === "new" ? "Thêm đợt thực tập" : "Cập nhật đợt thực tập"}</h2>
         <div className={styles.searchToolbar} style={{ marginBottom: 10 }}>

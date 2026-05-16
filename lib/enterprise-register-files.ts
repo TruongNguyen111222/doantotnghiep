@@ -1,3 +1,8 @@
+
+//File này kiểm tra và làm sạch file (giấy phép, logo) gửi lên từ client — 
+// xác nhận file không rỗng, không quá dung lượng, đúng định dạng cho phép.
+
+
 import { MAX_ENTERPRISE_BASE64_CHARS, MAX_ENTERPRISE_UPLOAD_BYTES } from "@/lib/constants/doanhnghiep";
 
 /** Giấy phép: PDF hoặc tài liệu Word (.doc, .docx). */

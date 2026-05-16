@@ -214,7 +214,7 @@ export function buildSingleBarChartOption(
   };
 }
 
-export function buildPerBarColorChartOption(
+export function buildPerBarColorChartOption( // Hàm xây dựng đồ thị cột nhiều màu
   labels: string[],
   values: number[],
   colors: string[],

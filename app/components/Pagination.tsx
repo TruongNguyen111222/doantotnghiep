@@ -1,5 +1,5 @@
 "use client";
-
+//File này chính là giao diện phân trang bằng cách click vào số trang hoặc nút prev, next
 import type { CSSProperties, ReactNode } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 

@@ -132,7 +132,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
   const utfName = `${base}_sinh_vien.xlsx`;
   const disposition = `attachment; filename="danh_sach_sinh_vien.xlsx"; filename*=UTF-8''${encodeURIComponent(utfName)}`;
 
-  return new NextResponse(buf, {
+  return new NextResponse(Buffer.from(buf), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition": disposition
