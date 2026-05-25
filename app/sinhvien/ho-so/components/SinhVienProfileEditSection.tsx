@@ -2,9 +2,9 @@ import type { SinhVienHoSoProfile, Province, Ward } from "@/lib/types/sinhvien-h
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import formStyles from "../../../auth/styles/register.module.css";
 
-async function openStudentCvPreview() {
+async function openStudentCvPreview() { //hàm mở preview file CV sinh viên
   const w = window.open("about:blank", "_blank", "noopener,noreferrer");
-  const res = await fetch("/api/files/sinhvien/cv");
+  const res = await fetch("/api/files/sinhvien/cv"); //gửi request lấy file CV sinh viên từ API
   if (!res.ok) {
     try { w?.close(); } catch {}
     return;

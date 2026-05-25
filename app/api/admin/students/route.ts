@@ -5,7 +5,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
 import { fetchProvinceList, fetchWardsForProvince } from "@/lib/vn-open-api";
 import { ADMIN_QUAN_LY_SINH_VIEN_PAGE_SIZE } from "@/lib/constants/admin-quan-ly-sinh-vien";
-import { buildAdminStudentListWhere } from "@/lib/server/admin-students-list-filter";
+import { buildAdminStudentListWhere } from "@/lib/server/admin-students-list-filter"; //hàm tạo điều kiện tìm kiếm sinh viên
 
 const MSV_PATTERN = /^\d{8,15}$/;
 const NAME_PATTERN = /^[\p{L}\s]{1,255}$/u;
@@ -13,36 +13,36 @@ const PHONE_PATTERN = /^\d{8,12}$/;
 const CLASS_PATTERN = /^[\p{L}\d]{1,255}$/u;
 const KHOL_PATTERN = /^[\p{L}\d]{1,10}$/u;
 
-type Degree = "BACHELOR" | "ENGINEER";
+type Degree = "BACHELOR" | "ENGINEER"; //type bậc
 type Gender = "MALE" | "FEMALE" | "OTHER";
-type InternshipStatus = "NOT_STARTED" | "DOING" | "SELF_FINANCED" | "REPORT_SUBMITTED" | "COMPLETED" | "REJECTED";
+type InternshipStatus = "NOT_STARTED" | "DOING" | "SELF_FINANCED" | "REPORT_SUBMITTED" | "COMPLETED" | "REJECTED"; //type trạng thái thực tập
 
-function parseDateOnly(input: string) {
-  return new Date(`${input}T00:00:00.000Z`);
+function parseDateOnly(input: string) { //hàm chuyển đổi ngày tháng năm thành định dạng YYYY-MM-DD
+  return new Date(`${input}T00:00:00.000Z`); 
 }
 
-function calcAge(date: Date, now = new Date()) {
+function calcAge(date: Date, now = new Date()) { //hàm tính tuổi từ ngày sinh
   let age = now.getFullYear() - date.getUTCFullYear();
   const m = now.getUTCMonth() - date.getUTCMonth();
   if (m < 0 || (m === 0 && now.getUTCDate() < date.getUTCDate())) age -= 1;
   return age;
 }
 
-async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
-  const provinces = await fetchProvinceList();
+async function resolveProvinceWardNames(provinceCode: string, wardCode: string) { //hàm lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
+  const provinces = await fetchProvinceList(); //gọi hàm lấy danh sách tỉnh/thành từ API
   const prov = provinces.find((p) => String(p.code) === String(provinceCode));
   if (!prov) return { provinceName: null as string | null, wardName: null as string | null };
-  const wards = await fetchWardsForProvince(String(provinceCode));
+  const wards = await fetchWardsForProvince(String(provinceCode)); //gọi hàm lấy danh sách huyện/xã từ API
   const ward = wards.find((w) => String(w.code) === String(wardCode));
-  return { provinceName: prov.name, wardName: ward?.name ?? null };
+  return { provinceName: prov.name, wardName: ward?.name ?? null }; //trả về tên tỉnh và huyện
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request) { //hàm lấy danh sách sinh viên từ API
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(request.url); //lấy query params từ URL
     const page = Math.max(Number(searchParams.get("page") || "1") || 1, 1);
     const pageSize = Math.max(Number(searchParams.get("pageSize") || String(ADMIN_QUAN_LY_SINH_VIEN_PAGE_SIZE)) || ADMIN_QUAN_LY_SINH_VIEN_PAGE_SIZE, 1);
 
@@ -50,11 +50,11 @@ export async function GET(request: Request) {
 
     const where = buildAdminStudentListWhere(searchParams) as any;
 
-    const totalItems = await prismaAny.studentProfile.count({ where });
-    const rows = await prismaAny.studentProfile.findMany({
+    const totalItems = await prismaAny.studentProfile.count({ where }); //lấy tổng số sinh viên
+    const rows = await prismaAny.studentProfile.findMany({ //lấy danh sách sinh viên
       where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
+      skip: (page - 1) * pageSize, //bỏ qua số lượng sinh viên trên mỗi trang
       take: pageSize,
       select: {
         id: true,
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
 
     const profileIds = rows.map((r: any) => String(r.id)).filter(Boolean);
     const supervisorLinked = new Set<string>();
-    if (profileIds.length) {
+    if (profileIds.length) { //nếu có sinh viên thì lấy danh sách sinh viên đã phân công
       const links = await prismaAny.supervisorAssignmentStudent.findMany({
         where: { studentProfileId: { in: profileIds } },
         distinct: ["studentProfileId"],
@@ -95,17 +95,17 @@ export async function GET(request: Request) {
     const userIds = rows.map((r: any) => r.userId);
     const linked = new Set<string>();
     if (userIds.length) {
-      const distinctApps = await prismaAny.jobApplication.findMany({
+      const distinctApps = await prismaAny.jobApplication.findMany({ //lấy danh sách ứng tuyển của sinh viên
         where: { studentUserId: { in: userIds } },
         select: { studentUserId: true },
         distinct: ["studentUserId"]
       });
-      for (const a of distinctApps) linked.add(String(a.studentUserId));
+      for (const a of distinctApps) linked.add(String(a.studentUserId)); //thêm id sinh viên vào set
     }
 
     let faculties: string[] = [];
     try {
-      const fRows = await prismaAny.studentProfile.findMany({
+      const fRows = await prismaAny.studentProfile.findMany({ //lấy danh sách khoa
         distinct: ["faculty"],
         select: { faculty: true }
       });
@@ -139,7 +139,7 @@ export async function GET(request: Request) {
     };
 
     try {
-      const latestBatch: { id: string; name: string } | null = await prismaAny.internshipBatch.findFirst({
+      const latestBatch: { id: string; name: string } | null = await prismaAny.internshipBatch.findFirst({ //lấy đợt thực tập mới nhất
         orderBy: { startDate: "desc" },
         select: { id: true, name: true }
       });
@@ -154,12 +154,12 @@ export async function GET(request: Request) {
         const studentProfileIds = links.map((l: any) => String(l.studentProfileId)).filter(Boolean);
 
         if (studentProfileIds.length) {
-          const statusRows: Array<{ internshipStatus: InternshipStatus }> = await prismaAny.studentProfile.findMany({
+          const statusRows: Array<{ internshipStatus: InternshipStatus }> = await prismaAny.studentProfile.findMany({ //lấy danh sách trạng thái thực tập của sinh viên
             where: { id: { in: studentProfileIds } },
             select: { internshipStatus: true }
           });
 
-          for (const r of statusRows) {
+          for (const r of statusRows) { //lấy trạng thái thực tập của sinh viên
             const s = r.internshipStatus as InternshipStatus;
             if (s === "NOT_STARTED") latestBatchInternshipStats.notStarted += 1;
             else if (s === "DOING") latestBatchInternshipStats.doing += 1;
@@ -177,7 +177,7 @@ export async function GET(request: Request) {
       console.error("[GET /api/admin/students] latestBatchInternshipStats error", e);
     }
 
-    return NextResponse.json({
+    return NextResponse.json({ //trả về danh sách sinh viên
       success: true,
       latestBatchInternshipStats,
       items: rows.map((r: any) => ({
@@ -211,7 +211,7 @@ export async function GET(request: Request) {
   }
 }
 
-type CreateStudentBody = {
+type CreateStudentBody = { //type dữ liệu sinh viên
   msv: string;
   fullName: string;
   className: string;
@@ -226,7 +226,7 @@ type CreateStudentBody = {
   permanentWardCode: string;
 };
 
-function validateCreate(body: CreateStudentBody) {
+function validateCreate(body: CreateStudentBody) { //hàm kiểm tra dữ liệu sinh viên
   const errors: Record<string, string> = {};
 
   const msv = (body.msv || "").trim();
@@ -255,8 +255,8 @@ function validateCreate(body: CreateStudentBody) {
 
   if (!body.gender || !["MALE", "FEMALE", "OTHER"].includes(String(body.gender))) errors.gender = "Giới tính không hợp lệ.";
 
-  const permanentProvinceCode = (body.permanentProvinceCode || "").trim();
-  const permanentWardCode = (body.permanentWardCode || "").trim();
+  const permanentProvinceCode = (body.permanentProvinceCode || "").trim(); //mã tỉnh
+  const permanentWardCode = (body.permanentWardCode || "").trim(); //mã huyện
   if (!permanentProvinceCode || !/^\d+$/.test(permanentProvinceCode)) errors.permanentProvinceCode = "Tỉnh/thành không hợp lệ.";
   if (!permanentWardCode || !/^\d+$/.test(permanentWardCode)) errors.permanentWardCode = "Phường/xã không hợp lệ.";
 
@@ -274,12 +274,12 @@ function validateCreate(body: CreateStudentBody) {
   return errors;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request) { //hàm tạo sinh viên từ API
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
-  const body = (await request.json()) as CreateStudentBody;
-  const errors = validateCreate(body);
+  const body = (await request.json()) as CreateStudentBody; //lấy dữ liệu sinh viên từ API
+  const errors = validateCreate(body); //kiểm tra dữ liệu sinh viên
   if (Object.keys(errors).length) return NextResponse.json({ success: false, errors }, { status: 400 });
 
   const prismaAny = prisma as any;
@@ -309,7 +309,7 @@ export async function POST(request: Request) {
   const birthDateStr = body.birthDate.trim();
   const passwordHash = await hashPassword(birthDateStr);
 
-  const user = await prismaAny.user.create({
+  const user = await prismaAny.user.create({ //tạo user sinh viên
     data: {
       email,
       phone,
@@ -326,7 +326,7 @@ export async function POST(request: Request) {
     select: { id: true }
   });
 
-  await prismaAny.studentProfile.create({
+  await prismaAny.studentProfile.create({ //tạo sinh viên
     data: {
       userId: user.id,
       msv,
@@ -344,6 +344,6 @@ export async function POST(request: Request) {
     }
   });
 
-  return NextResponse.json({ success: true, message: "Tạo sinh viên thành công." });
+  return NextResponse.json({ success: true, message: "Tạo sinh viên thành công." }); //trả về thông báo tạo sinh viên thành công
 }
 

@@ -14,21 +14,21 @@ import SinhVienToolbar from "./components/SinhVienToolbar";
 import SinhVienTableSection from "./components/SinhVienTableSection";
 import SinhVienViewPopup from "./components/SinhVienViewPopup";
 
-type LatestBatchGuidanceStats = {
-  batchId: string | null;
-  batchName: string | null;
-  guiding: number;
-  completed: number;
+type LatestBatchGuidanceStats = { //hàm xử lý thống kê đợt thực tập
+  batchId: string | null; //id đợt thực tập
+  batchName: string | null; //tên đợt thực tập
+  guiding: number; //số lượng đang hướng dẫn
+  completed: number; //số lượng hoàn thành
 };
 
-const EMPTY_LATEST_STATS: LatestBatchGuidanceStats = {
-  batchId: null,
-  batchName: null,
-  guiding: 0,
-  completed: 0
+const EMPTY_LATEST_STATS: LatestBatchGuidanceStats = { //hàm xử lý thống kê đợt thực tập mặc định
+  batchId: null, //id đợt thực tập
+  batchName: null, //tên đợt thực tập
+  guiding: 0, //số lượng đang hướng dẫn
+  completed: 0 //số lượng hoàn thành
 };
 
-export default function GiangvienSinhVienPage() {
+export default function GiangvienSinhVienPage() { //component sinh viên
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -43,7 +43,7 @@ export default function GiangvienSinhVienPage() {
 
   const [viewTarget, setViewTarget] = useState<Row | null>(null);
 
-  async function load(opts?: { force?: boolean; silent?: boolean }) {
+  async function load(opts?: { force?: boolean; silent?: boolean }) { //hàm tải dữ liệu sinh viên
     const force = Boolean(opts?.force);
     const silent = Boolean(opts?.silent);
     try {
@@ -52,8 +52,8 @@ export default function GiangvienSinhVienPage() {
       const cacheKey = `gv:sinh-vien:list:${url}`;
       if (!silent && !hasCachedValue(cacheKey)) setLoading(true);
       setError("");
-      const data = await getOrFetchCached<any>(
-        cacheKey,
+      const data = await getOrFetchCached<any>( //lấy dữ liệu sinh viên từ cache
+        cacheKey, 
         async () => {
           const res = await fetch(url);
           const payload = await res.json();
@@ -62,10 +62,10 @@ export default function GiangvienSinhVienPage() {
         },
         { force }
       );
-      setItems(Array.isArray(data.items) ? data.items : []);
-      setBatches(Array.isArray(data.batches) ? data.batches : []);
+      setItems(Array.isArray(data.items) ? data.items : []); //set dữ liệu sinh viên vào items
+      setBatches(Array.isArray(data.batches) ? data.batches : []); //set dữ liệu đợt thực tập vào batches
       if (data.latestBatchGuidanceStats) {
-        setLatestBatchGuidanceStats(data.latestBatchGuidanceStats as LatestBatchGuidanceStats);
+        setLatestBatchGuidanceStats(data.latestBatchGuidanceStats as LatestBatchGuidanceStats); //set dữ liệu thống kê đợt thực tập vào latestBatchGuidanceStats
       } else {
         setLatestBatchGuidanceStats(EMPTY_LATEST_STATS);
       }
@@ -89,8 +89,8 @@ export default function GiangvienSinhVienPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, batchId, guidanceStatus]);
 
-  return (
-    <main className={adminStyles.page}>
+  return ( //hàm hiển thị giao diện sinh viên
+    <main className={adminStyles.page}> 
       <header className={adminStyles.header}>
         <h1 className={adminStyles.title}>Sinh viên được phân công</h1>
       </header>

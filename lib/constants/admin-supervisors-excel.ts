@@ -1,4 +1,4 @@
-export type AdminSupervisorExcelRow = {
+export type AdminSupervisorExcelRow = { //type dữ liệu giảng viên excel
   fullName: string;
   phone: string;
   email: string;
@@ -9,7 +9,7 @@ export type AdminSupervisorExcelRow = {
   faculty: string;
   degree: "Thạc sĩ" | "Tiến sĩ" | "Phó giáo sư" | "Giáo sư";
 };
-
+//mẫu dữ liệu giảng viên excel
 export const ADMIN_SUPERVISOR_EXCEL_HEADER = [
   "Họ tên",
   "SĐT",

@@ -1,52 +1,52 @@
-export type Degree = "BACHELOR" | "ENGINEER";
-export type Gender = "MALE" | "FEMALE" | "OTHER";
-export type InternshipStatus =
-  | "NOT_STARTED"
-  | "DOING"
-  | "SELF_FINANCED"
-  | "REPORT_SUBMITTED"
-  | "COMPLETED"
-  | "REJECTED";
+export type Degree = "BACHELOR" | "ENGINEER"; //bậc cử nhân hoặc kỹ sư
+export type Gender = "MALE" | "FEMALE" | "OTHER"; //giới tính nam, nữ, khác
+export type InternshipStatus = //trạng thái thực tập
+  | "NOT_STARTED" //Chưa thực tập
+  | "DOING" //Đang thực tập
+  | "SELF_FINANCED" //Thực tập tự túc
+  | "REPORT_SUBMITTED" //Đã nộp báo cáo thực tập
+  | "COMPLETED" //Hoàn thành thực tập
+  | "REJECTED"; //Từ chối thực tập
 
-export type StudentListItem = {
+export type StudentListItem = { //danh sách sinh viên
   id: string; // StudentProfile.id
-  msv: string;
-  fullName: string;
-  className: string;
-  faculty: string;
-  cohort: string;
-  degree: Degree;
-  internshipStatus: InternshipStatus;
-  hasSupervisor: boolean;
-  phone: string | null;
-  email: string;
-  birthDate: string | null;
-  gender: Gender;
-  permanentProvinceCode: string;
-  permanentWardCode: string;
+  msv: string; //mã sinh viên
+  fullName: string; //họ tên
+  className: string; //lớp
+  faculty: string; //khoa
+  cohort: string; //khóa
+  degree: Degree; //bậc
+  internshipStatus: InternshipStatus; //trạng thái thực tập
+  hasSupervisor: boolean; //có giảng viên hướng dẫn
+  phone: string | null; //số điện thoại
+  email: string; //email
+  birthDate: string | null; //ngày sinh
+  gender: Gender; //giới tính
+  permanentProvinceCode: string; //mã tỉnh
+  permanentWardCode: string; //mã huyện
   permanentProvinceName: string | null;
-  permanentWardName: string | null;
-  hasLinkedData: boolean;
+  permanentWardName: string | null; //tên huyện
+  hasLinkedData: boolean; //có liên kết dữ liệu
 };
 
-export type Province = { code: number; name: string };
-export type Ward = { code: number; name: string };
+export type Province = { code: number; name: string }; //tỉnh
+export type Ward = { code: number; name: string }; //huyện
 
-export type ViewStudent = Omit<StudentListItem, "hasLinkedData">;
-
-export type StudentFormState = {
-  msv: string;
-  fullName: string;
-  className: string;
-  faculty: string;
-  facultyCustom: string;
-  cohort: string;
+export type ViewStudent = Omit<StudentListItem, "hasLinkedData">; //danh sách sinh viên
+ //type form sinh viên
+export type StudentFormState = { //form sinh viên
+  msv: string; //mã sinh viên
+  fullName: string; //họ tên
+  className: string; //lớp
+  faculty: string; //khoa
+  facultyCustom: string; //khoa tùy chỉnh
+  cohort: string; //khóa
   degree: Degree | "";
-  phone: string;
-  email: string;
+  phone: string; //số điện thoại
+  email: string; //email
   birthDate: string; // yyyy-mm-dd
-  gender: Gender | "";
+  gender: Gender | ""; //giới tính
   permanentProvinceCode: string;
-  permanentWardCode: string;
+  permanentWardCode: string; //mã huyện
 };
 

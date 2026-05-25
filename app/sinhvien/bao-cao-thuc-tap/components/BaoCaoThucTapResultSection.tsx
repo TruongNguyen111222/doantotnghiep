@@ -25,7 +25,7 @@ export default function BaoCaoThucTapResultSection({ report, reportFileLink }: P
             <td>{report?.enterprisePoint ?? "—"}</td>
           </tr>
           <tr>
-            <th scope="row">File BCTT</th>
+            <th scope="row">File BCTT</th> 	
             <td>
               {report && reportFileLink ? (
                 <a className={adminStyles.detailLink} href={reportFileLink} download={report.reportFileName}>

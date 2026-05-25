@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"; 
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth/admin-session";
 import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
@@ -11,26 +11,26 @@ const KHOL_PATTERN = /^[\p{L}\d\s]{1,255}$/u;
 type Gender = "MALE" | "FEMALE" | "OTHER";
 type Degree = "MASTER" | "PHD" | "ASSOC_PROF" | "PROF";
 
-function parseDateOnly(input: string) {
+function parseDateOnly(input: string) { //hàm chuyển đổi ngày tháng năm thành định dạng ISO 8601
   return new Date(`${input}T00:00:00.000Z`);
 }
 
-function calcAge(date: Date, now = new Date()) {
+function calcAge(date: Date, now = new Date()) { //hàm tính tuổi từ ngày sinh
   let age = now.getFullYear() - date.getUTCFullYear();
   const m = now.getUTCMonth() - date.getUTCMonth();
   if (m < 0 || (m === 0 && now.getUTCDate() < date.getUTCDate())) age -= 1;
   return age;
 }
-
+//hàm lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
 async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
-  const provinces = await fetchProvinceList();
-  const prov = provinces.find((p) => String(p.code) === String(provinceCode));
-  if (!prov) return { provinceName: null as string | null, wardName: null as string | null };
-  const wards = await fetchWardsForProvince(String(provinceCode));
-  const ward = wards.find((w) => String(w.code) === String(wardCode));
-  return { provinceName: prov.name, wardName: ward?.name ?? null };
+  const provinces = await fetchProvinceList(); //lấy danh sách tỉnh thành từ API
+  const prov = provinces.find((p) => String(p.code) === String(provinceCode)); //lấy tỉnh thành từ danh sách tỉnh thành
+  if (!prov) return { provinceName: null as string | null, wardName: null as string | null }; //nếu không tìm thấy tỉnh thành thì trả về null
+  const wards = await fetchWardsForProvince(String(provinceCode)); //lấy danh sách huyện từ API
+  const ward = wards.find((w) => String(w.code) === String(wardCode)); //lấy huyện từ danh sách huyện
+  return { provinceName: prov.name, wardName: ward?.name ?? null }; //trả về tên tỉnh và huyện
 }
-
+//type dữ liệu giảng viên hướng dẫn
 type PatchSupervisorBody = {
   fullName: string;
   phone: string;
@@ -43,7 +43,7 @@ type PatchSupervisorBody = {
   degree: Degree;
 };
 
-function validateCommon(body: PatchSupervisorBody) {
+function validateCommon(body: PatchSupervisorBody) { //hàm kiểm tra dữ liệu giảng viên hướng dẫn
   const errors: Record<string, string> = {};
 
   const fullName = (body.fullName || "").trim();
@@ -77,15 +77,15 @@ function validateCommon(body: PatchSupervisorBody) {
 
   return errors;
 }
-
+//hàm lấy thông tin giảng viên hướng dẫn
 export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminSession();
+  const admin = await getAdminSession(); //lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   const { id } = await ctx.params;
   const prismaAny = prisma as any;
 
-  const row = await prismaAny.supervisorProfile.findFirst({
+  const row = await prismaAny.supervisorProfile.findFirst({ //lấy thông tin giảng viên hướng dẫn từ database
     where: { id },
     select: {
       id: true,
@@ -104,7 +104,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
 
   if (!row) return NextResponse.json({ success: false, message: "Không tìm thấy GVHD." }, { status: 404 });
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về thông tin giảng viên hướng dẫn
     success: true,
     item: {
       id: row.id,
@@ -123,22 +123,22 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
     }
   });
 }
-
+//hàm sửa thông tin giảng viên hướng dẫn
 export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminSession();
+  const admin = await getAdminSession(); //lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
-  const { id } = await ctx.params;
+  const { id } = await ctx.params; //lấy id giảng viên hướng dẫn
   const body = (await request.json()) as PatchSupervisorBody;
 
-  const prismaAny = prisma as any;
+  const prismaAny = prisma as any; //lấy database
   const current = await prismaAny.supervisorProfile.findFirst({ where: { id }, select: { userId: true } });
   if (!current) return NextResponse.json({ success: false, message: "Không tìm thấy GVHD." }, { status: 404 });
 
-  const errors = validateCommon(body);
+  const errors = validateCommon(body); //kiểm tra dữ liệu giảng viên hướng dẫn
   if (Object.keys(errors).length) return NextResponse.json({ success: false, errors }, { status: 400 });
 
-  const phone = body.phone.trim();
+  const phone = body.phone.trim(); //lấy số điện thoại giảng viên hướng dẫn
   const existingPhone = await prismaAny.user.findUnique({ where: { phone }, select: { id: true } });
   if (existingPhone && existingPhone.id !== current.userId) {
     return NextResponse.json({ success: false, errors: { phone: "Số điện thoại đã tồn tại trong hệ thống." } }, { status: 400 });
@@ -152,7 +152,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     );
   }
 
-  await prismaAny.user.update({
+  await prismaAny.user.update({ //cập nhật thông tin giảng viên hướng dẫn
     where: { id: current.userId },
     data: {
       fullName: body.fullName.trim(),
@@ -160,7 +160,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     }
   });
 
-  await prismaAny.supervisorProfile.update({
+  await prismaAny.supervisorProfile.update({ //cập nhật thông tin giảng viên hướng dẫn
     where: { id },
     data: {
       faculty: body.faculty.trim(),
@@ -176,7 +176,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
 
   return NextResponse.json({ success: true, message: "Cập nhật GVHD thành công." });
 }
-
+//hàm xóa giảng viên hướng dẫn
 export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
@@ -193,8 +193,8 @@ export async function DELETE(_request: Request, ctx: { params: Promise<{ id: str
     return NextResponse.json({ success: false, message: "Không thể xóa GVHD đã có dữ liệu liên kết trong hệ thống." }, { status: 400 });
   }
 
-  await prismaAny.supervisorProfile.deleteMany({ where: { userId: current.userId } });
-  await prismaAny.user.delete({ where: { id: current.userId } });
+  await prismaAny.supervisorProfile.deleteMany({ where: { userId: current.userId } }); //xóa thông tin giảng viên hướng dẫn
+  await prismaAny.user.delete({ where: { id: current.userId } }); //xóa tài khoản giảng viên hướng dẫn
 
   return NextResponse.json({ success: true, message: "Xóa GVHD thành công." });
 }

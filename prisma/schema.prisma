@@ -423,3 +423,33 @@ model InternshipStatusHistory {
 
   @@index([studentProfileId, at])
 }
+
+enum AiCvScreeningStatus {
+  PENDING
+  COMPLETED
+  FAILED
+} 
+
+
+model JobApplicationAiScreening {
+  id String @id @default(cuid())
+
+  jobApplicationId String @unique
+
+  status AiCvScreeningStatus @default(PENDING)
+  matchScore Float?
+  summary String?
+  extractedSkills Json?
+  extractedExperience Json?
+  matchedRequirements Json?
+  gaps Json?
+  reasoning String?
+  model String?
+  errorMessage String?
+
+  screenedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, screenedAt])
+}

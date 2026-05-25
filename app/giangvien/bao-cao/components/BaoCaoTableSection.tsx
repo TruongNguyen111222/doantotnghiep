@@ -5,7 +5,7 @@ import { FiBriefcase, FiEye, FiFileText } from "react-icons/fi";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
-type Props = {
+type Props = { 
   loading: boolean;
   rows: Row[];
   busy: boolean;

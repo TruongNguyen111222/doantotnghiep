@@ -8,22 +8,22 @@ import {
   GIANGVIEN_TAI_KHOAN_DEFAULT_DEGREE
 } from "@/lib/constants/giangvien-tai-khoan";
 
-export function buildGiangVienTaiKhoanDraftFromMe(me: GiangVienMe): GiangVienTaiKhoanDraft {
+export function buildGiangVienTaiKhoanDraftFromMe(me: GiangVienMe): GiangVienTaiKhoanDraft { //hàm xử lý tài khoản giảng viên từ me
   return {
-    phone: me.phone ?? "",
-    degree: me.degree,
-    provinceCode: me.permanentProvinceCode ?? "",
-    wardCode: me.permanentWardCode ?? ""
+    phone: me.phone ?? "", //lấy số điện thoại từ me
+    degree: me.degree, //lấy bậc từ me
+    provinceCode: me.permanentProvinceCode ?? "", //lấy mã tỉnh/thành từ me
+    wardCode: me.permanentWardCode ?? "" //lấy mã phường/xã từ me
   };
 }
 
-export function validateGiangVienTaiKhoanForm(args: {
-  phone: string;
-  degree: Degree;
-  provinceCode: string;
-  wardCode: string;
+export function validateGiangVienTaiKhoanForm(args: { //hàm xử lý tài khoản giảng viên form
+  phone: string; //số điện thoại
+  degree: Degree; //bậc
+  provinceCode: string; //mã tỉnh/thành
+  wardCode: string; //mã phường/xã
 }): ValidateGiangVienTaiKhoanFormResult {
-  const { phone, degree, provinceCode, wardCode } = args;
+  const { phone, degree, provinceCode, wardCode } = args; //lấy dữ liệu từ form
   const next: Record<string, string> = {};
 
   if (!PHONE_PATTERN.test(phone.trim())) next.phone = GIANGVIEN_TAI_KHOAN_ERROR_PHONE;
@@ -31,44 +31,45 @@ export function validateGiangVienTaiKhoanForm(args: {
   if (!provinceCode || !/^\d+$/.test(provinceCode)) next.permanentProvinceCode = GIANGVIEN_TAI_KHOAN_ERROR_PROVINCE_INVALID;
   if (!wardCode || !/^\d+$/.test(wardCode)) next.permanentWardCode = GIANGVIEN_TAI_KHOAN_ERROR_WARD_INVALID;
 
-  return {
-    isValid: Object.keys(next).length === 0,
-    errors: next
+  return { 
+    isValid: Object.keys(next).length === 0, //trả về true nếu không có lỗi
+    errors: next //trả về lỗi nếu có
   };
 }
-
-export function buildGiangVienTaiKhoanPatchPayload(args: GiangVienTaiKhoanDraft): {
-  phone: string;
-  degree: Degree;
-  permanentProvinceCode: string;
-  permanentWardCode: string;
+//chạy sau khi submit form - làm sạch dữ liệu trước khi submit
+export function buildGiangVienTaiKhoanPatchPayload(args: GiangVienTaiKhoanDraft): {  
+  phone: string; //số điện thoại
+  degree: Degree; //bậc
+  permanentProvinceCode: string; //mã tỉnh/thành
+  permanentWardCode: string; //mã phường/xã
 } {
-  return {
+  return { //trả về dữ liệu từ form
     phone: args.phone.trim(),
-    degree: args.degree,
-    permanentProvinceCode: args.provinceCode,
-    permanentWardCode: args.wardCode
+    degree: args.degree, //lấy bậc từ form
+    permanentProvinceCode: args.provinceCode, //lấy mã tỉnh/thành từ form
+    permanentWardCode: args.wardCode //lấy mã phường/xã từ form
   };
 }
 
-export function normalizeGiangVienTaiKhoanDraft(args: {
+//chạy trc khi submit form ,bù dữ liệu nếu thiếu
+export function normalizeGiangVienTaiKhoanDraft(args: { //hàm xử lý tài khoản giảng viên form
   phone: string;
   degree?: Degree;
   provinceCode: string;
   wardCode: string;
 }): GiangVienTaiKhoanDraft {
-  return {
-    phone: args.phone,
-    degree: args.degree || GIANGVIEN_TAI_KHOAN_DEFAULT_DEGREE,
-    provinceCode: args.provinceCode,
-    wardCode: args.wardCode
+  return { //trả về dữ liệu từ form
+    phone: args.phone, //lấy số điện thoại từ form
+    degree: args.degree || GIANGVIEN_TAI_KHOAN_DEFAULT_DEGREE, //lấy bậc từ form
+    provinceCode: args.provinceCode, //lấy mã tỉnh/thành từ form
+    wardCode: args.wardCode //lấy mã phường/xã từ form
   };
 }
 
-export function formatDateVi(iso: string | null): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("vi-VN");
+export function formatDateVi(iso: string | null): string { //hàm xử lý ngày tháng năm
+  if (!iso) return "—"; //trả về "—" nếu ngày tháng năm là null
+  const d = new Date(iso); //lấy ngày tháng năm từ iso
+  if (Number.isNaN(d.getTime())) return "—"; //trả về "—" nếu ngày tháng năm là invalid
+  return d.toLocaleDateString("vi-VN"); //trả về ngày tháng năm theo định dạng việt nam
 }
 

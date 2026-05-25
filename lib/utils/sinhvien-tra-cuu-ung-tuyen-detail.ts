@@ -22,37 +22,37 @@ import {
   SINHVIEN_TRA_CUU_UNG_TUYEN_SUBMIT_SUCCESS_DEFAULT
 } from "@/lib/constants/sinhvien-tra-cuu-ung-tuyen-detail";
 
-export function formatDateVi(iso: string | null): string {
-  if (!iso) return "—";
+export function formatDateVi(iso: string | null): string { //hàm format ngày tháng năm
+  if (!iso) return "—"; 
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("vi-VN");
+  if (Number.isNaN(d.getTime())) return "—"; 
+  return d.toLocaleDateString("vi-VN"); //format ngày tháng năm
 }
 
-export function buildSinhVienTraCuuUngTuyenDetailUrl(jobId: string): string {
-  return `${SINHVIEN_TRA_CUU_UNG_TUYEN_DETAIL_ENDPOINT}/${jobId}`;
+export function buildSinhVienTraCuuUngTuyenDetailUrl(jobId: string): string { //hàm tạo URL chi tiết tin tuyển dụng
+  return `${SINHVIEN_TRA_CUU_UNG_TUYEN_DETAIL_ENDPOINT}/${jobId}`; //trả về URL chi tiết tin tuyển dụng
 }
 
-export function buildSinhVienTraCuuUngTuyenApplyUrl(jobId: string): string {
+export function buildSinhVienTraCuuUngTuyenApplyUrl(jobId: string): string { //hàm tạo URL ứng tuyển
   return `${SINHVIEN_TRA_CUU_UNG_TUYEN_DETAIL_ENDPOINT}/${jobId}/apply`;
 }
 
-export function fetchSinhVienTraCuuUngTuyenDetail(jobId: string): Promise<{ item: SinhVienTraCuuUngTuyenJobDetail }> {
+export function fetchSinhVienTraCuuUngTuyenDetail(jobId: string): Promise<{ item: SinhVienTraCuuUngTuyenJobDetail }> { //hàm lấy chi tiết tin tuyển dụng
   return fetch(buildSinhVienTraCuuUngTuyenDetailUrl(jobId))
-    .then(async (res) => {
+    .then(async (res) => { //gửi request lấy chi tiết tin tuyển dụng
       const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.message || SINHVIEN_TRA_CUU_UNG_TUYEN_LOAD_DETAIL_ERROR_DEFAULT);
-      return data as { item: SinhVienTraCuuUngTuyenJobDetail };
+      if (!res.ok || !data?.success) throw new Error(data?.message || SINHVIEN_TRA_CUU_UNG_TUYEN_LOAD_DETAIL_ERROR_DEFAULT); //trả về lỗi nếu không thể lấy chi tiết tin tuyển dụng
+      return data as { item: SinhVienTraCuuUngTuyenJobDetail }; //trả về chi tiết tin tuyển dụng
     })
-    .then((data) => ({ item: data.item }));
+    .then((data) => ({ item: data.item })); //trả về chi tiết tin tuyển dụng
 }
 
-export function fetchSinhVienHoSoProfileForApply(): Promise<SinhVienApplyProfile> {
+export function fetchSinhVienHoSoProfileForApply(): Promise<SinhVienApplyProfile> { //hàm lấy hồ sơ sinh viên
   return fetch(SINHVIEN_TRA_CUU_UNG_TUYEN_PROFILE_ENDPOINT)
-    .then(async (res) => {
+    .then(async (res) => { //gửi request lấy hồ sơ sinh viên
       const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.message || SINHVIEN_TRA_CUU_UNG_TUYEN_LOAD_PROFILE_ERROR_DEFAULT);
-      const item = data.item ?? {};
+      if (!res.ok || !data?.success) throw new Error(data?.message || SINHVIEN_TRA_CUU_UNG_TUYEN_LOAD_PROFILE_ERROR_DEFAULT); //trả về lỗi nếu không thể lấy hồ sơ sinh viên
+      const item = data.item ?? {}; //lấy hồ sơ sinh viên
       return {
         fullName: String(item.fullName || ""),
         phone: item.phone ?? null,
@@ -68,21 +68,21 @@ export function fetchSinhVienHoSoProfileForApply(): Promise<SinhVienApplyProfile
     });
 }
 
-export function isCvMimeAllowed(mime: string | null | undefined): boolean {
+export function isCvMimeAllowed(mime: string | null | undefined): boolean { //hàm kiểm tra kiểu MIME file CV
   if (!mime) return false;
-  return (CV_ALLOWED_MIMES as readonly string[]).includes(mime);
+  return (CV_ALLOWED_MIMES as readonly string[]).includes(mime); //trả về true nếu kiểu MIME file CV cho phép
 }
 
 export function getCvMimeValidationError(mime: string | null | undefined): string | null {
-  if (!isCvMimeAllowed(mime)) return SINHVIEN_TRA_CUU_UNG_TUYEN_CV_ERROR_INVALID;
-  return null;
+  if (!isCvMimeAllowed(mime)) return SINHVIEN_TRA_CUU_UNG_TUYEN_CV_ERROR_INVALID; //trả về lỗi nếu kiểu MIME file CV không cho phép
+  return null; //trả về null nếu kiểu MIME file CV cho phép
 }
 
-export function validateSinhVienApplyDraft(draft: SinhVienApplyDraft): { isValid: boolean; errors: Record<string, string> } {
+export function validateSinhVienApplyDraft(draft: SinhVienApplyDraft): { isValid: boolean; errors: Record<string, string> } { //hàm kiểm tra hồ sơ sinh viên
   const next: Record<string, string> = {};
 
-  if (!PHONE_PATTERN.test(draft.phone.trim())) next.phone = SINHVIEN_TRA_CUU_UNG_TUYEN_VALIDATE_ERROR_PHONE;
-  if (!AUTH_EMAIL_REGISTER_PATTERN.test(draft.email.trim().toLowerCase())) next.email = SINHVIEN_TRA_CUU_UNG_TUYEN_VALIDATE_ERROR_EMAIL;
+  if (!PHONE_PATTERN.test(draft.phone.trim())) next.phone = SINHVIEN_TRA_CUU_UNG_TUYEN_VALIDATE_ERROR_PHONE; //trả về lỗi nếu số điện thoại không hợp lệ
+  if (!AUTH_EMAIL_REGISTER_PATTERN.test(draft.email.trim().toLowerCase())) next.email = SINHVIEN_TRA_CUU_UNG_TUYEN_VALIDATE_ERROR_EMAIL; //trả về lỗi nếu email không hợp lệ
   if (!draft.intro.trim()) next.intro = SINHVIEN_TRA_CUU_UNG_TUYEN_VALIDATE_ERROR_INTRO;
   const hasCv = Boolean(draft.cvFile) || (draft.hasExistingCv && !draft.removeCv);
   if (!hasCv || !draft.cvMime || !draft.cvFileName) next.cv = SINHVIEN_TRA_CUU_UNG_TUYEN_CV_ERROR_REQUIRED;
@@ -90,13 +90,13 @@ export function validateSinhVienApplyDraft(draft: SinhVienApplyDraft): { isValid
   return { isValid: Object.keys(next).length === 0, errors: next };
 }
 
-export function buildSinhVienTraCuuUngTuyenApplyPayload(draft: Draft): {
+export function buildSinhVienTraCuuUngTuyenApplyPayload(draft: Draft): { //hàm tạo payload ứng tuyển
   phone: string;
   email: string;
   intro: string;
   removeCv: boolean;
 } {
-  return {
+  return { //trả về payload ứng tuyển
     phone: draft.phone.trim(),
     email: draft.email.trim().toLowerCase(),
     intro: draft.intro.trim(),
@@ -104,16 +104,16 @@ export function buildSinhVienTraCuuUngTuyenApplyPayload(draft: Draft): {
   };
 }
 
-export function getSinhVienTraCuuUngTuyenOpenApplyErrorMessage(err: unknown): string {
+export function getSinhVienTraCuuUngTuyenOpenApplyErrorMessage(err: unknown): string { //hàm lấy lỗi mở popup ứng tuyển
   if (err instanceof Error) return err.message || SINHVIEN_TRA_CUU_UNG_TUYEN_OPEN_APPLY_ERROR_DEFAULT;
   return SINHVIEN_TRA_CUU_UNG_TUYEN_OPEN_APPLY_ERROR_DEFAULT;
 }
 
 export function getSinhVienTraCuuUngTuyenSubmitSuccessMessage(message?: string): string {
-  return message || SINHVIEN_TRA_CUU_UNG_TUYEN_SUBMIT_SUCCESS_DEFAULT;
+  return message || SINHVIEN_TRA_CUU_UNG_TUYEN_SUBMIT_SUCCESS_DEFAULT; //trả về lỗi nếu không thể lấy lỗi mở popup ứng tuyển
 }
 
-export function getSinhVienTraCuuUngTuyenSubmitErrorMessage(message?: string): string {
+export function getSinhVienTraCuuUngTuyenSubmitErrorMessage(message?: string): string { //hàm lấy lỗi nộp hồ sơ ứng tuyển
   return message || SINHVIEN_TRA_CUU_UNG_TUYEN_SUBMIT_ERROR_DEFAULT;
 }
 

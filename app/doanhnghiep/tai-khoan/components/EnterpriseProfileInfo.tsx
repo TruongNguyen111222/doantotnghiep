@@ -1,21 +1,21 @@
 "use client";
-
-import type { AdminEnterpriseDetail } from "@/lib/types/admin";
-import { downloadWithCredentials } from "@/lib/utils/client-download-blob";
+//component hiển thị thông tin doanh nghiệp
+import type { AdminEnterpriseDetail } from "@/lib/types/admin"; //kiểu dữ liệu trả về từ API
+import { downloadWithCredentials } from "@/lib/utils/client-download-blob"; //hàm xử lý tải file
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 
 type Props = {
-  me: AdminEnterpriseDetail;
-  address: string;
-  licName: string;
-  licHref: string | null;
-  logoSrc: string | null;
-  statusText: string;
+  me: AdminEnterpriseDetail; //thông tin doanh nghiệp
+  address: string; //địa chỉ doanh nghiệp
+  licName: string; //tên file giấy phép kinh doanh
+  licHref: string | null; //link file giấy phép kinh doanh
+  logoSrc: string | null; //link ảnh logo doanh nghiệp
+  statusText: string; //trạng thái phê duyệt doanh nghiệp
   /** When true, email/phone rows are omitted (shown in edit form). */
   hideContactFields?: boolean;
 };
 
-export default function EnterpriseProfileInfo({
+export default function EnterpriseProfileInfo({ //hàm xử lý thông tin doanh nghiệp
   me,
   address,
   licName,
@@ -24,7 +24,7 @@ export default function EnterpriseProfileInfo({
   statusText,
   hideContactFields = false
 }: Props) {
-  return (
+  return ( //trả về giao diện hiển thị thông tin doanh nghiệp
     <table className={adminStyles.viewModalDetailTable} style={{ marginTop: 12 }}>
       <tbody>
         <tr>

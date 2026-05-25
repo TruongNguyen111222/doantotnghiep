@@ -3,38 +3,38 @@
 import type { InternshipBatchRow } from "@/lib/types/admin-quan-ly-tin-tuyen-dung";
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
-  searchQ: string;
-  searchBatchId: string;
-  searchExpertise: string;
-  searchStatus: string;
-  batches: InternshipBatchRow[];
-  expertises: string[];
-  loadingBatches: boolean;
-  onChangeSearchQ: (v: string) => void;
-  onChangeSearchBatchId: (v: string) => void;
-  onChangeSearchExpertise: (v: string) => void;
-  onChangeSearchStatus: (v: string) => void;
-  onSearch: () => void;
+type Props = { //type dữ liệu toolbar việc làm
+  searchQ: string; //tìm kiếm tiêu đề
+  searchBatchId: string; //tìm kiếm đợt thực tập
+  searchExpertise: string; //tìm kiếng ngành/khoa
+  searchStatus: string; //tìm kiếm trạng thái
+  batches: InternshipBatchRow[]; //danh sách đợt thực tập
+  expertises: string[]; //danh sách ngành/khoa
+  loadingBatches: boolean; //trạng thái tải danh sách đợt thực tập
+  onChangeSearchQ: (v: string) => void; //hàm thay đổi tìm kiếm tiêu đề
+  onChangeSearchBatchId: (v: string) => void; //hàm thay đổi tìm kiếm đợt thực tập
+  onChangeSearchExpertise: (v: string) => void; //hàm thay đổi tìm kiếng ngành/khoa
+  onChangeSearchStatus: (v: string) => void; //hàm thay đổi tìm kiếm trạng thái
+  onSearch: () => void; //hàm tìm kiếm
 };
 
-export default function AdminTinTuyenDungToolbar(props: Props) {
+export default function AdminTinTuyenDungToolbar(props: Props) { //hàm tạo toolbar việc làm
   const {
-    searchQ,
-    searchBatchId,
-    searchExpertise,
-    searchStatus,
-    batches,
-    expertises,
-    loadingBatches,
-    onChangeSearchQ,
-    onChangeSearchBatchId,
-    onChangeSearchExpertise,
-    onChangeSearchStatus,
-    onSearch
+    searchQ, //tìm kiếm tiêu đề
+    searchBatchId, //tìm kiếm đợt thực tập
+    searchExpertise, //tìm kiếng ngành/khoa
+    searchStatus, //tìm kiếm trạng thái
+    batches, //danh sách đợt thực tập
+    expertises, //danh sách ngành/khoa
+    loadingBatches, //trạng thái tải danh sách đợt thực tập
+    onChangeSearchQ, //hàm thay đổi tìm kiếm tiêu đề
+    onChangeSearchBatchId, //hàm thay đổi tìm kiếm đợt thực tập
+    onChangeSearchExpertise, //hàm thay đổi tìm kiếng ngành/khoa
+    onChangeSearchStatus, //hàm thay đổi tìm kiếm trạng thái
+    onSearch, //hàm tìm kiếm
   } = props;
 
-  return (
+  return ( //render toolbar việc làm
     <div className={styles.searchToolbar}>
       <div className={`${styles.searchField} ${styles.searchFieldGrow}`}>
         <label>Tiêu đề / Tên doanh nghiệp</label>

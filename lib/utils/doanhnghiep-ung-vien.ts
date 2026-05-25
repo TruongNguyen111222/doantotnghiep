@@ -1,16 +1,16 @@
 import type { JobRow, JobStatus } from "@/lib/types/doanhnghiep-ung-vien";
 import { DOANHNGHIEP_UNG_VIEN_ENDPOINT, DOANHNGHIEP_UNG_VIEN_ERROR_DEFAULT } from "@/lib/constants/doanhnghiep-ung-vien";
-import { DOANHNGHIEP_UNG_VIEN_STATUS_LABEL } from "@/lib/constants/doanhnghiep-ung-vien";
+import { DOANHNGHIEP_UNG_VIEN_STATUS_LABEL } from "@/lib/constants/doanhnghiep-ung-vien"; //constants cho trạng thái tin tuyển dụng
 import type { JobRow as _JobRow } from "@/lib/types/doanhnghiep-ung-vien";
 
-export function formatDateVi(iso: string | null): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("vi-VN");
+export function formatDateVi(iso: string | null): string {  //hàm chuyển đổi ngày thành định dạng việt nam
+  if (!iso) return "—"; //nếu ngày không tồn tại thì trả về "—"
+  const d = new Date(iso); //tạo đối tượng Date từ chuỗi ngày
+  if (Number.isNaN(d.getTime())) return "—"; //nếu ngày không hợp lệ thì trả về "—"
+  return d.toLocaleDateString("vi-VN"); //trả về định dạng việt nam
 }
 
-export function buildDoanhNghiepUngVienListUrl(args: {
+export function buildDoanhNghiepUngVienListUrl(args: { //hàm xây dựng URL danh sách tin tuyển dụng
   origin: string;
   q: string;
   createdDate: string;

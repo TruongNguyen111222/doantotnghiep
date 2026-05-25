@@ -1,5 +1,5 @@
 /** Nhận diện định dạng thật từ magic bytes (ưu tiên hơn Content-Type sai từ CDN). */
-
+//CHỨC NĂng file là  nhận diện file jpeg, png, pdf, doc, docx, xlsx, pptx, zip , tránh file gải , sửa đuôi đúng 
 export type BinarySniff = { mime: string; ext: string };
 
 export function sniffBinaryKind(bytes: Buffer): BinarySniff | null {

@@ -5,18 +5,18 @@ import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns";
 import { prisma } from "@/lib/prisma";
 import { DOANHNGHIEP_TUYEN_DUNG_PAGE_SIZE } from "@/lib/constants/doanhnghiep-tuyen-dung";
 
-function getTodayStart() {
+function getTodayStart() { //hàm lấy ngày hiện tại
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d;
 }
-
-function enterpriseMetaAsRecord(meta: unknown): Record<string, unknown> {
+//hàm chuyển đổi meta thành đối tượng Record
+function enterpriseMetaAsRecord(meta: unknown): Record<string, unknown> {  
   if (!meta || typeof meta !== "object" || Array.isArray(meta)) return {};
   return meta as Record<string, unknown>;
 }
 
-function parseDateOnly(input: string | null | undefined): { start: Date; end: Date } | null {
+function parseDateOnly(input: string | null | undefined): { start: Date; end: Date } | null { //hàm parse ngày tháng
   if (!input) return null;
   const trimmed = String(input).trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
@@ -31,7 +31,11 @@ const EXPERTISE_PATTERN = /^[\p{L}\d\s.,/()&+\-_'":]{1,255}$/u;
 const SALARY_PATTERN = /^[\p{L}\d\s\-]{1,150}$/u;
 const COUNT_PATTERN = /^\d{1,10}$/;
 
+/**
+ * KHỐI XỬ LÝ: API GET - LẤY DANH SÁCH, LỌC VÀ THỐNG KÊ TIN TUYỂN DỤNG
+ */
 export async function GET(request: Request) {
+  // * 1. Xác thực người dùng và kiểm tra quyền truy cập (Role: doanhnghiep)
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 });
@@ -49,7 +53,7 @@ export async function GET(request: Request) {
   if (role !== "doanhnghiep") {
     return NextResponse.json({ success: false, message: "Không có quyền truy cập." }, { status: 403 });
   }
-
+// * 2. Đọc và chuẩn hóa các tham số tìm kiếm, bộ lọc (query, date, status) và phân trang từ URL
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") || "").trim();
   const date = searchParams.get("date") || "";
@@ -59,7 +63,7 @@ export async function GET(request: Request) {
 
   const prismaAny = prisma as any;
   const now = new Date();
-
+// * 3. Quét quét tự động: Chuyển các tin hết hạn (deadlineAt < now) sang trạng thái "STOPPED"
   await prismaAny.jobPost.updateMany({
     where: {
       enterpriseUserId: sub,
@@ -68,27 +72,27 @@ export async function GET(request: Request) {
     },
     data: { status: "STOPPED", stoppedAt: now }
   });
-
+// * 4. Xây dựng điều kiện truy vấn (where clause) dựa trên các bộ lọc người dùng chọn
   const where: Record<string, unknown> = { enterpriseUserId: sub };
-
+// Thêm điều kiện tìm kiếm theo Tiêu đề hoặc Vị trí chuyên môn (chỉ áp dụng khi từ khóa từ 2 ký tự trở lên)
   if (q) {
     where.OR = [
       ...(q.length >= 2 ? [{ title: { contains: q, mode: "insensitive" } }] : []),
       ...(q.length >= 2 ? [{ expertise: { contains: q, mode: "insensitive" } }] : [])
     ];
   }
-
-  const whereForStats: Record<string, unknown> = { ...where };
+// Sao chép điều kiện để dùng riêng cho việc thống kê số lượng (không bị ảnh hưởng bởi bộ lọc status)
+  const whereForStats: Record<string, unknown> = { ...where }; 
   if (status && status !== "all") where.status = status;
-
+// Thêm điều kiện lọc theo ngày tạo (createdAt) nếu người dùng chọn ngày cụ thể
   const dateRange = parseDateOnly(date);
   if (dateRange) {
     where.createdAt = { gte: dateRange.start, lte: dateRange.end };
   }
-
+// * 5. Thực hiện các truy vấn song song: Đếm tổng số tin, lấy danh sách và thống kê số lượng theo trạng thái
   const [totalItems, rows, groupedStatusRows] = await Promise.all([
-    prismaAny.jobPost.count({ where }),
-    prismaAny.jobPost.findMany({
+    prismaAny.jobPost.count({ where }), //đếm tổng số tin
+    prismaAny.jobPost.findMany({ //lấy danh sách tin
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
@@ -104,18 +108,19 @@ export async function GET(request: Request) {
         deadlineAt: true
       }
     }),
-    prismaAny.jobPost.groupBy({
+    prismaAny.jobPost.groupBy({ //nhóm tin theo trạng thái
       by: ["status"],
       where: whereForStats,
       _count: { _all: true }
     })
   ]);
+  // Định dạng lại cấu trúc dữ liệu thống kê số lượng tin theo từng trạng thái cụ thể
   const statusStats = { PENDING: 0, REJECTED: 0, ACTIVE: 0, STOPPED: 0 };
   for (const g of groupedStatusRows as Array<{ status: keyof typeof statusStats; _count: { _all: number } }>) {
     if (g.status in statusStats) statusStats[g.status] = Number(g._count?._all || 0);
   }
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về dữ liệu danh sách tin tuyển dụng
     success: true,
     page,
     pageSize,
@@ -133,7 +138,9 @@ export async function GET(request: Request) {
     }))
   });
 }
-
+ /**
+ * KHỐI ĐỊNH NGHĨA KIỂU DỮ LIỆU ĐẦU VÀO (REQUEST BODY TYPE)
+ */
 type PatchOrCreateBody = {
   title?: string;
   companyIntro?: string | null;
@@ -152,7 +159,9 @@ type PatchOrCreateBody = {
   workTime?: string;
   applicationMethod?: string | null;
 };
-
+/**
+ * KHỐI CHỨC NĂNG: HÀM VALIDATE DỮ LIỆU ĐẦU VÀO (DÙNG CHUNG CHO KHỐI TẠO VÀ SỬA)
+ */
 function validateCreateOrEdit(body: PatchOrCreateBody, enterpriseDefaults: { website: string | null }) {
   const errors: Record<string, string> = {};
 
@@ -210,11 +219,11 @@ function validateCreateOrEdit(body: PatchOrCreateBody, enterpriseDefaults: { web
   if (!workTime) errors.workTime = "Vui lòng nhập thời gian làm việc.";
 
   const applicationMethod = body.applicationMethod == null ? null : (String(body.applicationMethod).trim() || null);
-
+// Xử lý điền thông tin giới thiệu và website mặc định nếu không được truyền lên
   const companyIntro = (body.companyIntro == null ? "" : String(body.companyIntro).trim()) || null;
   const companyWebsite =
     (body.companyWebsite == null ? "" : String(body.companyWebsite).trim()) || enterpriseDefaults.website || null;
-
+// Trả về kết quả đánh giá validation kèm dữ liệu sạch đã chuẩn hóa
   return {
     ok: Object.keys(errors).length === 0,
     errors,
@@ -239,8 +248,12 @@ function validateCreateOrEdit(body: PatchOrCreateBody, enterpriseDefaults: { web
   };
 }
 
+/**
+ * KHỐI XỬ LÝ: API POST - TẠO TIN TUYỂN DỤNG
+ */
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
+  // * 1. Xác thực người dùng và kiểm tra quyền truy cập (Role: doanhnghiep)
+  const cookieStore = await cookies(); 
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 });
 
@@ -261,25 +274,25 @@ export async function POST(request: Request) {
   const body = (await request.json()) as PatchOrCreateBody;
 
   const prismaAny = prisma as any;
-
-  const user = await prismaAny.user.findUnique({
+// * 2. Tìm kiếm thông tin doanh nghiệp để lấy thông tin giới thiệu và website mặc định
+  const user = await prismaAny.user.findUnique({ //tìm kiếm thông tin doanh nghiệp theo id doanh nghiệp
     where: { id: sub },
     select: { enterpriseMeta: true }
   });
   const meta = enterpriseMetaAsRecord(user?.enterpriseMeta);
   const defaultWebsite = typeof meta.website === "string" && meta.website.trim() ? meta.website.trim() : null;
-
+// * 3. Validate dữ liệu đầu vào và chuẩn hóa dữ liệu
   const validated = validateCreateOrEdit(body, { website: defaultWebsite });
   if (!validated.ok) {
     return NextResponse.json({ success: false, errors: validated.errors }, { status: 400 });
   }
-
+ // * 4. Tìm kiếm đợt thực tập mở nhất để liên kết với tin tuyển dụng
   const openBatch = await prismaAny.internshipBatch.findFirst({
     where: { status: "OPEN" },
     orderBy: { createdAt: "desc" }
   });
 
-  if (!openBatch) {
+  if (!openBatch) { //nếu không tìm thấy đợt thực tập mở thì trả về lỗi
     return NextResponse.json(
       { success: false, message: "Phòng đào tạo chưa mở đợt thực tập. Vui lòng chờ đến khi mở đợt thực tập." },
       { status: 400 }
@@ -288,10 +301,10 @@ export async function POST(request: Request) {
 
   const data = validated.data;
   const now = new Date();
-
+// * 4. Tự động xác định trạng thái ban đầu: "STOPPED" nếu vô tình chọn hạn nộp nhỏ hơn hiện tại, ngược lại là "PENDING" chờ duyệt
   const status = data.deadlineAt.getTime() <= now.getTime() ? "STOPPED" : "PENDING";
-
-  const created = await prismaAny.jobPost.create({
+// * 5. Tạo tin tuyển dụng mới vào DB
+  const created = await prismaAny.jobPost.create({ //tạo tin tuyển dụng mới vào DB
     data: {
       enterpriseUserId: sub,
       internshipBatchId: openBatch.id,
@@ -316,6 +329,6 @@ export async function POST(request: Request) {
     }
   });
 
-  return NextResponse.json({ success: true, message: "Tạo tin tuyển dụng thành công." });
+  return NextResponse.json({ success: true, message: "Tạo tin tuyển dụng thành công." }); //trả về kết quả thành công
 }
 

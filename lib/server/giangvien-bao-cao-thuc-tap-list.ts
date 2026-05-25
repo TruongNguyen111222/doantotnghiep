@@ -7,23 +7,23 @@ import { buildEnterpriseHeadquartersAddress } from "@/lib/utils/enterprise-admin
 
 const prismaAny = prisma as any;
 
-type InternshipStatus =
-  | "NOT_STARTED"
-  | "DOING"
-  | "SELF_FINANCED"
+type InternshipStatus = //hàm xử lý trạng thái thực tập
+  | "NOT_STARTED" //chưa thực tập
+  | "DOING" //đang thực tập
+  | "SELF_FINANCED" //thực tập tự túc
   | "REPORT_SUBMITTED"
-  | "COMPLETED"
+  | "COMPLETED" //hoàn thành thực tập
   | "REJECTED";
 
 type Degree = "BACHELOR" | "ENGINEER";
-type ReportReviewStatus = "PENDING" | "REJECTED" | "APPROVED";
+type ReportReviewStatus = "PENDING" | "REJECTED" | "APPROVED"; //hàm xử lý trạng thái review báo cáo thực tập
 
-export async function resolveGiangVienSupervisorProfileId(): Promise<
+export async function resolveGiangVienSupervisorProfileId(): Promise< //hàm xử lý id giảng viên
   | { ok: true; supervisorProfileId: string }
   | { ok: false; response: NextResponse }
 > {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const cookieStore = await cookies(); //hàm lấy cookie store
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value; //hàm lấy token từ cookie
   if (!token) return { ok: false, response: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
   try {
     const verified = await verifySession(token);

@@ -20,7 +20,15 @@ import {
   DOANHNGHIEP_TUYEN_DUNG_SALARY_PATTERN,
   DOANHNGHIEP_TUYEN_DUNG_TITLE_PATTERN,
   DOANHNGHIEP_TUYEN_DUNG_ERROR_TITLE
-} from "@/lib/constants/doanhnghiep-tuyen-dung";
+} from "@/lib/constants/doanhnghiep-tuyen-dung"; //hằng số cho API
+
+
+/**
+ * TỔNG QUAN FILE:
+ * File helper/utility này cung cấp các hàm xử lý logic nghiệp vụ cho phân hệ Tuyển dụng của Doanh nghiệp.
+ * Bao gồm: khởi tạo dữ liệu mặc định cho Form, phân tách/hợp nhất chuỗi địa chỉ, định dạng ngày tháng,
+ * kiểm tra tính hợp lệ của dữ liệu đầu vào (Validation), và chuẩn hóa dữ liệu Payload trước khi gửi lên API (Backend).
+ */
 
 export type JobEnterpriseDefaults = {
   intro: string;
@@ -34,11 +42,19 @@ export type JobEnterpriseDefaults = {
   };
 };
 
+/* KHỐI 1: CÁC HÀM XỬ LÝ LÝ VÀ CHUYỂN ĐỔI CHUỖI ĐỊA CHỈ (UI <-> TEXT) */
+
+/**
+ * Gộp các thành phần địa chỉ (Chi tiết, Phường/Xã, Tỉnh/Thành phố) thành một chuỗi văn bản hoàn chỉnh ngăn cách bởi dấu phẩy.
+ */
 function joinAddressParts(parts: Array<string | null | undefined>): string {
   const cleaned = parts.map((x) => String(x || "").trim()).filter(Boolean);
   return cleaned.length ? cleaned.join(", ") : "";
 }
-
+/**
+ * Phân tách chuỗi địa chỉ thuần văn bản (workLocation) từ API ngược thành
+ *  các trường cấu trúc để hiển thị lên UI Select/Input.
+ */
 function guessAddressFromWorkLocation(workLocation: string): {
   addressDetail: string;
   wardName: string;
@@ -57,6 +73,11 @@ function guessAddressFromWorkLocation(workLocation: string): {
   return { addressDetail: parts[0] || "", wardName: "", provinceName: "" };
 }
 
+/* KHỐI 2: CÁC HÀM XỬ LÝ VÀ ĐỊNH DẠNG THỜI GIAN (DATE / TIME UTILS) */
+
+/**
+ * Lấy ngày hiện tại định dạng chuỗi dùng cho thẻ input[type="date"] (yyyy-mm-dd).
+ */
 export function todayDateInputValue(): string {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -64,7 +85,9 @@ export function todayDateInputValue(): string {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
-
+/**
+ * Lấy ngày mai định dạng chuỗi dùng cho thẻ input[type="date"] (yyyy-mm-dd).
+ */
 export function tomorrowDateInputValue(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
@@ -73,14 +96,20 @@ export function tomorrowDateInputValue(): string {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
-
+/**
+ * Định dạng chuỗi ngày tháng ISO thành định dạng hiển thị Tiếng Việt (dd/mm/yyyy). Trả về "—" nếu không hợp lệ.
+ */
 export function formatDateVi(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("vi-VN");
 }
+/* KHỐI 3: KHỞI TẠO TRẠNG THÁI ĐẦU VÀO CHO FORM (FORM INITIALIZER) */
 
+/**
+ * Tạo một State trống hoàn toàn cho Form đăng tuyển dụng với các giá trị mặc định cơ bản.
+ */
 export function buildEmptyJobFormState(): JobFormState {
   return {
     title: "",
@@ -106,11 +135,16 @@ export function buildEmptyJobFormState(): JobFormState {
     applicationMethod: "Ứng viên nộp hồ sơ trực tuyến bằng cách bấm \"Ứng tuyển ngay\" dưới đây."
   };
 }
-
+/**
+ * Kiểm tra xem một chuỗi bất kỳ có khớp với kiểu dữ liệu WorkType ("PART_TIME" | "FULL_TIME") hay không.
+ */
 function isWorkType(value: string): value is WorkType {
   return value === "PART_TIME" || value === "FULL_TIME";
 }
-
+/**
+ * Khởi tạo dữ liệu Form cho tính năng THÊM MỚI tin tuyển dụng, 
+ * tự động điền các thông tin mặc định của doanh nghiệp.
+ */
 export function buildJobFormForAdd(args: {
   enterpriseDefaults: JobEnterpriseDefaults;
 }): JobFormState {
@@ -129,7 +163,10 @@ export function buildJobFormForAdd(args: {
     deadlineAt: tomorrowDateInputValue()
   };
 }
-
+/**
+ * Khởi tạo dữ liệu Form cho tính năng CẬP NHẬT (SỬA) tin tuyển dụng 
+ * bằng cách map dữ liệu chi tiết hiện tại của tin từ API.
+ */
 export function buildJobFormForEdit(args: {
   detail: JobDetailResponse;
   enterpriseDefaults: JobEnterpriseDefaults;
@@ -163,7 +200,12 @@ export function buildJobFormForEdit(args: {
     applicationMethod: job.applicationMethod || ""
   };
 }
+/* KHỐI 4: KIỂM TRA DỮ LIỆU ĐẦU VÀO FORM (VALIDATION LOGIC) */
 
+/**
+ * Kiểm tra toàn bộ dữ liệu trên Form dựa trên các Pattern RegExp hằng số. 
+ * Trả về trạng thái hợp lệ kèm Object chứa thông báo lỗi chi tiết.
+ */
 export function validateJobForm(
   form: JobFormState
 ): { isValid: boolean; errors: Record<string, string> } {
@@ -211,7 +253,11 @@ export function validateJobForm(
 
   return { isValid: Object.keys(next).length === 0, errors: next };
 }
+/* KHỐI 5: ĐÓNG GÓI DỮ LIỆU ĐỂ GỬI LÊN BACKEND (API PAYLOAD BUILDERS) */
 
+/**
+ * Chuẩn hóa dữ liệu từ Giao diện Form thành định dạng cấu trúc Payload chính xác để thực hiện gọi API tạo mới (POST).
+ */
 export function buildJobCreatePayload(form: JobFormState) {
   const computedWorkLocation = joinAddressParts([form.addressDetail, form.wardName, form.provinceName]);
   return {
@@ -233,15 +279,24 @@ export function buildJobCreatePayload(form: JobFormState) {
     applicationMethod: form.applicationMethod.trim() || null
   };
 }
-
+/**
+ * Chuẩn hóa dữ liệu từ Giao diện Form thành định dạng cấu trúc 
+ * Payload để thực hiện gọi API chỉnh sửa (PUT/PATCH) của tin tuyển dụng.
+ */
 export function buildJobEditPayload(form: JobFormState) {
   return buildJobCreatePayload(form);
 }
+/* KHỐI 6: PHÂN QUYỀN VÀ TRẠNG THÁI THAO TÁC (PERMISSION / WORKFLOW LOGIC) */
 
+/**
+ * Kiểm tra xem tin tuyển dụng ở trạng thái hiện tại có cho phép chỉnh sửa nội dung hay không.
+ */
 export function canEditStatus(status: JobStatus): boolean {
   return status === "PENDING" || status === "REJECTED";
 }
-
+/**
+ * Kiểm tra xem tin tuyển dụng ở trạng thái hiện tại có hợp lệ để thực hiện thao tác DỪNG tuyển dụng hay không.
+ */
 export function canStopStatus(status: JobStatus): boolean {
   return status !== "STOPPED";
 }

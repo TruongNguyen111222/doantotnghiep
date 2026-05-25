@@ -6,9 +6,9 @@ import {
   SCHOOL_HOTLINE,
   SCHOOL_WEBSITE
 } from "@/lib/constants/school";
-import { MAIL_BRAND } from "@/lib/mail-brand";  //gọi hàm MAIL_BRAND để lấy giao diện email
+import { MAIL_BRAND } from "@/lib/mail-brand";  
 
-export function escapeHtml(s: string) { //chuyển đổi các ký tự đặc biệt thành HTML entities
+export function escapeHtml(s: string) { 
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -17,7 +17,7 @@ export function escapeHtml(s: string) { //chuyển đổi các ký tự đặc b
 }
 
 /** Khớp globals.css — callout (mailCalloutHtml). */
-export const MAIL_ACCENT = { //màu sắc cho email
+export const MAIL_ACCENT = { 
   primary: "#002f6c",
   primaryDark: "#001f4a",
   success: "#027a48",

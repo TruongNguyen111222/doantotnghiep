@@ -3,27 +3,27 @@ import {
   BCTT_ERROR_INVALID_MIME,
   BCTT_ALLOWED_MIMES
 } from "@/lib/constants/sinhvien-bao-cao-thuc-tap";
-
-export function isAllowedBcttMime(mime: string | null | undefined): boolean {
+// hàm kiểm tra mime có phải là bctt
+export function isAllowedBcttMime(mime: string | null | undefined): boolean { //hàm kiểm tra mime có phải là bctt
   if (!mime) return false;
   return (BCTT_ALLOWED_MIMES as readonly string[]).includes(mime);
 }
-
-export function getBcttFileValidationError(mime: string | null | undefined): string | null {
+// hàm lấy lỗi mime không phải là bctt
+export function getBcttFileValidationError(mime: string | null | undefined): string | null { //hàm lấy lỗi mime không phải là bctt
   if (!isAllowedBcttMime(mime)) return BCTT_ERROR_INVALID_MIME;
   return null;
 }
 
-export function getSinhVienBaoCaoStatusHintText(args: {
+export function getSinhVienBaoCaoStatusHintText(args: { 
   canShowResults: boolean;
   canSubmitReport: boolean;
   canEditReport: boolean;
   internshipStatus: InternshipStatus;
   report: Report | null;
-}): string {
-  const { canShowResults, canSubmitReport, canEditReport, internshipStatus, report } = args;
+}): string { //hàm lấy text trạng thái báo cáo thực tập
+  const { canShowResults, canSubmitReport, canEditReport, internshipStatus, report } = args; //lấy args
 
-  if (canShowResults) return "Kết quả đã được ghi nhận.";
+  if (canShowResults) return "Kết quả đã được ghi nhận."; //trả về text kết quả đã được ghi nhận
   if (canSubmitReport) return "Bạn có thể nộp báo cáo thực tập.";
   if (canEditReport && report?.supervisorRejectReason)
     return `GVHD từ chối duyệt BCTT: ${report.supervisorRejectReason}`;

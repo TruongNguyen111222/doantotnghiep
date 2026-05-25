@@ -1,8 +1,8 @@
-import type { WorkTypeFilter } from "@/lib/types/sinhvien-tra-cuu-ung-tuyen";
-import { SINHVIEN_TRA_CUU_UNG_TUYEN_SEARCH_BUTTON_TEXT } from "@/lib/constants/sinhvien-tra-cuu-ung-tuyen";
+import type { WorkTypeFilter } from "@/lib/types/sinhvien-tra-cuu-ung-tuyen"; //import type kiểu làm việc
+import { SINHVIEN_TRA_CUU_UNG_TUYEN_SEARCH_BUTTON_TEXT } from "@/lib/constants/sinhvien-tra-cuu-ung-tuyen"; //import constants thông tin tin tuyển dụng
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 
-type Props = {
+type Props = { //type props toolbar tra cứu ứng tuyển
   q: string;
   workType: WorkTypeFilter;
   province: string;
@@ -13,7 +13,7 @@ type Props = {
   onSearch: () => void;
 };
 
-export default function TraCuuUngTuyenToolbar({
+export default function TraCuuUngTuyenToolbar({ //hàm toolbar tra cứu ứng tuyển
   q,
   workType,
   province,

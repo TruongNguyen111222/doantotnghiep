@@ -6,11 +6,11 @@ import {
   ADMIN_QUAN_LY_GVHD_PAGE_SIZE
 } from "@/lib/constants/admin-quan-ly-gvhd";
 
-import Pagination from "../../../components/Pagination";
+import Pagination from "../../../components/Pagination"; //component phân trang
 import TableIconButton from "../../../components/TableIconButton";
 import { FiEdit2, FiEye, FiTrash2 } from "react-icons/fi";
 import styles from "../../styles/dashboard.module.css";
-import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
+import { ChartStyleLoading } from "@/app/components/ChartStyleLoading"; //component loading
 
 type Props = {
   loading: boolean;

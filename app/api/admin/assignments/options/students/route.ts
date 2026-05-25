@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth/admin-session";
 
-export async function GET(request: Request) {
-  const admin = await getAdminSession();
+export async function GET(request: Request) { //hàm lấy danh sách sinh viên
+  const admin = await getAdminSession(); //lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
-  const { searchParams } = new URL(request.url);
-  const faculty = (searchParams.get("faculty") || "").trim();
+  const { searchParams } = new URL(request.url); 
+  const faculty = (searchParams.get("faculty") || "").trim(); //khoa
   const internshipBatchId = (searchParams.get("internshipBatchId") || "").trim();
   const q = (searchParams.get("q") || "").trim();
 
@@ -17,13 +17,13 @@ export async function GET(request: Request) {
 
   const prismaAny = prisma as any;
 
-  const existingLinks = await prismaAny.supervisorAssignmentStudent.findMany({
-    where: { supervisorAssignment: { internshipBatchId } },
-    select: { studentProfileId: true }
+  const existingLinks = await prismaAny.supervisorAssignmentStudent.findMany({ //lấy danh sách sinh viên đã phân công
+    where: { supervisorAssignment: { internshipBatchId } }, //điều kiện tìm kiếm
+    select: { studentProfileId: true } //lấy id sinh viên
   });
-  const assignedSet = new Set(existingLinks.map((x: any) => String(x.studentProfileId)));
+  const assignedSet = new Set(existingLinks.map((x: any) => String(x.studentProfileId))); //lấy danh sách id sinh viên đã phân công
 
-  const where: any = {
+  const where: any = { //điều kiện tìm kiếm
     faculty,
     internshipStatus: { not: "REJECTED" },
     id: { notIn: Array.from(assignedSet) }
@@ -36,13 +36,13 @@ export async function GET(request: Request) {
     ];
   }
 
-  const rows = await prismaAny.studentProfile.findMany({
+  const rows = await prismaAny.studentProfile.findMany({ //lấy danh sách sinh viên
     where,
     orderBy: [{ msv: "asc" }],
     select: { id: true, msv: true, degree: true, user: { select: { fullName: true } } }
   });
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về danh sách sinh viên 
     success: true,
     items: rows.map((r: any) => ({
       id: r.id,

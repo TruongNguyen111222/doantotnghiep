@@ -18,7 +18,7 @@ const internshipStatusColor: Record<string, { bg: string; color: string }> = {
   REJECTED: { bg: "#fee2e2", color: "#dc2626" }
 };
 
-export default function BaoCaoViewPopup({ viewTarget, onClose }: Props) {
+export default function BaoCaoViewPopup({ viewTarget, onClose }: Props) { //hàm hiển thị giao diện xem chi tiết sinh viên
   if (!viewTarget) return null;
 
   const statusColors = internshipStatusColor[viewTarget.internshipStatus] ?? { bg: "#f3f4f6", color: "#374151" };

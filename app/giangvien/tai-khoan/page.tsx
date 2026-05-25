@@ -15,15 +15,15 @@ import {
   buildGiangVienTaiKhoanDraftFromMe,
   buildGiangVienTaiKhoanPatchPayload,
   validateGiangVienTaiKhoanForm
-} from "@/lib/utils/giangvien-tai-khoan";
+} from "@/lib/utils/giangvien-tai-khoan";//hàm xử lý tài khoản giảng viên
 import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
-import GiangVienProfileInfo from "./components/GiangVienProfileInfo";
+import GiangVienProfileInfo from "./components/GiangVienProfileInfo"; //component xem thông tin giảng viên
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 import GiangVienAccountEditSection from "./components/GiangVienAccountEditSection";
 
-const GV_TAI_KHOAN_CACHE_KEY = "gv:tai-khoan:me";
+const GV_TAI_KHOAN_CACHE_KEY = "gv:tai-khoan:me"; //key cache tài khoản giảng viên
 
-export default function GiangVienTaiKhoanPage() {
+export default function GiangVienTaiKhoanPage() { //component tài khoản giảng viên
   const [loading, setLoading] = useState(() => !hasCachedValue(GV_TAI_KHOAN_CACHE_KEY));
   const [me, setMe] = useState<GiangVienMe | null>(() => getCachedValue<{ item?: GiangVienMe | null }>(GV_TAI_KHOAN_CACHE_KEY)?.item ?? null);
   const [error, setError] = useState("");
@@ -45,9 +45,9 @@ export default function GiangVienTaiKhoanPage() {
 
   const dismissToast = () => setToast("");
   const dismissError = () => setError("");
-
-  const syncDraftFromMe = (item: GiangVienMe) => {
-    const draft = buildGiangVienTaiKhoanDraftFromMe(item);
+// điền dữ liệu cũ vào form edit
+  const syncDraftFromMe = (item: GiangVienMe) => { 
+    const draft = buildGiangVienTaiKhoanDraftFromMe(item);   
     setPhone(draft.phone);
     setDegree(draft.degree);
     setProvinceCode(draft.provinceCode);
@@ -55,7 +55,7 @@ export default function GiangVienTaiKhoanPage() {
     setFieldErrors({});
   };
 
-  async function load(opts?: { force?: boolean; silent?: boolean }) {
+  async function load(opts?: { force?: boolean; silent?: boolean }) { //hàm tải dữ liệu tài khoản giảng viên
     const force = Boolean(opts?.force);
     const silent = Boolean(opts?.silent);
     try {
@@ -64,7 +64,7 @@ export default function GiangVienTaiKhoanPage() {
       const data = await getOrFetchCached<any>(
         GV_TAI_KHOAN_CACHE_KEY,
         async () => {
-          const res = await fetch("/api/giangvien/me");
+          const res = await fetch("/api/giangvien/me"); 
           const payload = await res.json();
           if (!res.ok || !payload?.success) throw new Error(payload?.message || GIANGVIEN_TAI_KHOAN_LOAD_ERROR_DEFAULT);
           return payload;
@@ -80,7 +80,7 @@ export default function GiangVienTaiKhoanPage() {
     }
   }
 
-  useEffect(() => {
+  useEffect(() => { //hàm tải dữ liệu tài khoản giảng viên
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -92,8 +92,8 @@ export default function GiangVienTaiKhoanPage() {
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
+ 
+  useEffect(() => { //hàm tải dữ liệu tỉnh/thành
     void (async () => {
       try {
         const res = await fetch("/api/vn-address/provinces");
@@ -111,7 +111,7 @@ export default function GiangVienTaiKhoanPage() {
       return;
     }
     setWardLoading(true);
-    fetch(`/api/vn-address/provinces/${provinceCode}/wards`)
+    fetch(`/api/vn-address/provinces/${provinceCode}/wards`) //gửi request lấy danh sách phường/xã từ API
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data?.items)) setWards(data.items);
@@ -119,18 +119,18 @@ export default function GiangVienTaiKhoanPage() {
       .finally(() => setWardLoading(false));
   }, [provinceCode]);
 
-  const validate = () => {
-    const { isValid, errors } = validateGiangVienTaiKhoanForm({
-      phone,
-      degree,
-      provinceCode,
-      wardCode
+  const validate = () => { //hàm kiểm tra dữ liệu form
+    const { isValid, errors } = validateGiangVienTaiKhoanForm({ //gọi hàm kiểm tra dữ liệu form
+      phone, //số điện thoại
+      degree, //bậc
+      provinceCode, //mã tỉnh/thành
+      wardCode //mã phường/xã
     });
-    setFieldErrors(errors);
-    return isValid;
+    setFieldErrors(errors); //lưu lỗi vào state
+    return isValid; //trả về true nếu không có lỗi
   };
 
-  async function submit() {
+  async function submit() { //hàm submit form tài khoản giảng viên
     if (!me) return;
     if (!validate()) return;
     setSaving(true);
@@ -142,7 +142,7 @@ export default function GiangVienTaiKhoanPage() {
           ...buildGiangVienTaiKhoanPatchPayload({ phone, degree, provinceCode, wardCode })
         })
       });
-      const data = await res.json();
+      const data = await res.json(); //lấy dữ liệu từ API
       if (!res.ok || !data?.success) throw new Error(data?.message || GIANGVIEN_TAI_KHOAN_NETWORK_ERROR_DEFAULT);
       setToast(data?.message || GIANGVIEN_TAI_KHOAN_SUBMIT_SUCCESS_DEFAULT);
       setIsEditing(false);
@@ -154,19 +154,19 @@ export default function GiangVienTaiKhoanPage() {
     }
   }
 
-  const startEdit = () => {
+  const startEdit = () => { //hàm bắt đầu chỉnh sửa form
     setFieldErrors({});
     setIsEditing(true);
   };
 
-  const cancelEdit = () => {
+  const cancelEdit = () => { //hàm hủy chỉnh sửa form
     if (!me) return;
     syncDraftFromMe(me);
     setFieldErrors({});
     setIsEditing(false);
   };
 
-  if (loading && !me) {
+  if (loading && !me) { //nếu đang tải và không có thông tin giảng viên thì hiển thị loading
     return (
       <main className={styles.page}>
         <ChartStyleLoading variant="block" />

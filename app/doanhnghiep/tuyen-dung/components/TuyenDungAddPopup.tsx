@@ -1,10 +1,16 @@
-import type { JobFormState } from "@/lib/types/doanhnghiep-tuyen-dung";
+import type { JobFormState } from "@/lib/types/doanhnghiep-tuyen-dung"; //type dữ liệu form tuyển dụng
 import TuyenDungJobFormFields from "./TuyenDungJobFormFields";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 
+/**
+ * TỔNG QUAN FILE:
+ * Component TuyenDungAddPopup hiển thị một cửa sổ bật lên (Modal/Popup) để thực hiện thao tác THÊM MỚI tin tuyển dụng.
+ * Hỗ trợ trạng thái tải dữ liệu bất đồng bộ (busyId) khi đang đợi phản hồi từ API.
+ */
+
 type Props = {
   open: boolean;
-  form: JobFormState;
+  form: JobFormState; //form tuyển dụng
   facultyOptions: string[];
   fieldErrors: Record<string, string>;
   busyId: string | null;

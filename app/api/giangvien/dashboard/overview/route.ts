@@ -4,9 +4,9 @@ import { verifySession } from "@/lib/auth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns";
 import { prisma } from "@/lib/prisma";
 
-async function getSupervisorProfileId() {
+async function getSupervisorProfileId() { //hàm lấy id giảng viên
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value; //lấy token từ cookie
   if (!token)
     return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
   try {
@@ -26,27 +26,27 @@ async function getSupervisorProfileId() {
   }
 }
 
-const INTERNSHIP_STATUS_ORDER = [
-  "NOT_STARTED", "DOING", "SELF_FINANCED", "REPORT_SUBMITTED", "COMPLETED", "REJECTED"
+const INTERNSHIP_STATUS_ORDER = [ //danh sách trạng thái thực tập
+  "NOT_STARTED", "DOING", "SELF_FINANCED", "REPORT_SUBMITTED", "COMPLETED", "REJECTED" //chưa thực tập, đang thực tập, thực tập tự túc, đã nộp báo cáo thực tập, hoàn thành thực tập, từ chối duyệt báo cáo thực tập
 ];
-const INTERNSHIP_STATUS_LABELS: Record<string, string> = {
-  NOT_STARTED: "Chưa thực tập",
-  DOING: "Đang thực tập",
-  SELF_FINANCED: "Thực tập tự túc",
-  REPORT_SUBMITTED: "Đã nộp BCTT",
-  COMPLETED: "Hoàn thành thực tập",
-  REJECTED: "Từ chối"
+const INTERNSHIP_STATUS_LABELS: Record<string, string> = { //danh sách nhãn trạng thái thực tập
+  NOT_STARTED: "Chưa thực tập", //chưa thực tập
+  DOING: "Đang thực tập", //Đang thực tập
+  SELF_FINANCED: "Thực tập tự túc", //Thực tập tự túc
+  REPORT_SUBMITTED: "Đã nộp BCTT", //Đã nộp báo cáo thực tập
+  COMPLETED: "Hoàn thành thực tập", //Hoàn thành thực tập
+  REJECTED: "Từ chối" //Từ chối duyệt báo cáo thực tập
 };
 
-export async function GET(request: Request) {
-  const auth = await getSupervisorProfileId();
+export async function GET(request: Request) { //hàm lấy dữ liệu cho dashboard
+  const auth = await getSupervisorProfileId(); //lấy id giảng viên
   if ("error" in auth) return auth.error;
-  const supervisorProfileId = auth.supervisorProfileId;
+  const supervisorProfileId = auth.supervisorProfileId; //lấy id giảng viên
   const prismaAny = prisma as any;
 
   try {
     const { searchParams } = new URL(request.url);
-    const batchIdParam = (searchParams.get("batchId") ?? "all").trim();
+    const batchIdParam = (searchParams.get("batchId") ?? "all").trim(); //lấy id batch
 
     // Batches this GV has assignments in
     const assignments: Array<{
@@ -82,12 +82,12 @@ export async function GET(request: Request) {
         ? batchIdParam
         : batches.find((b) => b.status === "OPEN")?.id ?? batches[0]?.id ?? null;
 
-    const emptyPayload = {
+    const emptyPayload = { //trả về dữ liệu trống khi không có đợt thực tập được chọn thì render cho khỏi lỗi
       success: true,
       batches,
       selectedBatchId: chosenBatchId,
       guidanceStatus: {
-        labels: ["Đang hướng dẫn", "Đã hoàn thành hướng dẫn"],
+        labels: ["Đang hướng dẫn", "Đã hoàn thành hướng dẫn"], //danh sách nhãn trạng thái hướng dẫn
         values: [0, 0]
       },
       internshipStatus: {
@@ -96,7 +96,7 @@ export async function GET(request: Request) {
       }
     };
 
-    if (!chosenBatchId) return NextResponse.json(emptyPayload);
+    if (!chosenBatchId) return NextResponse.json(emptyPayload); //trả về dữ liệu trống khi không có đợt thực tập được chọn thì render cho khỏi lỗi
 
     // Assignments in chosen batch
     const batchAssignments = assignments.filter((a) => a.internshipBatchId === chosenBatchId);
@@ -107,10 +107,10 @@ export async function GET(request: Request) {
     const allStudentProfileIds = new Set<string>();
 
     for (const a of batchAssignments) {
-      const count = a.students.length;
+      const count = a.students.length; //lấy số lượng sinh viên trong batch
       if (a.status === "GUIDING") guidingCount += count;
       else if (a.status === "COMPLETED") completedCount += count;
-      for (const s of a.students) allStudentProfileIds.add(s.studentProfileId);
+      for (const s of a.students) allStudentProfileIds.add(s.studentProfileId); //lấy id sinh viên trong batch
     }
 
     const guidanceStatus = {
@@ -119,10 +119,10 @@ export async function GET(request: Request) {
     };
 
     // Internship status chart (for assigned students)
-    const studentProfileIdList = Array.from(allStudentProfileIds);
+    const studentProfileIdList = Array.from(allStudentProfileIds); //lấy danh sách id sinh viên trong batch
     const internshipStatusCounts: Record<string, number> = {};
 
-    if (studentProfileIdList.length > 0) {
+    if (studentProfileIdList.length > 0) { //nếu có sinh viên trong batch thì lấy trạng thái thực tập của sinh viên
       const studentProfiles: Array<{ internshipStatus: string }> =
         await prismaAny.studentProfile.findMany({
           where: { id: { in: studentProfileIdList } },
@@ -134,12 +134,12 @@ export async function GET(request: Request) {
       }
     }
 
-    const internshipStatus = {
+    const internshipStatus = { //lấy danh sách trạng thái thực tập của sinh viên trong batch
       labels: INTERNSHIP_STATUS_ORDER.map((s) => INTERNSHIP_STATUS_LABELS[s] ?? s),
       values: INTERNSHIP_STATUS_ORDER.map((s) => internshipStatusCounts[s] ?? 0)
     };
-
-    return NextResponse.json({
+ 
+    return NextResponse.json({ //trả về dữ liệu cho dashboard
       success: true,
       batches,
       selectedBatchId: chosenBatchId,

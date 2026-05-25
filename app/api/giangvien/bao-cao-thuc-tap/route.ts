@@ -17,12 +17,12 @@ type InternshipStatus =
 
 type ReportReviewStatus = "PENDING" | "REJECTED" | "APPROVED";
 
-export async function GET(request: Request) {
-  const giangVien = await resolveGiangVienSupervisorProfileId();
+export async function GET(request: Request) { //hàm lấy dữ liệu báo cáo thực tập
+  const giangVien = await resolveGiangVienSupervisorProfileId(); //hàm lấy id giảng viên
   if (!giangVien.ok) return giangVien.response;
-  const supervisorProfileId = giangVien.supervisorProfileId;
+  const supervisorProfileId = giangVien.supervisorProfileId; //hàm lấy id giảng viên
 
-  const latestAssignment = await prismaAny.supervisorAssignment.findFirst({
+  const latestAssignment = await prismaAny.supervisorAssignment.findFirst({ //hàm lấy đợt thực tập mới nhất
     where: { supervisorProfileId },
     orderBy: { internshipBatch: { startDate: "desc" } },
     select: {
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     }
   });
 
-  let latestBatchInternshipStats: {
+  let latestBatchInternshipStats: { //hàm xử lý thống kê đợt thực tập
     batchId: string | null;
     batchName: string | null;
     totalAssigned: number;
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
     const latestLinks: Array<{
       studentProfile: { internshipStatus: InternshipStatus; internshipReport: { reviewStatus: ReportReviewStatus } | null };
-    }> = await prismaAny.supervisorAssignmentStudent.findMany({
+    }> = await prismaAny.supervisorAssignmentStudent.findMany({ //hàm lấy danh sách sinh viên được phân công từ database
       where: {
         supervisorAssignment: { supervisorProfileId, internshipBatchId: bid }
       },
@@ -104,9 +104,9 @@ export async function GET(request: Request) {
     }
 
     const totalAssigned = latestLinks.length;
-    const reportNotCompleted = Math.max(0, totalAssigned - reportApproved);
+    const reportNotCompleted = Math.max(0, totalAssigned - reportApproved); //hàm xử lý số lượng sinh viên chưa nộp báo cáo thực tập
 
-    latestBatchInternshipStats = {
+    latestBatchInternshipStats = { //hàm xử lý thống kê đợt thực tập
       batchId: bid,
       batchName,
       totalAssigned,
@@ -121,8 +121,8 @@ export async function GET(request: Request) {
     };
   }
 
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = new URL(request.url); 
   const items = await fetchGiangVienBaoCaoListItems(supervisorProfileId, searchParams);
 
-  return NextResponse.json({ success: true, items, latestBatchInternshipStats });
+  return NextResponse.json({ success: true, items, latestBatchInternshipStats }); //trả về dữ liệu báo cáo thực tập
 }

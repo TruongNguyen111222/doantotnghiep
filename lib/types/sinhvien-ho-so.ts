@@ -1,7 +1,7 @@
 import type { Gender, StudentDegree, SupervisorDegree } from "./sinhvien-ho-so-shared";
 export type { Gender as StudentGender, StudentDegree, SupervisorDegree } from "./sinhvien-ho-so-shared";
 
-export type StudentAccount = {
+export type StudentAccount = { //thông tin tài khoản sinh viên
   msv: string;
   fullName: string;
   className: string;
@@ -15,7 +15,7 @@ export type StudentAccount = {
   address: string | null;
 };
 
-export type SupervisorInfo = {
+export type SupervisorInfo = { //thông tin giảng viên hướng dẫn sinh viên
   fullName: string;
   phone: string | null;
   email: string;
@@ -23,10 +23,10 @@ export type SupervisorInfo = {
   degree: SupervisorDegree | null;
 } | null;
 
-export type Province = { code: number; name: string };
+export type Province = { code: number; name: string }; //tỉnh/thành phố 
 export type Ward = { code: number; name: string };
 
-export type SinhVienHoSoProfile = {
+export type SinhVienHoSoProfile = { //thông tin hồ sơ sinh viên
   currentProvinceCode?: string | null;
   currentProvinceName?: string | null;
   currentWardCode?: string | null;
@@ -39,7 +39,7 @@ export type SinhVienHoSoProfile = {
   hasCv?: boolean;
 };
 
-export type SinhVienHoSoDraft = {
+export type SinhVienHoSoDraft = { //bản nháp hồ sơ sinh viên khi nhập form
   phone: string;
   email: string;
   currentProvinceCode: string;

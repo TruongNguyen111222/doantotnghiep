@@ -13,7 +13,7 @@ type Props = {
   onSearch: () => void;
 };
 
-export default function SinhVienToolbar({
+export default function SinhVienToolbar({ //component toolbar sinh viên
   q,
   batchId,
   guidanceStatus,

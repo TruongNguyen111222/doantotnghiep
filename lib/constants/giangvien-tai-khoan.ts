@@ -1,25 +1,25 @@
-import type { Degree, Gender } from "@/lib/types/giangvien-tai-khoan";
+import type { Degree, Gender } from "@/lib/types/giangvien-tai-khoan"; //kiểu dữ liệu bậc giảng viên và giới tính
 
-export const degreeLabel: Record<Degree, string> = {
+export const degreeLabel: Record<Degree, string> = { //hàm xử lý bậc giảng viên
   MASTER: "Thạc sĩ",
   PHD: "Tiến sĩ",
   ASSOC_PROF: "Phó giáo sư",
   PROF: "Giáo sư"
 };
 
-export const genderLabel: Record<Gender, string> = {
+export const genderLabel: Record<Gender, string> = { //hàm xử lý giới tính
   MALE: "Nam",
   FEMALE: "Nữ",
   OTHER: "Khác"
 };
 
-export const PHONE_PATTERN = /^\d{8,12}$/;
+export const PHONE_PATTERN = /^\d{8,12}$/; //hàm xử lý số điện thoại
 
-export const DEGREE_ALLOWED = ["MASTER", "PHD", "ASSOC_PROF", "PROF"] as const;
+export const DEGREE_ALLOWED = ["MASTER", "PHD", "ASSOC_PROF", "PROF"] as const; //hàm xử lý bậc giảng viên
 
-export const GIANGVIEN_TAI_KHOAN_DEFAULT_DEGREE: Degree = "MASTER";
+export const GIANGVIEN_TAI_KHOAN_DEFAULT_DEGREE: Degree = "MASTER"; //hàm xử lý bậc giảng viên mặc định
 
-export const GIANGVIEN_TAI_KHOAN_LOAD_ERROR_DEFAULT =
+export const GIANGVIEN_TAI_KHOAN_LOAD_ERROR_DEFAULT = //hàm xử lý lỗi tải tài khoản giảng viên
   "Không thể tải tài khoản giảng viên.";
 export const GIANGVIEN_TAI_KHOAN_NETWORK_ERROR_DEFAULT = "Cập nhật thất bại.";
 export const GIANGVIEN_TAI_KHOAN_SUBMIT_SUCCESS_DEFAULT = "Cập nhật thành công.";

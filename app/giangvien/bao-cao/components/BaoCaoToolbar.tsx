@@ -13,7 +13,7 @@ type Props = {
   busy: boolean;
 };
 
-export default function BaoCaoToolbar({
+export default function BaoCaoToolbar({ 
   q,
   degreeFilter,
   statusFilter,

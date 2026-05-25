@@ -1,9 +1,9 @@
-export type AdminStudentExcelRow = {
-  msv: string;
+export type AdminStudentExcelRow = { //type dữ liệu sinh viên excel
+  msv: string; //mã sinh viên     
   fullName: string;
-  className: string;
-  faculty: string;
-  cohort: string;
+  className: string; //lớp
+  faculty: string; //khoa
+  cohort: string; //khóa
   degree: "Cử nhân" | "Kỹ sư";
   phone: string;
   email: string;
@@ -13,7 +13,7 @@ export type AdminStudentExcelRow = {
   wardName: string;
 };
 
-export const ADMIN_STUDENT_EXCEL_HEADER = [
+export const ADMIN_STUDENT_EXCEL_HEADER = [ //header dữ liệu sinh viên excel
   "MSV",
   "Họ tên",
   "Lớp",
@@ -28,7 +28,7 @@ export const ADMIN_STUDENT_EXCEL_HEADER = [
   "Phường/Xã"
 ] as const;
 
-export const ADMIN_STUDENT_FILTER_EXPORT_EXTRA_HEADER = [
+export const ADMIN_STUDENT_FILTER_EXPORT_EXTRA_HEADER = [ //header dữ liệu sinh viên excel thêm
   "Trạng thái thực tập",
   "GVHD họ tên",
   "GVHD email",
@@ -38,7 +38,7 @@ export const ADMIN_STUDENT_FILTER_EXPORT_EXTRA_HEADER = [
 
 export const ADMIN_STUDENT_FILTER_EXPORT_HEADER = [...ADMIN_STUDENT_EXCEL_HEADER, ...ADMIN_STUDENT_FILTER_EXPORT_EXTRA_HEADER];
 
-export const ADMIN_STUDENT_EXCEL_SAMPLE_ROWS: AdminStudentExcelRow[] = [
+export const ADMIN_STUDENT_EXCEL_SAMPLE_ROWS: AdminStudentExcelRow[] = [ //dữ liệu mẫu sinh viên excel
   {
     msv: "10000001",
     fullName: "Nguyễn Văn An",

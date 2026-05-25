@@ -1,20 +1,20 @@
 import { Button, Section, Text } from "@react-email/components";
-import { BrandedEmailLayout } from "@/emails/branded-email-layout"; //gọi layout/template email nhét vào children
+import { BrandedEmailLayout } from "@/emails/branded-email-layout"; 
 import { MAIL_PRODUCT_NAME, SCHOOL_FULL_NAME, SCHOOL_HOTLINE } from "@/lib/constants/school"; //gọi tên trường và email hỗ trợ
 
 const primary = "#002f6c";
 const danger = "#b42318";
 const muted = "#64748b";
 
-type Props = { //kiểu dữ liệu cho component PasswordResetEmail
+type Props = { 
   fullName: string;
   youLabel: string;
   resetUrl: string;
 };
 
-export function PasswordResetEmail(props: Props) { //hàm render ra component PasswordResetEmail
-  const { fullName, youLabel, resetUrl } = props; //lấy dữ liệu từ props
-  const preview = `Đặt lại mật khẩu — ${SCHOOL_FULL_NAME}`; //tiêu đề email
+export function PasswordResetEmail(props: Props) { 
+  const { fullName, youLabel, resetUrl } = props; 
+  const preview = `Đặt lại mật khẩu — ${SCHOOL_FULL_NAME}`; 
 
   return (
     <BrandedEmailLayout preview={preview}> 

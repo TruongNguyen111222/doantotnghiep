@@ -12,7 +12,7 @@ import type {
   Report,
   SupervisorInfo,
   StatusHistoryEvent
-} from "@/lib/types/sinhvien-bao-cao-thuc-tap";
+} from "@/lib/types/sinhvien-bao-cao-thuc-tap"; //hàm type sinh viên báo cáo thực tập
 import {
   SINHVIEN_BAO_CAO_THUC_TAP_ENDPOINT,
   SINHVIEN_BAO_CAO_THUC_TAP_LOAD_ERROR_DEFAULT,
@@ -23,23 +23,23 @@ import {
   BCTT_ERROR_INVALID_MIME,
   BCTT_ERROR_REQUIRED_FILE_BEFORE_EDIT,
   BCTT_ERROR_REQUIRED_FILE_BEFORE_SUBMIT
-} from "@/lib/constants/sinhvien-bao-cao-thuc-tap";
-import { getSinhVienBaoCaoStatusHintText, isAllowedBcttMime } from "@/lib/utils/sinhvien-bao-cao-thuc-tap";
+} from "@/lib/constants/sinhvien-bao-cao-thuc-tap"; //hàm constants sinh viên báo cáo thực tập
+import { getSinhVienBaoCaoStatusHintText, isAllowedBcttMime } from "@/lib/utils/sinhvien-bao-cao-thuc-tap"; //hàm utils sinh viên báo cáo thực tập
 import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
-import BaoCaoThucTapStatusSection from "./components/BaoCaoThucTapStatusSection";
-import BaoCaoThucTapSupervisorSection from "./components/BaoCaoThucTapSupervisorSection";
-import BaoCaoThucTapStatusHistorySection from "./components/BaoCaoThucTapStatusHistorySection";
-import BaoCaoThucTapResultSection from "./components/BaoCaoThucTapResultSection";
-const BaoCaoThucTapUploadPopup = dynamic(() => import("./components/BaoCaoThucTapUploadPopup"), { ssr: false });
-const BaoCaoThucTapEditPopup = dynamic(() => import("./components/BaoCaoThucTapEditPopup"), { ssr: false });
+import BaoCaoThucTapStatusSection from "./components/BaoCaoThucTapStatusSection"; //hàm component sinh viên báo cáo thực tập
+import BaoCaoThucTapSupervisorSection from "./components/BaoCaoThucTapSupervisorSection"; //hàm component sinh viên báo cáo thực tập
+import BaoCaoThucTapStatusHistorySection from "./components/BaoCaoThucTapStatusHistorySection"; //hàm component sinh viên báo cáo thực tập
+import BaoCaoThucTapResultSection from "./components/BaoCaoThucTapResultSection"; //hàm component sinh viên báo cáo thực tập
+const BaoCaoThucTapUploadPopup = dynamic(() => import("./components/BaoCaoThucTapUploadPopup"), { ssr: false }); //hàm component sinh viên báo cáo thực tập
+const BaoCaoThucTapEditPopup = dynamic(() => import("./components/BaoCaoThucTapEditPopup"), { ssr: false }); //hàm component sinh viên báo cáo thực tập
 
 const SV_BAO_CAO_THUC_TAP_ME_KEY = "sv:bao-cao-thuc-tap:me";
 
-function readSvBaoCaoThucTapSeed() {
+function readSvBaoCaoThucTapSeed() { //hàm lấy seed sinh viên báo cáo thực tập
   const data = getCachedValue<{ item?: Record<string, unknown> }>(SV_BAO_CAO_THUC_TAP_ME_KEY);
   const item = data?.item;
   if (!item) return null;
-  return {
+  return { //trả về seed sinh viên báo cáo thực tập
     internshipStatus: item.internshipStatus as InternshipStatus,
     supervisor: (item.supervisor ?? null) as SupervisorInfo | null,
     report: (item.report ?? null) as Report | null,
@@ -49,7 +49,7 @@ function readSvBaoCaoThucTapSeed() {
   };
 }
 
-export default function SinhvienBaoCaoThucTapPage() {
+export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh viên báo cáo thực tập
   const seed = readSvBaoCaoThucTapSeed();
   const [bootstrapped, setBootstrapped] = useState(() => Boolean(seed));
   const [loading, setLoading] = useState(() => !hasCachedValue(SV_BAO_CAO_THUC_TAP_ME_KEY));
@@ -73,7 +73,7 @@ export default function SinhvienBaoCaoThucTapPage() {
   const [deleteLocalFile, setDeleteLocalFile] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function load(opts?: { force?: boolean; silent?: boolean }) {
+  async function load(opts?: { force?: boolean; silent?: boolean }) { //hàm load sinh viên báo cáo thực tập
     const force = Boolean(opts?.force);
     const silent = Boolean(opts?.silent);
     try {
@@ -89,16 +89,16 @@ export default function SinhvienBaoCaoThucTapPage() {
         },
         { force }
       );
-      const item = data.item;
-      setInternshipStatus(item.internshipStatus);
-      setSupervisor(item.supervisor ?? null);
-      setReport(item.report ?? null);
-      setStatusHistory(Array.isArray(item.statusHistory) ? item.statusHistory : []);
-      setCanSubmitReport(Boolean(item.ui?.canSubmitReport));
-      setCanEditReport(Boolean(item.ui?.canEditReport));
+      const item = data.item; 
+      setInternshipStatus(item.internshipStatus); 
+      setSupervisor(item.supervisor ?? null); 
+      setReport(item.report ?? null); 
+      setStatusHistory(Array.isArray(item.statusHistory) ? item.statusHistory : []); 
+      setCanSubmitReport(Boolean(item.ui?.canSubmitReport)); 
+      setCanEditReport(Boolean(item.ui?.canEditReport)); 
       setBootstrapped(true);
     } catch (e: any) {
-      setError(e?.message || SINHVIEN_BAO_CAO_THUC_TAP_LOAD_ERROR_DEFAULT);
+      setError(e?.message || SINHVIEN_BAO_CAO_THUC_TAP_LOAD_ERROR_DEFAULT); 
       setBootstrapped(true);
     } finally {
       if (!silent) setLoading(false);
@@ -120,8 +120,8 @@ export default function SinhvienBaoCaoThucTapPage() {
 
   const canShowResults = internshipStatus === "COMPLETED";
 
-  const statusHint = useMemo(() => {
-    return getSinhVienBaoCaoStatusHintText({
+  const statusHint = useMemo(() => { 
+    return getSinhVienBaoCaoStatusHintText({ 
       canShowResults,
       canSubmitReport,
       canEditReport,
@@ -130,7 +130,7 @@ export default function SinhvienBaoCaoThucTapPage() {
     });
   }, [canShowResults, canSubmitReport, canEditReport, internshipStatus, report?.supervisorRejectReason, report?.reviewStatus, report]);
 
-  function resetUploadState() {
+  function resetUploadState() { 
     setSelectedFileName(null);
     setSelectedFileMime(null);
     setSelectedFileBase64(null);
@@ -138,7 +138,7 @@ export default function SinhvienBaoCaoThucTapPage() {
     setFieldErrors({});
   }
 
-  async function onChooseFile(file: File | null) {
+  async function onChooseFile(file: File | null) { //hàm chọn file báo cáo thực tập
     if (!file) return;
     const payload = await readFileAsBase64Payload(file);
     const mime = payload.mime;
@@ -153,16 +153,16 @@ export default function SinhvienBaoCaoThucTapPage() {
     setDeleteLocalFile(false);
   }
 
-  async function submitNewReport() {
+  async function submitNewReport() { //hàm nộp báo cáo thực tập
     if (!selectedFileBase64 || !selectedFileMime || !selectedFileName || deleteLocalFile) {
       setFieldErrors({ file: BCTT_ERROR_REQUIRED_FILE_BEFORE_SUBMIT });
       return;
     }
     setBusy(true);
     try {
-      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", {
+      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", { //hàm gửi request nộp báo cáo thực tập
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, //hàm gửi request nộp báo cáo thực tập
         body: JSON.stringify({
           reportFileName: selectedFileName,
           reportMime: selectedFileMime,
@@ -183,15 +183,15 @@ export default function SinhvienBaoCaoThucTapPage() {
   }
 
   async function submitEditReport() {
-    if (!selectedFileBase64 || !selectedFileMime || !selectedFileName || deleteLocalFile) {
+    if (!selectedFileBase64 || !selectedFileMime || !selectedFileName || deleteLocalFile) { //hàm gửi request sửa báo cáo thực tập
       setFieldErrors({ file: BCTT_ERROR_REQUIRED_FILE_BEFORE_EDIT });
       return;
     }
     setBusy(true);
     try {
-      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", {
+      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", { //hàm gửi request sửa báo cáo thực tập
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, //hàm gửi request sửa báo cáo thực tập
         body: JSON.stringify({
           reportFileName: selectedFileName,
           reportMime: selectedFileMime,
@@ -213,7 +213,7 @@ export default function SinhvienBaoCaoThucTapPage() {
 
   const reportFileLink = report?.reportUrl || null;
 
-  return (
+  return ( //hàm render trang sinh viên báo cáo thực tập
     <main className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Theo dõi tiến độ thực tập</h1>

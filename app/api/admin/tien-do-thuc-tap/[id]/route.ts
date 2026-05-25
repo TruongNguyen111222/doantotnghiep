@@ -6,26 +6,26 @@ import { sendMail } from "@/lib/mail";
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
 import { getAdminTienDoStatusLabel } from "@/lib/utils/admin-tien-do-status-label";
 
-type Degree = "BACHELOR" | "ENGINEER";
+type Degree = "BACHELOR" | "ENGINEER"; //trình độ học vấn
 type InternshipStatus =
-  | "NOT_STARTED"
-  | "DOING"
-  | "SELF_FINANCED"
-  | "REPORT_SUBMITTED"
-  | "COMPLETED"
-  | "REJECTED";
+  | "NOT_STARTED" //chưa bắt đầu
+  | "DOING" //đang thực tập
+  | "SELF_FINANCED" //tự tài trợ
+  | "REPORT_SUBMITTED" //báo cáo đã nộp
+  | "COMPLETED" //hoàn thành
+  | "REJECTED"; //bị từ chối
 
-type ReportReviewStatus = "PENDING" | "REJECTED" | "APPROVED";
+type ReportReviewStatus = "PENDING" | "REJECTED" | "APPROVED"; //trạng thái review báo cáo
 
-export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm lấy chi tiết tiến độ thực tập
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   const { id } = await ctx.params;
   const prismaAny = prisma as any;
 
-  const profile = await prismaAny.studentProfile.findFirst({
-    where: { id },
+  const profile = await prismaAny.studentProfile.findFirst({ //tìm kiếm sinh viên theo id
+    where: { id }, //điều kiện tìm kiếm
     select: {
       id: true,
       userId: true,
@@ -51,8 +51,8 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
           history: true
         }
       },
-      internshipStatusHistory: {
-        orderBy: { at: "desc" },
+      internshipStatusHistory: { 
+        orderBy: { at: "desc" }, //sắp xếp theo thời gian
         select: { fromStatus: true, toStatus: true, byRole: true, message: true, at: true }
       },
       assignmentLinks: {
@@ -78,11 +78,11 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
 
   if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy sinh viên." }, { status: 404 });
 
-  const internshipStatus = profile.internshipStatus as InternshipStatus;
+  const internshipStatus = profile.internshipStatus as InternshipStatus;  //trạng thái thực tập
   const reportReviewStatus = (profile.internshipReport?.reviewStatus ?? null) as ReportReviewStatus | null;
   const canFinalUpdate = internshipStatus !== "COMPLETED" && internshipStatus !== "REJECTED";
 
-  const assignment = profile.assignmentLinks?.[0]?.supervisorAssignment ?? null;
+  const assignment = profile.assignmentLinks?.[0]?.supervisorAssignment ?? null; //phân công hướng dẫn
   const supervisor = assignment?.supervisorProfile
     ? {
         fullName: assignment.supervisorProfile.user?.fullName ?? "",
@@ -92,42 +92,42 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
       }
     : null;
 
-  let enterprise: { companyName: string; position: string } | null = null;
+  let enterprise: { companyName: string; position: string } | null = null; //doanh nghiệp
   if (internshipStatus !== "SELF_FINANCED") {
-    const appRow = await prismaAny.jobApplication.findFirst({
-      where: { studentUserId: profile.userId, status: "OFFERED", response: "ACCEPTED" },
+    const appRow = await prismaAny.jobApplication.findFirst({ //tìm kiếm ứng viên theo id sinh viên
+      where: { studentUserId: profile.userId, status: "OFFERED", response: "ACCEPTED" }, //điều kiện tìm kiếm
       select: {
         jobPost: {
-          select: { title: true, enterpriseUser: { select: { companyName: true } } }
+          select: { title: true, enterpriseUser: { select: { companyName: true } } } //lấy thông tin việc làm
         }
       },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" } //sắp xếp theo thời gian
     });
     if (appRow?.jobPost) {
-      enterprise = {
+      enterprise = { //doanh nghiệp
         companyName: appRow.jobPost.enterpriseUser?.companyName ?? "—",
         position: appRow.jobPost.title ?? "—"
       };
     }
   }
 
-  const report = profile.internshipReport
+  const report = profile.internshipReport //báo cáo thực tập
     ? {
-        id: profile.internshipReport.id,
-        reviewStatus: profile.internshipReport.reviewStatus as ReportReviewStatus,
-        reportFileName: profile.internshipReport.reportFileName,
+        id: profile.internshipReport.id, //id báo cáo thực tập
+        reviewStatus: profile.internshipReport.reviewStatus as ReportReviewStatus, //trạng thái review báo cáo
+        reportFileName: profile.internshipReport.reportFileName, //tên báo cáo thực tập
         reportUrl: `/api/files/internship-report/${profile.internshipReport.id}`,
-        supervisorEvaluation: profile.internshipReport.supervisorEvaluation ?? null,
-        supervisorPoint: profile.internshipReport.supervisorPoint ?? null,
-        enterpriseEvaluation: profile.internshipReport.enterpriseEvaluation ?? null,
-        enterprisePoint: profile.internshipReport.enterprisePoint ?? null,
-        supervisorRejectReason: profile.internshipReport.supervisorRejectReason ?? null,
-        submittedAt: profile.internshipReport.submittedAt?.toISOString?.() ?? null,
-        reviewedAt: profile.internshipReport.reviewedAt?.toISOString?.() ?? null
+        supervisorEvaluation: profile.internshipReport.supervisorEvaluation ?? null, //đánh giá giảng viên hướng dẫn
+        supervisorPoint: profile.internshipReport.supervisorPoint ?? null, //điểm giảng viên hướng dẫn
+        enterpriseEvaluation: profile.internshipReport.enterpriseEvaluation ?? null, //đánh giá doanh nghiệp        
+        enterprisePoint: profile.internshipReport.enterprisePoint ?? null, //điểm doanh nghiệp
+        supervisorRejectReason: profile.internshipReport.supervisorRejectReason ?? null, //lý do từ chối báo cáo thực tập
+        submittedAt: profile.internshipReport.submittedAt?.toISOString?.() ?? null, //thời gian nộp báo cáo thực tập
+        reviewedAt: profile.internshipReport.reviewedAt?.toISOString?.() ?? null //thời gian review báo cáo thực tập
       }
     : null;
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về dữ liệu chi tiết tiến độ thực tập
     success: true,
     item: {
       student: {
@@ -158,46 +158,46 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
   });
 }
 
-export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm cập nhật trạng thái cuối cùng
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   const { id } = await ctx.params;
-  const body = (await request.json()) as { finalStatus?: "COMPLETED" | "REJECTED" };
+  const body = (await request.json()) as { finalStatus?: "COMPLETED" | "REJECTED" }; //lấy trạng thái cuối cùng từ body
   const finalStatus = body.finalStatus;
   if (!finalStatus || (finalStatus !== "COMPLETED" && finalStatus !== "REJECTED")) {
-    return NextResponse.json({ success: false, message: "Trạng thái không hợp lệ." }, { status: 400 });
+    return NextResponse.json({ success: false, message: "Trạng thái không hợp lệ." }, { status: 400 }); //trả về lỗi nếu trạng thái không hợp lệ
   }
 
   const prismaAny = prisma as any;
 
-  const profile = await prismaAny.studentProfile.findFirst({
-    where: { id },
+  const profile = await prismaAny.studentProfile.findFirst({ //tìm kiếm sinh viên theo id
+    where: { id }, //điều kiện tìm kiếm
     select: {
-      id: true,
-      userId: true,
-      msv: true,
-      internshipStatus: true,
-      user: { select: { fullName: true, email: true } },
+      id: true, //id sinh viên
+      userId: true, //id tài khoản
+      msv: true, //mã sinh viên
+      internshipStatus: true, //trạng thái thực tập
+      user: { select: { fullName: true, email: true } }, //lấy thông tin sinh viên
       internshipReport: {
         select: {
-          reviewStatus: true,
-          supervisorPoint: true,
-          enterprisePoint: true,
-          supervisorEvaluation: true
+          reviewStatus: true, //trạng thái review báo cáo
+          supervisorPoint: true, //điểm giảng viên hướng dẫn
+          enterprisePoint: true, //điểm doanh nghiệp
+          supervisorEvaluation: true //đánh giá giảng viên hướng dẫn
         }
       },
       assignmentLinks: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+        orderBy: { createdAt: "desc" }, //sắp xếp theo thời gian
+        take: 1, //lấy 1 phần tử
         select: {
           supervisorAssignment: {
             select: {
-              id: true,
-              status: true,
+              id: true, //id phân công hướng dẫn
+              status: true, //trạng thái phân công hướng dẫn
               supervisorProfile: {
                 select: {
-                  user: { select: { fullName: true, email: true } }
+                  user: { select: { fullName: true, email: true } } //lấy thông tin giảng viên hướng dẫn
                 }
               }
             }
@@ -206,91 +206,91 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       }
     }
   });
-  if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy sinh viên." }, { status: 404 });
+  if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy sinh viên." }, { status: 404 }); //trả về lỗi nếu không tìm thấy sinh viên
 
-  const internshipStatus = profile.internshipStatus as InternshipStatus;
+  const internshipStatus = profile.internshipStatus as InternshipStatus; //trạng thái thực tập  
 
-  if (internshipStatus === "COMPLETED" || internshipStatus === "REJECTED") {
-    return NextResponse.json({ success: false, message: "Trạng thái thực tập đã ở trạng thái cuối cùng, không thể cập nhật lại." }, { status: 400 });
+  if (internshipStatus === "COMPLETED" || internshipStatus === "REJECTED") { 
+    return NextResponse.json({ success: false, message: "Trạng thái thực tập đã ở trạng thái cuối cùng, không thể cập nhật lại." }, { status: 400 }); //trả về lỗi nếu trạng thái thực tập đã ở trạng thái cuối cùng
   }
 
-  if (finalStatus === "COMPLETED") {
-    const report = profile.internshipReport;
-    const reviewStatus = (report?.reviewStatus ?? null) as ReportReviewStatus | null;
-    const dqt = report?.supervisorPoint ?? null;
-    const kthp = report?.enterprisePoint ?? null;
-    const evaluation = (report?.supervisorEvaluation ?? "").trim();
-    if (reviewStatus !== "APPROVED" || dqt == null || kthp == null || !evaluation) {
-      return NextResponse.json(
+  if (finalStatus === "COMPLETED") { //nếu trạng thái cuối cùng là COMPLETED
+    const report = profile.internshipReport; //báo cáo thực tập
+    const reviewStatus = (report?.reviewStatus ?? null) as ReportReviewStatus | null; //trạng thái review báo cáo
+    const dqt = report?.supervisorPoint ?? null; //điểm giảng viên hướng dẫn
+    const kthp = report?.enterprisePoint ?? null; //điểm doanh nghiệp
+    const evaluation = (report?.supervisorEvaluation ?? "").trim(); //đánh giá giảng viên hướng dẫn
+    if (reviewStatus !== "APPROVED" || dqt == null || kthp == null || !evaluation) { //nếu trạng thái review báo cáo không là APPROVED hoặc điểm giảng viên hướng dẫn hoặc điểm doanh nghiệp hoặc đánh giá giảng viên hướng dẫn không hợp lệ
+      return NextResponse.json( //trả về lỗi nếu GVHD chưa duyệt BCTT hoặc chưa có đủ điểm ĐQT/KTHP và đánh giá
         {
           success: false,
           message: "Chưa thể cập nhật 'Hoàn thành thực tập': GVHD chưa duyệt BCTT hoặc chưa có đủ điểm ĐQT/KTHP và đánh giá."
         },
         { status: 400 }
-      );
+      ); //trả về lỗi nếu GVHD chưa duyệt BCTT hoặc chưa có đủ điểm ĐQT/KTHP và đánh giá
     }
   }
 
-  const prevStatus = internshipStatus;
-  const svFullName: string = profile.user?.fullName ?? "Sinh viên";
-  const svEmail: string | null = profile.user?.email ?? null;
+  const prevStatus = internshipStatus; //trạng thái trước đó
+  const svFullName: string = profile.user?.fullName ?? "Sinh viên"; //tên sinh viên
+  const svEmail: string | null = profile.user?.email ?? null; //email sinh viên
 
   const supervisorAssignment = profile.assignmentLinks?.[0]?.supervisorAssignment ?? null;
-  const gvFullName: string = supervisorAssignment?.supervisorProfile?.user?.fullName ?? "Giảng viên";
-  const gvEmail: string | null = supervisorAssignment?.supervisorProfile?.user?.email ?? null;
+  const gvFullName: string = supervisorAssignment?.supervisorProfile?.user?.fullName ?? "Giảng viên"; //tên giảng viên hướng dẫn
+  const gvEmail: string | null = supervisorAssignment?.supervisorProfile?.user?.email ?? null; //email giảng viên hướng dẫn
 
-  await prismaAny.$transaction(async (tx: any) => {
-    if (finalStatus === "COMPLETED") {
-      await tx.studentProfile.update({ where: { id }, data: { internshipStatus: "COMPLETED" } });
+  await prismaAny.$transaction(async (tx: any) => { //thực hiện transaction
+    if (finalStatus === "COMPLETED") { //nếu trạng thái cuối cùng là COMPLETED
+      await tx.studentProfile.update({ where: { id }, data: { internshipStatus: "COMPLETED" } }); //cập nhật trạng thái thực tập thành COMPLETED
 
-      if (supervisorAssignment?.id) {
+      if (supervisorAssignment?.id) { //nếu phân công hướng dẫn tồn tại
         await tx.supervisorAssignment.update({
           where: { id: supervisorAssignment.id },
-          data: { status: "COMPLETED" }
+          data: { status: "COMPLETED" } //cập nhật trạng thái phân công hướng dẫn thành COMPLETED
         });
-        await tx.supervisorAssignmentStatusHistory.create({
+        await tx.supervisorAssignmentStatusHistory.create({ //tạo lịch sử trạng thái phân công hướng dẫn
           data: {
-            supervisorAssignmentId: supervisorAssignment.id,
-            fromStatus: (supervisorAssignment.status ?? "GUIDING") as any,
-            toStatus: "COMPLETED",
-            byRole: "admin",
-            message: "Admin hoàn thành hướng dẫn thực tập"
+            supervisorAssignmentId: supervisorAssignment.id, //id phân công hướng dẫn
+            fromStatus: (supervisorAssignment.status ?? "GUIDING") as any, //trạng thái trước đó
+            toStatus: "COMPLETED", //trạng thái sau
+            byRole: "admin", //vai trò
+            message: "Admin hoàn thành hướng dẫn thực tập" //lời nhắn
           }
         });
       }
     } else {
       // REJECTED = "Chưa hoàn thành thực tập"
-      await tx.studentProfile.update({ where: { id }, data: { internshipStatus: "REJECTED" } });
+      await tx.studentProfile.update({ where: { id }, data: { internshipStatus: "REJECTED" } }); //cập nhật trạng thái thực tập thành REJECTED
 
-      if (supervisorAssignment?.id) {
+      if (supervisorAssignment?.id) { //nếu phân công hướng dẫn tồn tại
         await tx.supervisorAssignment.update({
           where: { id: supervisorAssignment.id },
-          data: { status: "COMPLETED" }
+          data: { status: "COMPLETED" } //cập nhật trạng thái phân công hướng dẫn thành COMPLETED
         });
-        await tx.supervisorAssignmentStatusHistory.create({
+        await tx.supervisorAssignmentStatusHistory.create({ //tạo lịch sử trạng thái phân công hướng dẫn
           data: {
-            supervisorAssignmentId: supervisorAssignment.id,
+            supervisorAssignmentId: supervisorAssignment.id, //id phân công hướng dẫn
             fromStatus: (supervisorAssignment.status ?? "GUIDING") as any,
-            toStatus: "COMPLETED",
-            byRole: "admin",
-            message: "Admin hoàn thành hướng dẫn (SV chưa hoàn thành thực tập)"
+            toStatus: "COMPLETED", //trạng thái sau
+            byRole: "admin", //vai trò
+            message: "Admin hoàn thành hướng dẫn (SV chưa hoàn thành thực tập)" //lời nhắn
           }
         });
       }
 
       // Lock student account
-      await tx.user.update({
-        where: { id: profile.userId },
-        data: { isLocked: true }
+      await tx.user.update({ //cập nhật trạng thái tài khoản thành LOCKED
+        where: { id: profile.userId }, //id tài khoản
+        data: { isLocked: true } //cập nhật trạng thái tài khoản thành LOCKED
       });
     }
-
-    await tx.internshipStatusHistory.create({
+ 
+    await tx.internshipStatusHistory.create({ //tạo lịch sử trạng thái thực tập
       data: {
-        studentProfileId: id,
-        fromStatus: prevStatus,
-        toStatus: finalStatus,
-        byRole: "admin",
+        studentProfileId: id, //id sinh viên
+        fromStatus: prevStatus, //trạng thái trước đó
+        toStatus: finalStatus, //trạng thái sau
+        byRole: "admin", //vai trò  
         message:
           finalStatus === "COMPLETED"
             ? "Admin xác nhận hoàn thành thực tập"
@@ -301,11 +301,11 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
 
   // Send email notifications
   try {
-    const appUrl = getPublicAppUrl();
-    if (finalStatus === "COMPLETED") {
+    const appUrl = getPublicAppUrl(); //url hệ thống
+    if (finalStatus === "COMPLETED") { //nếu trạng thái cuối cùng là COMPLETED
       if (svEmail) {
         await sendMail(
-          svEmail,
+          svEmail, //email sinh viên
           `${MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX} – Kết quả thực tập của bạn đã có`,
           `Kính gửi ${svFullName},\n\nKết quả thực tập của bạn đã được Admin xác nhận: Hoàn thành thực tập.\n\nVui lòng đăng nhập hệ thống để xem chi tiết kết quả.\nĐường dẫn hệ thống: ${appUrl}/sinhvien\n\n${MAIL_TRANSACTIONAL_SIGN_OFF}`
         );
@@ -335,6 +335,6 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       ? "Xác nhận hoàn thành thực tập thành công. Email đã gửi cho SV và GVHD."
       : "Xác nhận chưa hoàn thành thực tập. Tài khoản SV đã bị tạm dừng.";
 
-  return NextResponse.json({ success: true, message: msg });
+  return NextResponse.json({ success: true, message: msg }); //trả về dữ liệu thành công
 }
 

@@ -5,48 +5,48 @@ import { getAdminSession } from "@/lib/auth/admin-session";
 import { prisma } from "@/lib/prisma";
 import { ADMIN_TIEN_DO_FILTER_EXPORT_HEADER } from "@/lib/constants/admin-quan-ly-tien-do-thuc-tap";
 import { ADMIN_QUAN_LY_SINH_VIEN_DEGREE_LABEL } from "@/lib/constants/admin-quan-ly-sinh-vien";
-import { buildAdminTienDoListWhere } from "@/lib/server/admin-tien-do-list-filter";
+import { buildAdminTienDoListWhere } from "@/lib/server/admin-tien-do-list-filter"; //hàm lấy danh sách tiến độ thực tập
 import { getAdminTienDoStatusLabel } from "@/lib/utils/admin-tien-do-status-label";
 import type { InternshipStatus } from "@/lib/types/admin-quan-ly-tien-do-thuc-tap";
 
 const MAX_EXPORT = 8000;
 
-function fmtPoint(v: unknown): string {
-  if (v == null) return "";
-  const n = typeof v === "number" ? v : Number(v);
-  if (Number.isNaN(n)) return "";
-  return String(n);
+function fmtPoint(v: unknown): string { //hàm chuyển đổi điểm thành chuỗi
+  if (v == null) return ""; //nếu điểm là null hoặc undefined thì trả về chuỗi rỗng
+  const n = typeof v === "number" ? v : Number(v); //nếu điểm là số thì trả về số đó, nếu không thì chuyển đổi thành số
+  if (Number.isNaN(n)) return ""; //nếu điểm không phải là số thì trả về chuỗi rỗng
+  return String(n); //trả về chuỗi điểm
 }
 
-function reportReviewLabel(s: string | null | undefined): string {
-  if (!s) return "";
-  if (s === "APPROVED") return "Đã duyệt";
-  if (s === "REJECTED") return "Từ chối";
-  if (s === "PENDING") return "Chờ duyệt";
-  return String(s);
+function reportReviewLabel(s: string | null | undefined): string { //hàm chuyển đổi trạng thái review báo cáo thành chuỗi
+  if (!s) return ""; //nếu trạng thái review báo cáo là null hoặc undefined thì trả về chuỗi rỗng
+  if (s === "APPROVED") return "Đã duyệt"; //nếu trạng thái review báo cáo là APPROVED thì trả về chuỗi "Đã duyệt"
+  if (s === "REJECTED") return "Từ chối"; //nếu trạng thái review báo cáo là REJECTED thì trả về chuỗi "Từ chối"
+  if (s === "PENDING") return "Chờ duyệt"; //nếu trạng thái review báo cáo là PENDING thì trả về chuỗi "Chờ duyệt"
+  return String(s); //trả về chuỗi trạng thái review báo cáo
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request) { //hàm xuất file Excel tiến độ thực tập
   const admin = await getAdminSession();
-  if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
+  if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 }); //nếu không có quyền truy cập thì trả về lỗi 403
 
   try {
-    const { searchParams } = new URL(request.url);
-    const prismaAny = prisma as any;
-    const where = buildAdminTienDoListWhere(searchParams) as any;
+    const { searchParams } = new URL(request.url); //lấy tham số từ URL
+    const prismaAny = prisma as any; //lấy prisma
+    const where = buildAdminTienDoListWhere(searchParams) as any; //lấy danh sách tiến độ thực tập
 
-    const totalItems = await prismaAny.studentProfile.count({ where });
-    if (totalItems > MAX_EXPORT) {
+    const totalItems = await prismaAny.studentProfile.count({ where }); //lấy số lượng sinh viên
+    if (totalItems > MAX_EXPORT) { //nếu số lượng sinh viên vượt quá MAX_EXPORT thì trả về lỗi 400
       return NextResponse.json(
         { message: `Kết quả vượt ${MAX_EXPORT} sinh viên. Vui lòng thu hẹp bộ lọc hoặc từ khóa tìm kiếm.` },
-        { status: 400 }
+        { status: 400 } //trả về lỗi 400
       );
     }
 
-    const rows = await prismaAny.studentProfile.findMany({
-      where,
-      orderBy: { msv: "asc" },
-      take: MAX_EXPORT,
+    const rows = await prismaAny.studentProfile.findMany({ //lấy danh sách sinh viên  
+      where, //điều kiện tìm kiếm
+      orderBy: { msv: "asc" }, //sắp xếp theo mã sinh viên
+      take: MAX_EXPORT, //lấy MAX_EXPORT sinh viên
       select: {
         id: true,
         userId: true,
@@ -77,12 +77,12 @@ export async function GET(request: Request) {
     });
 
     const userIds = [...new Set(rows.map((r: { userId: string }) => String(r.userId)).filter(Boolean))];
-    const enterpriseByUserId = new Map<string, { companyName: string; position: string }>();
+    const enterpriseByUserId = new Map<string, { companyName: string; position: string }>(); //map công ty theo id sinh viên
 
-    if (userIds.length) {
-      const apps = await prismaAny.jobApplication.findMany({
-        where: { studentUserId: { in: userIds }, status: "OFFERED", response: "ACCEPTED" },
-        orderBy: { createdAt: "desc" },
+    if (userIds.length) { //nếu có sinh viên thì lấy danh sách công ty theo id sinh viên
+      const apps = await prismaAny.jobApplication.findMany({ //lấy danh sách ứng tuyển
+        where: { studentUserId: { in: userIds }, status: "OFFERED", response: "ACCEPTED" }, //điều kiện tìm kiếm
+        orderBy: { createdAt: "desc" }, //sắp xếp theo thời gian
         select: {
           studentUserId: true,
           jobPost: {
@@ -103,25 +103,25 @@ export async function GET(request: Request) {
       }
     }
 
-    const degreeMap = ADMIN_QUAN_LY_SINH_VIEN_DEGREE_LABEL as Record<string, string>;
+    const degreeMap = ADMIN_QUAN_LY_SINH_VIEN_DEGREE_LABEL as Record<string, string>; //map bậc theo id sinh viên
 
-    const dataRows = rows.map((r: any) => {
-      const internshipStatus = r.internshipStatus as InternshipStatus;
-      const reportReviewStatus = r.internshipReport?.reviewStatus ?? null;
-      const statusLabel = getAdminTienDoStatusLabel(internshipStatus, reportReviewStatus);
-      const sup = r.assignmentLinks?.[0]?.supervisorAssignment?.supervisorProfile?.user;
+    const dataRows = rows.map((r: any) => { //lấy danh sách sinh viên
+      const internshipStatus = r.internshipStatus as InternshipStatus; //trạng thái thực tập
+      const reportReviewStatus = r.internshipReport?.reviewStatus ?? null; //trạng thái review báo cáo
+      const statusLabel = getAdminTienDoStatusLabel(internshipStatus, reportReviewStatus); //trạng thái tiến độ thực tập
+      const sup = r.assignmentLinks?.[0]?.supervisorAssignment?.supervisorProfile?.user; //giảng viên hướng dẫn
 
-      let companyName = "";
-      let position = "";
-      if (internshipStatus !== "SELF_FINANCED") {
-        const ent = enterpriseByUserId.get(String(r.userId));
+      let companyName = ""; //tên công ty
+      let position = ""; //chức vụ
+      if (internshipStatus !== "SELF_FINANCED") { //nếu trạng thái thực tập không phải là SELF_FINANCED thì lấy tên công ty và chức vụ
+        const ent = enterpriseByUserId.get(String(r.userId)); //lấy công ty theo id sinh viên
         if (ent) {
           companyName = ent.companyName;
           position = ent.position;
         }
       }
 
-      return [
+      return [ //lấy dữ liện sinh viên
         String(r.msv ?? ""),
         String(r.user?.fullName ?? ""),
         String(r.className ?? ""),
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
       ];
     });
 
-    const aoa = [[...ADMIN_TIEN_DO_FILTER_EXPORT_HEADER], ...dataRows];
+    const aoa = [[...ADMIN_TIEN_DO_FILTER_EXPORT_HEADER], ...dataRows]; //tạo dữ liệu excel
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
     for (let c = range.s.c; c <= range.e.c; c++) {
@@ -182,14 +182,14 @@ export async function GET(request: Request) {
 
     const disposition = `attachment; filename="tien_do_thuc_tap.xlsx"; filename*=UTF-8''${encodeURIComponent("tien_do_thuc_tap_theo_loc.xlsx")}`;
 
-    return new NextResponse(buf, {
+    return new NextResponse(Buffer.from(buf), { //trả về file excel
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": disposition
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", //set type file excel
+        "Content-Disposition": disposition //set header gửi dữ liệu
       }
     });
   } catch (e) {
-    console.error("[GET /api/admin/tien-do-thuc-tap/export]", e);
+    console.error("[GET /api/admin/tien-do-thuc-tap/export]", e); //log lỗi
     return NextResponse.json({ success: false, message: "Lỗi máy chủ." }, { status: 500 });
   }
 }

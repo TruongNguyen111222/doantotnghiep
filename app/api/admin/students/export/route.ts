@@ -11,9 +11,9 @@ import {
 } from "@/lib/constants/admin-quan-ly-sinh-vien";
 import { buildAdminStudentListWhere } from "@/lib/server/admin-students-list-filter";
 
-const MAX_EXPORT = 8000;
+const MAX_EXPORT = 8000; //số lượng sinh viên tối đa xuất excel
 
-function birthDateYmd(d: Date | null | undefined): string {
+function birthDateYmd(d: Date | null | undefined): string { //hàm chuyển đổi ngày tháng năm thành định dạng YYYY-MM-DD
   if (!d || !(d instanceof Date) || Number.isNaN(d.getTime())) return "";
   return d.toISOString().slice(0, 10);
 }
@@ -27,7 +27,7 @@ type LinkRow = {
   };
 };
 
-function pickPreferredSupervisorLink(prev: LinkRow | undefined, cur: LinkRow): LinkRow {
+function pickPreferredSupervisorLink(prev: LinkRow | undefined, cur: LinkRow): LinkRow { //hàm lấy link supervisor ưu tiên
   if (!prev) return cur;
   const pStart = prev.supervisorAssignment.internshipBatch.startDate?.getTime?.() ?? 0;
   const cStart = cur.supervisorAssignment.internshipBatch.startDate?.getTime?.() ?? 0;
@@ -38,7 +38,7 @@ function pickPreferredSupervisorLink(prev: LinkRow | undefined, cur: LinkRow): L
   return cU >= pU ? cur : prev;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request) { //hàm xuất excel danh sách sinh viên từ API
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const rows = await prismaAny.studentProfile.findMany({
+    const rows = await prismaAny.studentProfile.findMany({ //lấy danh sách sinh viên
       where,
       orderBy: { msv: "asc" },
       take: MAX_EXPORT,
@@ -75,11 +75,11 @@ export async function GET(request: Request) {
       }
     });
 
-    const profileIds = rows.map((r: { id: string }) => String(r.id)).filter(Boolean);
-    const supervisorByStudent = new Map<string, LinkRow>();
+    const profileIds = rows.map((r: { id: string }) => String(r.id)).filter(Boolean); //lấy danh sách id sinh viên
+    const supervisorByStudent = new Map<string, LinkRow>(); //map supervisor theo id sinh viên
 
     if (profileIds.length) {
-      const links: LinkRow[] = await prismaAny.supervisorAssignmentStudent.findMany({
+      const links: LinkRow[] = await prismaAny.supervisorAssignmentStudent.findMany({ //lấy danh sách link supervisor theo id sinh viên
         where: { studentProfileId: { in: profileIds } },
         select: {
           studentProfileId: true,
@@ -95,10 +95,10 @@ export async function GET(request: Request) {
         }
       });
 
-      for (const link of links) {
+      for (const link of links) { //lặp qua danh sách link supervisor
         const sid = String(link.studentProfileId);
-        const prev = supervisorByStudent.get(sid);
-        supervisorByStudent.set(sid, pickPreferredSupervisorLink(prev, link));
+        const prev = supervisorByStudent.get(sid); //lấy link supervisor trước đó
+        supervisorByStudent.set(sid, pickPreferredSupervisorLink(prev, link)); //lấy link supervisor ưu tiên
       }
     }
 
@@ -106,12 +106,12 @@ export async function GET(request: Request) {
     const genderMap = ADMIN_QUAN_LY_SINH_VIEN_GENDER_LABEL as Record<string, string>;
     const statusMap = ADMIN_QUAN_LY_SINH_VIEN_INTERNSHIP_STATUS_LABEL as Record<string, string>;
 
-    const dataRows = rows.map((sp: any) => {
-      const sup = supervisorByStudent.get(String(sp.id));
+    const dataRows = rows.map((sp: any) => { //lặp qua danh sách sinh viên
+      const sup = supervisorByStudent.get(String(sp.id)); //lấy link supervisor theo id sinh viên
       const u = sup?.supervisorAssignment?.supervisorProfile?.user;
       const batchName = sup?.supervisorAssignment?.internshipBatch?.name ?? "";
 
-      return [
+      return [ //lấy dữ liệu sinh viên
         String(sp.msv ?? ""),
         String(sp.user?.fullName ?? ""),
         String(sp.className ?? ""),
@@ -132,12 +132,12 @@ export async function GET(request: Request) {
       ];
     });
 
-    const aoa = [[...ADMIN_STUDENT_FILTER_EXPORT_HEADER], ...dataRows];
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
+    const aoa = [[...ADMIN_STUDENT_FILTER_EXPORT_HEADER], ...dataRows]; //tạo dữ liệu excel
+    const ws = XLSX.utils.aoa_to_sheet(aoa); //tạo sheet excel
+    const range = XLSX.utils.decode_range(ws["!ref"] || "A1"); //lấy khoảng excel
     for (let c = range.s.c; c <= range.e.c; c++) {
       for (let r = range.s.r + 1; r <= range.e.r; r++) {
-        const addr = XLSX.utils.encode_cell({ r, c });
+        const addr = XLSX.utils.encode_cell({ r, c }); //lấy cell excel
         const cell = ws[addr];
         if (!cell) continue;
         cell.t = "s";
@@ -165,16 +165,16 @@ export async function GET(request: Request) {
       { wch: 28 }
     ];
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sinh vien");
-    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer;
+    const wb = XLSX.utils.book_new(); //tạo workbook excel
+    XLSX.utils.book_append_sheet(wb, ws, "Sinh vien"); //thêm sheet excel vào workbook
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer; //lưu workbook excel
 
-    const disposition = `attachment; filename="danh_sach_sinh_vien.xlsx"; filename*=UTF-8''${encodeURIComponent("danh_sach_sinh_vien_theo_loc.xlsx")}`;
+    const disposition = `attachment; filename="danh_sach_sinh_vien.xlsx"; filename*=UTF-8''${encodeURIComponent("danh_sach_sinh_vien_theo_loc.xlsx")}`; //set header gửi dữ liệu
 
-    return new NextResponse(buf, {
+    return new NextResponse(buf.toString("binary"), { //trả về file excel
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": disposition
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", //set type file excel
+        "Content-Disposition": disposition //set header gửi dữ liệu
       }
     });
   } catch (e) {

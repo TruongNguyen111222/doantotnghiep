@@ -1,6 +1,6 @@
-export type WorkType = "PART_TIME" | "FULL_TIME";
+export type WorkType = "PART_TIME" | "FULL_TIME"; //kiểu làm việc
 
-export type InternshipStatus =
+export type InternshipStatus = //trạng thái đăng ký thực tập
   | "NOT_STARTED"
   | "DOING"
   | "SELF_FINANCED"
@@ -8,7 +8,7 @@ export type InternshipStatus =
   | "COMPLETED"
   | "REJECTED";
 
-export type SinhVienTraCuuUngTuyenItem = {
+export type SinhVienTraCuuUngTuyenItem = { //thông tin tin tuyển dụng
   id: string;
   title: string;
   companyName: string;
@@ -22,5 +22,5 @@ export type SinhVienTraCuuUngTuyenItem = {
   hasApplied: boolean;
 };
 
-export type WorkTypeFilter = "all" | WorkType;
+export type WorkTypeFilter = "all" | WorkType; //kiểu làm việc
 

@@ -9,10 +9,10 @@ export async function GET() {
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 });
 
-  let sub: string;
-  let role: string;
+  let sub: string; //id sinh viên
+  let role: string; //vai trò sinh viên
   try {
-    const verified = await verifySession(token);
+    const verified = await verifySession(token); //xác thực token
     sub = verified.sub;
     role = verified.role;
   } catch {
@@ -25,7 +25,7 @@ export async function GET() {
 
   const prismaAny = prisma as any;
 
-  const profile = await prismaAny.studentProfile.findFirst({
+  const profile = await prismaAny.studentProfile.findFirst({ //tìm kiếm hồ sơ sinh viên
     where: { userId: sub },
     select: {
       msv: true,
@@ -52,7 +52,7 @@ export async function GET() {
     return NextResponse.json({ success: false, message: "Không tìm thấy hồ sơ sinh viên." }, { status: 404 });
   }
 
-  const assignmentLink = await prismaAny.supervisorAssignmentStudent.findFirst({
+  const assignmentLink = await prismaAny.supervisorAssignmentStudent.findFirst({ //tìm kiếm liên kết giảng viên hướng dẫn sinh viên
     where: { studentProfile: { userId: sub } },
     orderBy: { createdAt: "desc" },
     select: {
@@ -77,9 +77,9 @@ export async function GET() {
     }
   });
 
-  const sup = assignmentLink?.supervisorAssignment?.supervisorProfile;
+  const sup = assignmentLink?.supervisorAssignment?.supervisorProfile; //giảng viên hướng dẫn sinh viên
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về thông tin tài khoản sinh viên
     success: true,
     student: {
       msv: profile.msv,

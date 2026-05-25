@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"; 
 import { fetchCloudinaryBytesByPublicId, fromCloudinaryRef } from "@/lib/storage/cloudinary";
 
-function safeFilename(name: string): string {
+function safeFilename(name: string): string { //hàm xử lý tên file báo cáo thực tập
   return String(name || "bctt.pdf").replace(/["\r\n]/g, "").trim() || "bctt.pdf";
 }
 
-async function getSession() {
+async function getSession() { 
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
@@ -21,16 +21,16 @@ async function getSession() {
   }
 }
 
-export async function GET(request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const sess = await getSession();
+export async function GET(request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm lấy file báo cáo thực tập
+  const sess = await getSession(); 
   if ("error" in sess) return sess.error;
   const { sub, role } = sess;
 
-  const { id } = await ctx.params;
-  const download = new URL(request.url).searchParams.get("download") === "1";
+  const { id } = await ctx.params; //lấy id báo cáo thực tập
+  const download = new URL(request.url).searchParams.get("download") === "1"; //kiểm tra url có trạng thái tải xuống
 
   const prismaAny = prisma as any;
-  const report = await prismaAny.internshipReport.findFirst({
+  const report = await prismaAny.internshipReport.findFirst({ 
     where: { id },
     select: {
       id: true,
@@ -46,7 +46,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
   let allowed = role === "admin" || (role === "sinhvien" && report.studentProfile?.userId === sub);
   if (!allowed && role === "giangvien") {
     const sup = await prismaAny.supervisorProfile.findFirst({ where: { userId: sub }, select: { id: true } });
-    if (sup?.id && report.studentProfileId) {
+    if (sup?.id && report.studentProfileId) { 
       const link = await prismaAny.supervisorAssignmentStudent.findFirst({
         where: {
           studentProfileId: report.studentProfileId,
@@ -65,7 +65,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
 
   let bytes: Buffer;
   let mime = String(report.reportMime || "").trim() || "application/pdf";
-  const cloudPublicId = fromCloudinaryRef(stored);
+  const cloudPublicId = fromCloudinaryRef(stored); //lấy id file từ cloudinary
   if (cloudPublicId) {
     const fetched = await fetchCloudinaryBytesByPublicId(cloudPublicId);
     if (!fetched) {
@@ -76,7 +76,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
     if (upstreamType && upstreamType !== "application/octet-stream") mime = upstreamType;
   } else {
     try {
-      bytes = Buffer.from(stored, "base64");
+      bytes = Buffer.from(stored, "base64"); //chuyển đổi file base64 thành file thật nếu là file cũ
     } catch {
       return NextResponse.json({ success: false, message: "File BCTT không hợp lệ." }, { status: 500 });
     }
@@ -85,11 +85,11 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
   const filename = safeFilename(report.reportFileName || "bctt.pdf");
   const disposition = `${download ? "attachment" : "inline"}; filename="${filename}"`;
 
-  return new NextResponse(new Uint8Array(bytes), {
+  return new NextResponse(new Uint8Array(bytes), { //trả về file báo cáo thực tập
     status: 200,
     headers: {
       "Content-Type": mime,
-      "Content-Disposition": disposition,
+      "Content-Disposition": disposition, //chọn mở trực tiếp hay tải xuống
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff"
     }

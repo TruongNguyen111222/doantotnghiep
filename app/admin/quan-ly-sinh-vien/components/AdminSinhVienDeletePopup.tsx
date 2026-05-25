@@ -1,5 +1,5 @@
 "use client";
-
+//popup xác nhận xóa sinh viên
 import type { StudentListItem } from "@/lib/types/admin-quan-ly-sinh-vien";
 import MessagePopup from "../../../components/MessagePopup";
 import styles from "../../styles/dashboard.module.css";
@@ -11,7 +11,7 @@ type Props = {
   onConfirm: () => void;
 };
 
-export default function AdminSinhVienDeletePopup(props: Props) {
+export default function AdminSinhVienDeletePopup(props: Props) { //component popup xóa sinh viên
   const { target, busy, onClose, onConfirm } = props;
   if (!target) return null;
 

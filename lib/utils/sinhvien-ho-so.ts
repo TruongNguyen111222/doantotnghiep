@@ -20,6 +20,8 @@ import {
 import type { SinhVienHoSoProfile as SinhVienHoSoProfileType } from "@/lib/types/sinhvien-ho-so";
 import type { SinhVienHoSoDraft as SinhVienHoSoDraftType } from "@/lib/types/sinhvien-ho-so";
 
+//xử lý logic cho hồ sơ sinh viên
+
 export function formatDateVi(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -27,7 +29,7 @@ export function formatDateVi(iso: string | null): string {
   return d.toLocaleDateString("vi-VN");
 }
 
-export function mapProfileToDraft(profile: SinhVienHoSoProfileType | null): SinhVienHoSoDraftType {
+export function mapProfileToDraft(profile: SinhVienHoSoProfileType | null): SinhVienHoSoDraftType { //chuyển đổi thông tin hồ sơ sinh viên từ profile sang draft
   return {
     phone: String(profile?.phone ?? ""),
     email: String(profile?.email ?? ""),
@@ -59,12 +61,12 @@ export function isCvMimeAllowed(mime: string | null | undefined): boolean {
   return (CV_ALLOWED_MIMES as readonly string[]).includes(mime);
 }
 
-export function getCvFileValidationError(mime: string | null | undefined): string | null {
+export function getCvFileValidationError(mime: string | null | undefined): string | null { //lấy lỗi file CV không hợp lệ
   if (!isCvMimeAllowed(mime)) return CV_ERROR_INVALID_MIME;
   return null;
 }
 
-export function buildSinhVienHoSoPatchPayload(draft: SinhVienHoSoDraftType): {
+export function buildSinhVienHoSoPatchPayload(draft: SinhVienHoSoDraftType): { //tạo payload để cập nhật hồ sơ sinh viên
   phone: string;
   email: string;
   currentProvinceCode: string;
@@ -80,20 +82,20 @@ export function buildSinhVienHoSoPatchPayload(draft: SinhVienHoSoDraftType): {
   };
 }
 
-export function getSinhVienHoSoSubmitErrorMessage(args: { message?: string } | undefined): string {
+export function getSinhVienHoSoSubmitErrorMessage(args: { message?: string } | undefined): string { //lấy lỗi cập nhật hồ sơ sinh viên
   return args?.message || SINHVIEN_HO_SO_SUBMIT_ERROR_DEFAULT;
 }
 
-export function getSinhVienHoSoSubmitSuccessMessage(args: { message?: string } | undefined): string {
+export function getSinhVienHoSoSubmitSuccessMessage(args: { message?: string } | undefined): string { //lấy thông báo thành công cập nhật hồ sơ sinh viên
   return args?.message || SINHVIEN_HO_SO_SUBMIT_SUCCESS_DEFAULT;
 }
 
-export function getSinhVienHoSoLoadAccountErrorMessage(err: unknown): string {
+export function getSinhVienHoSoLoadAccountErrorMessage(err: unknown): string { //lấy lỗi tải thông tin tài khoản sinh viên
   if (err instanceof Error) return err.message || SINHVIEN_HO_SO_LOAD_ACCOUNT_ERROR_DEFAULT;
   return SINHVIEN_HO_SO_LOAD_ACCOUNT_ERROR_DEFAULT;
 }
 
-export function getSinhVienHoSoLoadProfileErrorMessage(err: unknown): string {
+export function getSinhVienHoSoLoadProfileErrorMessage(err: unknown): string { //lấy lỗi tải thông tin hồ sơ sinh viên
   if (err instanceof Error) return err.message || SINHVIEN_HO_SO_LOAD_PROFILE_ERROR_DEFAULT;
   return SINHVIEN_HO_SO_LOAD_PROFILE_ERROR_DEFAULT;
 }

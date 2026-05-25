@@ -12,53 +12,53 @@ import {
 } from "@/app/admin/components/AdminDashboardCharts";
 import type { SimpleChartSeries } from "@/lib/types/admin-dashboard";
 
-type OverviewPayload = {
-  success: boolean;
-  doubleBar: { labels: string[]; accepted: number[]; declined: number[] };
-  lineChart: { labels: string[]; series: SimpleChartSeries[] };
-  applicationStatus: { labels: string[]; values: number[] };
-  jobStatus: { labels: string[]; values: number[] };
+type OverviewPayload = { //Kiểu dữ liệu trả về từ API , toàn bộ dữ liệu của dashboard
+  success: boolean; //trả về true nếu thành công, false nếu thất bại
+  doubleBar: { labels: string[]; accepted: number[]; declined: number[] }; //danh sách các nhãn và giá trị của đồ thị cột
+  lineChart: { labels: string[]; series: SimpleChartSeries[] }; //danh sách các nhãn và danh sách các đồ thị đường của tin tuyển dụng
+  applicationStatus: { labels: string[]; values: number[] }; //danh sách các nhãn và giá trị của đồ thị cột của hồ sơ ứng tuyển
+  jobStatus: { labels: string[]; values: number[] }; //danh sách các nhãn và giá trị của đồ thị cột của tin tuyển dụng
 };
 
-const APP_STATUS_COLORS = ["#2563eb", "#f59e0b", "#16a34a", "#ef4444"];
-const JOB_STATUS_COLORS = ["#f59e0b", "#ef4444", "#16a34a", "#6b7280"];
+const APP_STATUS_COLORS = ["#2563eb", "#f59e0b", "#16a34a", "#ef4444"]; //màu sắc cho đồ thị cột của hồ sơ ứng tuyển
+const JOB_STATUS_COLORS = ["#f59e0b", "#ef4444", "#16a34a", "#6b7280"]; //màu sắc cho đồ thị cột của tin tuyển dụng
 
 const shellChartMin = { minHeight: 300 } as const;
 
-function enterpriseDashboardOverviewCacheKey(dateFrom: string, dateTo: string) {
-  const qs = new URLSearchParams();
-  if (dateFrom) qs.set("dateFrom", dateFrom);
-  if (dateTo) qs.set("dateTo", dateTo);
-  const url = `/api/doanhnghiep/dashboard/overview?${qs.toString()}`;
-  return `enterprise:dashboard:overview:${url}`;
+function enterpriseDashboardOverviewCacheKey(dateFrom: string, dateTo: string) { //hàm tạo key cache cho dashboard
+  const qs = new URLSearchParams(); //tạo đối tượng URLSearchParams để lưu các tham số query
+  if (dateFrom) qs.set("dateFrom", dateFrom); //thêm tham số query vào đối tượng URLSearchParams
+  if (dateTo) qs.set("dateTo", dateTo); //thêm tham số query vào đối tượng URLSearchParams
+  const url = `/api/doanhnghiep/dashboard/overview?${qs.toString()}`; //tạo url cho request
+  return `enterprise:dashboard:overview:${url}`; //trả về key cache
 }
 
-const ENTERPRISE_DASHBOARD_INITIAL_KEY = enterpriseDashboardOverviewCacheKey("", "");
+const ENTERPRISE_DASHBOARD_INITIAL_KEY = enterpriseDashboardOverviewCacheKey("", ""); //tạo key cache cho dashboard
 
 export default function EnterpriseDashboardPage() {
-  const [loading, setLoading] = useState(() => !hasCachedValue(ENTERPRISE_DASHBOARD_INITIAL_KEY));
-  const [error, setError] = useState<string | null>(null);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [payload, setPayload] = useState<OverviewPayload | null>(() => getCachedValue<OverviewPayload>(ENTERPRISE_DASHBOARD_INITIAL_KEY) ?? null);
+  const [loading, setLoading] = useState(() => !hasCachedValue(ENTERPRISE_DASHBOARD_INITIAL_KEY)); //trạng thái loading của dashboard
+  const [error, setError] = useState<string | null>(null); //trạng thái lỗi của dashboard
+  const [dateFrom, setDateFrom] = useState(""); //trạng thái ngày từ của dashboard
+  const [dateTo, setDateTo] = useState(""); //trạng thái ngày đến của dashboard
+  const [payload, setPayload] = useState<OverviewPayload | null>(() => getCachedValue<OverviewPayload>(ENTERPRISE_DASHBOARD_INITIAL_KEY) ?? null); //trạng thái dữ liệu của dashboard
 
-  useEffect(() => {
+  useEffect(() => { //hàm load dữ liệu cho dashboard
     let cancelled = false;
     async function load(opts?: { force?: boolean; silent?: boolean }) {
       const force = Boolean(opts?.force);
       const silent = Boolean(opts?.silent);
       try {
-        const qs = new URLSearchParams();
+        const qs = new URLSearchParams(); 
         if (dateFrom) qs.set("dateFrom", dateFrom);
         if (dateTo) qs.set("dateTo", dateTo);
-        const url = `/api/doanhnghiep/dashboard/overview?${qs.toString()}`;
+        const url = `/api/doanhnghiep/dashboard/overview?${qs.toString()}`; //tạo url cho request
         const cacheKey = `enterprise:dashboard:overview:${url}`;
         if (!silent && !hasCachedValue(cacheKey)) setLoading(true);
         setError(null);
         const json = await getOrFetchCached<OverviewPayload>(
           cacheKey,
           async () => {
-            const res = await fetch(url);
+            const res = await fetch(url); //gửi request đến API để lấy dữ liệu
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return (await res.json()) as OverviewPayload;
           },
@@ -73,7 +73,7 @@ export default function EnterpriseDashboardPage() {
         if (!cancelled && !silent) setLoading(false);
       }
     }
-    void load();
+    void load(); //gọi hàm load để load dữ liệu
     const timer = setInterval(() => {
       void load({ force: true, silent: true });
     }, 30000);
@@ -88,15 +88,15 @@ export default function EnterpriseDashboardPage() {
   const applicationStatus = payload?.applicationStatus ?? { labels: [], values: [] };
   const jobStatus = payload?.jobStatus ?? { labels: [], values: [] };
 
-  const doubleBarGroups = useMemo(
+  const doubleBarGroups = useMemo( //hàm tạo danh sách các nhóm cho đồ thị cột
     () => [
       { name: "Chấp nhận", data: doubleBar.accepted, colorTop: "#4ade80", colorBottom: "#15803d" },
       { name: "Từ chối", data: doubleBar.declined, colorTop: "#fb7185", colorBottom: "#b91c1c" }
     ],
     [doubleBar.accepted, doubleBar.declined]
-  );
+  ); //trả về danh sách các nhóm cho đồ thị cột
 
-  return (
+  return ( //trả về giao diện dashboard
     <main className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Tổng quan Doanh nghiệp</h1>
@@ -128,7 +128,7 @@ export default function EnterpriseDashboardPage() {
         <ChartStyleLoading variant="block" message="Đang tải dữ liệu…" />
       ) : null}
 
-      {payload ? (
+      {payload ? ( //nếu có dữ liệu thì hiển thị giao diện dashboard
         <section className={styles.overviewGrid}>
           <ChartCardShell wide style={{ ...shellChartMin, gridColumn: "1 / -1" }}>
             <article className={styles.card}>

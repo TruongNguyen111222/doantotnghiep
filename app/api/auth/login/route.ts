@@ -1,36 +1,35 @@
-import { NextResponse } from "next/server"; //trả về response cho client
-import { EnterpriseStatus, Role } from "@prisma/client"; //loại vai trò và trạng thái doanh nghiệp
-import { prisma } from "@/lib/prisma"; //kết nối với database
-import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns"; //tên cookie phiên
-import { ROLE_HOME } from "@/lib/constants/routing"; //đường dẫn nhà của từng vai trò
-import { resolveLoginEmail } from "@/lib/auth/identifier"; //chuyển đổi email đăng nhập vào form thành email thật
-import { verifyPassword } from "@/lib/auth/password"; //kiểm tra mật khẩu
-import { signSession } from "@/lib/auth/jwt"; //tạo token phiên
-import type { LoginRequestBody } from "@/lib/types/auth"; //kiểu dữ liệu request body
+import { NextResponse } from "next/server";       
+import { EnterpriseStatus, Role } from "@prisma/client"; 
+import { prisma } from "@/lib/prisma"; 
+import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns"; 
+import { ROLE_HOME } from "@/lib/constants/routing"; 
+import { resolveLoginEmail } from "@/lib/auth/identifier"; 
+import { verifyPassword } from "@/lib/auth/password"; 
+import { signSession } from "@/lib/auth/jwt"; 
+import type { LoginRequestBody } from "@/lib/types/auth"; 
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as LoginRequestBody; //lấy request body
-  const identifier = body.identifier?.trim(); //lấy email từ request body và loại bỏ khoảng trắng
-  const password = body.password?.trim(); //lấy mật khẩu từ request body và loại bỏ khoảng trắng
+  const body = (await request.json()) as LoginRequestBody; 
+  const identifier = body.identifier?.trim(); 
+  const password = body.password?.trim(); 
 
-  if (!identifier || !password) { //nếu email hoặc mật khẩu không có gì thì trả về lỗi
+  if (!identifier || !password) { 
     return NextResponse.json(
       { success: false, message: "Vui lòng nhập đầy đủ email và mật khẩu." },
       { status: 400 } 
     );
   }
-  //chuyển đổi email đăng nhập vào form thành email thật
-  const email = resolveLoginEmail(identifier); //chuyển đổi email đăng nhập vào form thành email thật
-  if (!email) { //nếu email không hợp lệ thì trả về lỗi
+  const email = resolveLoginEmail(identifier); 
+  if (!email) { 
     return NextResponse.json(
       { success: false, code: "INVALID_EMAIL", message: "Vui lòng nhập email hợp lệ (ví dụ ten@domain.com)." },
       { status: 400 }
     );
   }
 
-  const user = await prisma.user.findUnique({ where: { email } }); //tìm user trong database
+  const user = await prisma.user.findUnique({ where: { email } }); 
 
-  if (!user) { //nếu user không tồn tại thì trả về lỗi
+  if (!user) { 
     return NextResponse.json(
       {
         success: false,
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (user.isLocked) { //nếu user bị khóa thì trả về lỗi
+  if (user.isLocked) { 
     return NextResponse.json(
       {
         success: false,
@@ -52,9 +51,8 @@ export async function POST(request: Request) {
       { status: 423 }
     );
   }
-//kiểm tra trạng thái doanh nghiệp
-  if (user.role === Role.doanhnghiep) { //nếu user là doanh nghiệp thì kiểm tra trạng thái doanh nghiệp
-    if (user.enterpriseStatus === EnterpriseStatus.PENDING || user.enterpriseStatus == null) { //nếu trạng thái doanh nghiệp là chờ phê duyệt hoặc null thì trả về lỗi
+    if (user.role === Role.doanhnghiep) { 
+    if (user.enterpriseStatus === EnterpriseStatus.PENDING || user.enterpriseStatus == null) { 
       return NextResponse.json(
         {
           success: false,
@@ -78,8 +76,8 @@ export async function POST(request: Request) {
     }
   }
 
-  const ok = await verifyPassword(password, user.passwordHash); //kiểm tra mật khẩu đã mã hóa có khớp với mật khẩu nhập vào không
-  if (!ok) { //nếu mật khẩu không chính xác thì trả về lỗi
+  const ok = await verifyPassword(password, user.passwordHash); 
+  if (!ok) { 
     return NextResponse.json(
       {
         success: false,
@@ -89,25 +87,24 @@ export async function POST(request: Request) {
       { status: 401 }
     );
   }
-  //Đây là phần cuối cùng của API đăng nhập — chạy khi đã qua hết mọi kiểm tra.
-  const token = await signSession({  //tạo token phiên gọi hàm signSession để tạo token phiên
+  const token = await signSession({ 
     sub: user.id, 
     role: user.role,
     email: user.email
   });
 
-  const redirectPath = ROLE_HOME[user.role] || "/"; //Lấy URL dashboard tương ứng với role.
-  const res = NextResponse.json({ //trả về response cho client
+  const redirectPath = ROLE_HOME[user.role] || "/"; 
+  const res = NextResponse.json({ 
     success: true,
     message: "Đăng nhập thành công.",
     user: {
       identifier: user.email,
       role: user.role
     },
-    redirectPath //đường dẫn đích sau khi đăng nhập thành công
+    redirectPath 
   });
 
-  res.cookies.set(SESSION_COOKIE_NAME, token, { //lưu token phiên vào cookie
+  res.cookies.set(SESSION_COOKIE_NAME, token, { 
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -115,5 +112,5 @@ export async function POST(request: Request) {
     maxAge: 60 * 60 * 24 * 7
   });
 
-  return res; //trả về response cho client
+  return res; 
 }

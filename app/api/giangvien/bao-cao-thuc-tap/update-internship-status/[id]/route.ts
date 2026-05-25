@@ -7,7 +7,7 @@ import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF } from "
 import { sendMail } from "@/lib/mail";
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
 
-async function getGiangVienProfileId() {
+async function getGiangVienProfileId() { //hàm lấy id giảng viên
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
@@ -22,7 +22,7 @@ async function getGiangVienProfileId() {
   }
 }
 
-export async function PATCH(_request: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(_request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm cập nhật trạng thái thực tập
   const giangVien = await getGiangVienProfileId();
   if ("error" in giangVien) return giangVien.error;
   const supervisorProfileId = giangVien.supervisorProfileId;
@@ -30,7 +30,7 @@ export async function PATCH(_request: Request, ctx: { params: Promise<{ id: stri
   const { id } = await ctx.params;
   const prismaAny = prisma as any;
 
-  const student = await prismaAny.studentProfile.findFirst({
+  const student = await prismaAny.studentProfile.findFirst({ //hàm lấy sinh viên từ database
     where: { id },
     select: {
       id: true,
@@ -41,7 +41,7 @@ export async function PATCH(_request: Request, ctx: { params: Promise<{ id: stri
   });
   if (!student) return NextResponse.json({ success: false, message: "Không tìm thấy sinh viên." }, { status: 404 });
 
-  const assigned = await prismaAny.supervisorAssignmentStudent.findFirst({
+  const assigned = await prismaAny.supervisorAssignmentStudent.findFirst({ //hàm lấy phân công hướng dẫn từ database
     where: { studentProfileId: id, supervisorAssignment: { supervisorProfileId } },
     select: { supervisorAssignmentId: true }
   });
@@ -51,7 +51,7 @@ export async function PATCH(_request: Request, ctx: { params: Promise<{ id: stri
     return NextResponse.json({ success: false, message: "Chỉ được cập nhật khi SV đang ở trạng thái Chưa thực tập." }, { status: 400 });
   }
 
-  await prismaAny.$transaction(async (tx: any) => {
+  await prismaAny.$transaction(async (tx: any) => { //hàm xử lý transaction
     await tx.studentProfile.update({
       where: { id },
       data: { internshipStatus: "SELF_FINANCED" }

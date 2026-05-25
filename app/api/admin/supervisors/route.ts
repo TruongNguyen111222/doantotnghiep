@@ -6,26 +6,26 @@ import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
 import { fetchProvinceList, fetchWardsForProvince } from "@/lib/vn-open-api";
 import { ADMIN_QUAN_LY_GVHD_PAGE_SIZE } from "@/lib/constants/admin-quan-ly-gvhd";
 
-const NAME_PATTERN = /^[\p{L}\s]{1,255}$/u;
-const PHONE_PATTERN = /^\d{8,12}$/;
-const KHOL_PATTERN = /^[\p{L}\d\s]{1,255}$/u;
+const NAME_PATTERN = /^[\p{L}\s]{1,255}$/u; //hàm kiểm tra tên giảng viên hướng dẫn
+const PHONE_PATTERN = /^\d{8,12}$/; //hàm kiểm tra số điện thoại giảng viên hướng dẫn
+const KHOL_PATTERN = /^[\p{L}\d\s]{1,255}$/u; //hàm kiểm tra khoa giảng viên hướng dẫn
 
 type Gender = "MALE" | "FEMALE" | "OTHER";
 type Degree = "MASTER" | "PHD" | "ASSOC_PROF" | "PROF";
 
-function parseDateOnly(input: string) {
+function parseDateOnly(input: string) { //hàm chuyển đổi ngày tháng năm thành định dạng ISO 8601
   return new Date(`${input}T00:00:00.000Z`);
 }
 
-function calcAge(date: Date, now = new Date()) {
+function calcAge(date: Date, now = new Date()) { //hàm tính tuổi từ ngày sinh
   let age = now.getFullYear() - date.getUTCFullYear();
   const m = now.getUTCMonth() - date.getUTCMonth();
   if (m < 0 || (m === 0 && now.getUTCDate() < date.getUTCDate())) age -= 1;
   return age;
 }
 
-async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
-  const provinces = await fetchProvinceList();
+async function resolveProvinceWardNames(provinceCode: string, wardCode: string) { //hàm lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
+  const provinces = await fetchProvinceList(); //lấy danh sách tỉnh thành từ API
   const prov = provinces.find((p) => String(p.code) === String(provinceCode));
   if (!prov) return { provinceName: null as string | null, wardName: null as string | null };
   const wards = await fetchWardsForProvince(String(provinceCode));
@@ -33,8 +33,8 @@ async function resolveProvinceWardNames(provinceCode: string, wardCode: string) 
   return { provinceName: prov.name, wardName: ward?.name ?? null };
 }
 
-export async function GET(request: Request) {
-  const admin = await getAdminSession();
+export async function GET(request: Request) { //hàm lấy danh sách giảng viên hướng dẫn
+  const admin = await getAdminSession(); //lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   try {
@@ -62,10 +62,10 @@ export async function GET(request: Request) {
         ]
       });
     }
-    if (andParts.length) where.AND = andParts;
+    if (andParts.length) where.AND = andParts; //nếu có điều kiện tìm kiếm thì thêm điều kiện tìm kiếm
 
-    const totalItems = await prismaAny.supervisorProfile.count({ where });
-    const rows = await prismaAny.supervisorProfile.findMany({
+    const totalItems = await prismaAny.supervisorProfile.count({ where }); //lấy tổng số giảng viên hướng dẫn
+    const rows = await prismaAny.supervisorProfile.findMany({ //lấy danh sách giảng viên hướng dẫn
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
@@ -85,8 +85,8 @@ export async function GET(request: Request) {
       }
     });
 
-    let faculties: string[] = [];
-    try {
+    let faculties: string[] = []; 
+    try { //lấy danh sách khoa giảng viên hướng dẫn
       const fRows = await prismaAny.supervisorProfile.findMany({ distinct: ["faculty"], select: { faculty: true } });
       faculties = fRows
         .map((r: any) => String(r.faculty))
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
     }
 
     // --- Latest batch supervisor assignment stats (for cards) ---
-    let latestBatchSupervisorStats: {
+    let latestBatchSupervisorStats: { //thống kê giảng viên hướng dẫn đã phân công và chưa phân công
       batchId: string | null;
       batchName: string | null;
       assigned: number;
@@ -110,15 +110,15 @@ export async function GET(request: Request) {
         select: { id: true, name: true }
       });
 
-      if (latestBatch?.id) {
+      if (latestBatch?.id) { //nếu có đợt thực tập mới nhất thì lấy thống kê giảng viên hướng dẫn đã phân công và chưa phân công
         const batchId = String(latestBatch.id);
-        const totalSupervisors = await prismaAny.supervisorProfile.count();
-        const assignedDistinct = await prismaAny.supervisorAssignment.count({
+        const totalSupervisors = await prismaAny.supervisorProfile.count(); //lấy tổng số giảng viên hướng dẫn
+        const assignedDistinct = await prismaAny.supervisorAssignment.count({ //lấy tổng số giảng viên hướng dẫn đã phân công
           where: { internshipBatchId: batchId },
           distinct: ["supervisorProfileId"]
         });
 
-        latestBatchSupervisorStats = {
+        latestBatchSupervisorStats = { //thống kê giảng viên hướng dẫn đã phân công và chưa phân công
           batchId,
           batchName: latestBatch.name ?? null,
           assigned: assignedDistinct ?? 0,
@@ -129,10 +129,10 @@ export async function GET(request: Request) {
       console.error("[GET /api/admin/supervisors] latestBatchSupervisorStats error", e);
     }
 
-    return NextResponse.json({
+    return NextResponse.json({ //trả về danh sách giảng viên hướng dẫn
       success: true,
       latestBatchSupervisorStats,
-      items: rows.map((r: any) => ({
+      items: rows.map((r: any) => ({ //lấy thông tin giảng viên hướng dẫn
         id: r.id,
         fullName: r.user?.fullName ?? "",
         phone: r.user?.phone ?? null,
@@ -157,7 +157,7 @@ export async function GET(request: Request) {
   }
 }
 
-type CreateSupervisorBody = {
+type CreateSupervisorBody = { //type dữ liệu giảng viên hướng dẫn
   fullName: string;
   phone: string;
   email: string;
@@ -169,7 +169,7 @@ type CreateSupervisorBody = {
   degree: Degree;
 };
 
-function validateCreate(body: CreateSupervisorBody) {
+function validateCreate(body: CreateSupervisorBody) { //hàm kiểm tra dữ liệu giảng viên hướng dẫn
   const errors: Record<string, string> = {};
 
   const fullName = (body.fullName || "").trim();
@@ -204,7 +204,7 @@ function validateCreate(body: CreateSupervisorBody) {
   return errors;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request) { //hàm tạo giảng viên hướng dẫn
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
@@ -231,10 +231,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const birthDateStr = body.birthDate.trim();
-  const passwordHash = await hashPassword(birthDateStr);
+  const birthDateStr = body.birthDate.trim(); //lấy ngày sinh giảng viên hướng dẫn
+  const passwordHash = await hashPassword(birthDateStr); //mã hóa mật khẩu từ ngày sinh
 
-  const user = await prismaAny.user.create({
+  const user = await prismaAny.user.create({ //tạo tài khoản giảng viên hướng dẫn
     data: {
       email,
       phone,
@@ -251,7 +251,7 @@ export async function POST(request: Request) {
     select: { id: true }
   });
 
-  await prismaAny.supervisorProfile.create({
+  await prismaAny.supervisorProfile.create({ //tạo thông tin giảng viên hướng dẫn
     data: {
       userId: user.id,
       faculty: body.faculty.trim(),

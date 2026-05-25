@@ -6,10 +6,10 @@ import styles from "../styles/dashboard.module.css";
 import { DashboardStatSummaryCard } from "@/app/components/DashboardStatSummaryCard";
 import MessagePopup from "../../components/MessagePopup";
 import { FiUserCheck, FiUserX } from "react-icons/fi";
-import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
-import { ADMIN_SUPERVISOR_EXCEL_HEADER, ADMIN_SUPERVISOR_EXCEL_SAMPLE_ROWS } from "@/lib/constants/admin-supervisors-excel";
+import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns"; //hằng số email đăng ký
+import { ADMIN_SUPERVISOR_EXCEL_HEADER, ADMIN_SUPERVISOR_EXCEL_SAMPLE_ROWS } from "@/lib/constants/admin-supervisors-excel"; //hằng số excel giảng viên
 
-import type {
+import type { //type dữ liệu giảng viên
   Degree,
   Province,
   SupervisorFormState,
@@ -21,19 +21,19 @@ import {
   ADMIN_QUAN_LY_GVHD_NAME_PATTERN,
   ADMIN_QUAN_LY_GVHD_PHONE_PATTERN,
   ADMIN_QUAN_LY_GVHD_PAGE_SIZE
-} from "@/lib/constants/admin-quan-ly-gvhd";
-import { calcAgeFromBirthDate, toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-gvhd-dates";
-import { buildEmptySupervisorFormState } from "@/lib/utils/admin-quan-ly-gvhd-form";
-import { deleteCacheByPrefix, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
+} from "@/lib/constants/admin-quan-ly-gvhd"; //hằng số giảng viên
+import { calcAgeFromBirthDate, toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-gvhd-dates"; //hàm tính tuổi từ ngày sinh
+import { buildEmptySupervisorFormState } from "@/lib/utils/admin-quan-ly-gvhd-form"; //hàm tạo form giảng viên
+import { deleteCacheByPrefix, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache"; //hàm xóa cache và lấy dữ liệu từ cache
 
-import AdminGiangVienToolbar from "./components/AdminGiangVienToolbar";
-import AdminGiangVienTableSection from "./components/AdminGiangVienTableSection";
+import AdminGiangVienToolbar from "./components/AdminGiangVienToolbar"; //component toolbar giảng viên
+import AdminGiangVienTableSection from "./components/AdminGiangVienTableSection"; //component table giảng viên
 const AdminGiangVienViewPopup = dynamic(() => import("./components/AdminGiangVienViewPopup"), { ssr: false });
 const AdminGiangVienDeletePopup = dynamic(() => import("./components/AdminGiangVienDeletePopup"), { ssr: false });
 const AdminGiangVienFormPopup = dynamic(() => import("./components/AdminGiangVienFormPopup"), { ssr: false });
 const AdminGiangVienImportPopup = dynamic(() => import("./components/AdminGiangVienImportPopup"), { ssr: false });
 
-export default function AdminQuanLyGVHDPage() {
+export default function AdminQuanLyGVHDPage() { //component quan ly giảng viên hướng dẫn state giữ dữ liệu giảng viên
   const [items, setItems] = useState<SupervisorListItem[]>([]);
   const [faculties, setFaculties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,11 +69,12 @@ export default function AdminQuanLyGVHDPage() {
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
+  //hàm lấy dữ liệu giảng viên từ cache
   const fetchSupervisorDetailCached = async (id: string, force = false) =>
     getOrFetchCached<any>(
       `admin:supervisors:detail:${id}`,
       async () => {
-        const res = await fetch(`/api/admin/supervisors/${id}`);
+        const res = await fetch(`/api/admin/supervisors/${id}`); //gửi request lấy dữ liệu giảng viên từ API
         const payload = await res.json();
         if (!res.ok || !payload.success || !payload.item) throw new Error(payload.message || "Không tải được thông tin giảng viên hướng dẫn.");
         return payload;
@@ -81,22 +82,22 @@ export default function AdminQuanLyGVHDPage() {
       { force }
     );
 
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [addrLoading, setAddrLoading] = useState({ provinces: true, wards: false });
+  const [provinces, setProvinces] = useState<Province[]>([]); //danh sách tỉnh/thành
+  const [wards, setWards] = useState<Ward[]>([]); //danh sách huyện/xã  
+  const [addrLoading, setAddrLoading] = useState({ provinces: true, wards: false }); //trạng thái loading danh sách tỉnh/thành và huyện/xã
 
-  useEffect(() => {
+  useEffect(() => { //tải danh sách tỉnh/thành
     let cancelled = false;
     void (async () => {
       try {
         setAddrLoading({ provinces: true, wards: false });
-        const res = await fetch("/api/vn-address/provinces");
-        const data = await res.json();
-        if (!cancelled) setProvinces((data.provinces || []) as Province[]);
+        const res = await fetch("/api/vn-address/provinces"); //gửi request lấy danh sách tỉnh/thành từ API
+        const data = await res.json(); //lấy dữ liệu từ API
+        if (!cancelled) setProvinces((data.provinces || []) as Province[]); //lưu danh sách tỉnh/thành vào state
       } catch {
-        if (!cancelled) setProvinces([]);
+        if (!cancelled) setProvinces([]); //nếu lỗi thì không hiển thị danh sách tỉnh/thành
       } finally {
-        if (!cancelled) setAddrLoading((s) => ({ ...s, provinces: false }));
+        if (!cancelled) setAddrLoading((s) => ({ ...s, provinces: false })); //ẩn loading
       }
     })();
     return () => {
@@ -104,7 +105,7 @@ export default function AdminQuanLyGVHDPage() {
     };
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { //tải danh sách huyện/xã
     let cancelled = false;
     void (async () => {
       if (!form.permanentProvinceCode) {
@@ -127,25 +128,25 @@ export default function AdminQuanLyGVHDPage() {
     };
   }, [form.permanentProvinceCode]);
 
-  const load = async (opts?: { force?: boolean; silent?: boolean; targetPage?: number }) => {
-    const force = Boolean(opts?.force);
-    const silent = Boolean(opts?.silent);
-    const targetPage = opts?.targetPage ?? page;
+  const load = async (opts?: { force?: boolean; silent?: boolean; targetPage?: number }) => { //hàm tải danh sách giảng viên hướng dẫn
+    const force = Boolean(opts?.force); //kiểm tra xem có force tải lại dữ liệu không
+    const silent = Boolean(opts?.silent); //kiểm tra xem có silent tải lại dữ liệu không
+    const targetPage = opts?.targetPage ?? page; //lấy trang hiện tại
     try {
-      const params = new URLSearchParams();
-      if (searchQ.trim()) params.set("q", searchQ.trim());
+      const params = new URLSearchParams(); //tạo URLSearchParams
+      if (searchQ.trim()) params.set("q", searchQ.trim()); //thêm từ khóa tìm kiếm vào URLSearchParams
       if (filterFaculty !== "all") params.set("faculty", filterFaculty);
       if (filterDegree !== "all") params.set("degree", filterDegree);
       params.set("page", String(targetPage));
       params.set("pageSize", String(ADMIN_QUAN_LY_GVHD_PAGE_SIZE));
-      const url = `/api/admin/supervisors?${params.toString()}`;
+      const url = `/api/admin/supervisors?${params.toString()}`; //tạo URL từ URLSearchParams
       const cacheKey = `admin:supervisors:list:${url}`;
       if (!silent && !hasCachedValue(cacheKey)) setLoading(true);
       setError("");
       const data = await getOrFetchCached<any>(
         cacheKey,
         async () => {
-          const res = await fetch(url);
+          const res = await fetch(url); //gửi request tải danh sách giảng viên hướng dẫn từ API
           const payload = await res.json();
           if (!res.ok || !payload.success) throw new Error(payload.message || "Không tải được danh sách giảng viên hướng dẫn.");
           return payload;
@@ -167,7 +168,7 @@ export default function AdminQuanLyGVHDPage() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { 
     void load({ targetPage: page });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
@@ -180,24 +181,24 @@ export default function AdminQuanLyGVHDPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQ, filterFaculty, filterDegree, page]);
 
-  useEffect(() => {
+  useEffect(() => {  
     if (!items.length) return;
     void Promise.allSettled(items.map((row) => fetchSupervisorDetailCached(row.id)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
-  const resetForm = () => {
+  const resetForm = () => { 
     setFieldErrors({});
     setForm(buildEmptySupervisorFormState());
   };
 
-  const openAdd = () => {
+  const openAdd = () => { 
     setEditTarget(null);
     resetForm();
     setAddOpen(true);
   };
 
-  const openEdit = (row: SupervisorListItem) => {
+  const openEdit = (row: SupervisorListItem) => { 
     setEditTarget(row);
     setFieldErrors({});
     setForm({
@@ -214,12 +215,12 @@ export default function AdminQuanLyGVHDPage() {
     });
   };
 
-  const computeValidationErrors = (draft: SupervisorFormState) => {
+  const computeValidationErrors = (draft: SupervisorFormState) => { //hàm kiểm tra lỗi form giảng viên hướng dẫn
     const next: Record<string, string> = {};
     const effectiveFaculty =
-      draft.faculty === ADMIN_QUAN_LY_GVHD_FACULTY_CUSTOM_VALUE
-        ? draft.facultyCustom.trim()
-        : draft.faculty.trim();
+      draft.faculty === ADMIN_QUAN_LY_GVHD_FACULTY_CUSTOM_VALUE //kiểm tra xem có phải khoa tùy chỉnh không
+        ? draft.facultyCustom.trim() //lấy tên khoa tùy chỉnh
+        : draft.faculty.trim(); //lấy tên khoa
 
     if (!draft.fullName || !ADMIN_QUAN_LY_GVHD_NAME_PATTERN.test(draft.fullName.trim()))
       next.fullName = "Họ tên chỉ gồm chữ và dấu cách (1–255 ký tự).";
@@ -251,7 +252,7 @@ export default function AdminQuanLyGVHDPage() {
     return next;
   };
 
-  const submitCreate = async () => {
+  const submitCreate = async () => { //hàm gửi dữ liệu giảng viên hướng dẫn để tạo mới
     setBusyId("add");
     setFieldErrors({});
     try {
@@ -260,7 +261,7 @@ export default function AdminQuanLyGVHDPage() {
         setFieldErrors(errors);
         return;
       }
-      const res = await fetch("/api/admin/supervisors", {
+      const res = await fetch("/api/admin/supervisors", { //gửi request tạo giảng viên hướng dẫn từ API
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -275,7 +276,7 @@ export default function AdminQuanLyGVHDPage() {
           degree: form.degree
         })
       });
-      const data = await res.json();
+      const data = await res.json(); //lấy dữ liệu từ API
       if (!res.ok) {
         if (data.errors) setFieldErrors(data.errors);
         showPopup(data.message || "Tạo giảng viên hướng dẫn thất bại.");
@@ -294,7 +295,7 @@ export default function AdminQuanLyGVHDPage() {
     }
   };
 
-  const submitEdit = async () => {
+  const submitEdit = async () => { //hàm gửi dữ liệu giảng viên hướng dẫn để sửa
     if (!editTarget) return;
     setBusyId(editTarget.id);
     setFieldErrors({});
@@ -304,7 +305,7 @@ export default function AdminQuanLyGVHDPage() {
         setFieldErrors(errors);
         return;
       }
-      const res = await fetch(`/api/admin/supervisors/${editTarget.id}`, {
+      const res = await fetch(`/api/admin/supervisors/${editTarget.id}`, { //gửi request sửa giảng viên hướng dẫn từ API
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -337,30 +338,30 @@ export default function AdminQuanLyGVHDPage() {
     }
   };
 
-  const openView = async (row: SupervisorListItem) => {
+  const openView = async (row: SupervisorListItem) => { //hàm mở popup xem giảng viên hướng dẫn
     try {
-      const data = await fetchSupervisorDetailCached(row.id);
-      setViewItem(data.item as SupervisorListItem);
+      const data = await fetchSupervisorDetailCached(row.id); //tải thông tin chi tiết giảng viên hướng dẫn từ API
+      setViewItem(data.item as SupervisorListItem); //set dữ liệu giảng viên hướng dẫn vào viewItem
       setViewOpen(true);
     } catch (e) {
       showPopup(e instanceof Error ? e.message : "Không tải được thông tin giảng viên hướng dẫn.");
     }
   };
 
-  const submitDelete = async () => {
+  const submitDelete = async () => { //hàm gửi dữ liệu giảng viên hướng dẫn để xóa
     if (!deleteTarget) return;
     setBusyId(deleteTarget.id);
     try {
-      const res = await fetch(`/api/admin/supervisors/${deleteTarget.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/supervisors/${deleteTarget.id}`, { method: "DELETE" }); //gửi request xóa giảng viên hướng dẫn từ API
       const data = await res.json();
       if (!res.ok || !data.success) {
         showPopup(data.message || "Xóa thất bại.");
         return;
       }
-      showPopup(data.message || "Xóa giảng viên hướng dẫn thành công.");
+      showPopup(data.message || "Xóa giảng viên hướng dẫn thành công."); //hiển thị thông báo xóa giảng viên hướng dẫn thành công
       setDeleteTarget(null);
       deleteCacheByPrefix("admin:supervisors:");
-      await load({ force: true, targetPage: page });
+      await load({ force: true, targetPage: page }); //tải lại danh sách giảng viên hướng dẫn
     } catch (e) {
       showPopup(e instanceof Error ? e.message : "Xóa thất bại.");
     } finally {
@@ -368,7 +369,7 @@ export default function AdminQuanLyGVHDPage() {
     }
   };
 
-  const downloadExcelTemplate = async () => {
+  const downloadExcelTemplate = async () => { //hàm tải file Excel mẫu giảng viên hướng dẫn
     const XLSXMod = await import("xlsx");
     const XLSX = XLSXMod as any;
     const ws = XLSX.utils.aoa_to_sheet([
@@ -410,42 +411,42 @@ export default function AdminQuanLyGVHDPage() {
     ];
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Giảng viên hướng dẫn");
+    XLSX.utils.book_append_sheet(wb, ws, "Giảng viên hướng dẫn");   
     const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
     const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "mau_gvhd_co_du_lieu.xlsx";
-    document.body.appendChild(a);
-    a.click();
+    document.body.appendChild(a); //thêm element vào body
+    a.click(); //click vào element
     a.remove();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url); //revoke object URL
   };
 
-  const handleImportFile = async (file: File | null) => {
+  const handleImportFile = async (file: File | null) => { //hàm import file Excel giảng viên hướng dẫn
     if (!file) return;
-    setImportBusy(true);
+    setImportBusy(true); //set trạng thái loading import giảng viên hướng dẫn
     try {
       const lower = file.name.toLowerCase();
       if (!lower.endsWith(".xlsx") && !lower.endsWith(".xls")) {
         showPopup("Chỉ hỗ trợ file Excel (.xlsx, .xls).");
-        return;
+        return; //hiển thị thông báo lỗi nếu file không phải file Excel
       }
 
-      const XLSXMod = await import("xlsx");
+      const XLSXMod = await import("xlsx"); //import module xlsx
       const XLSX = XLSXMod as any;
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows2d: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+      const buf = await file.arrayBuffer(); //lấy dữ liệu file Excel từ API
+      const wb = XLSX.read(buf, { type: "array" }); //read file Excel
+      const ws = wb.Sheets[wb.SheetNames[0]]; //lấy sheet từ file Excel
+      const rows2d: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" }); //lấy dữ liệu file Excel từ API
       if (!rows2d || rows2d.length <= 1 || rows2d.slice(1).every((r) => r.every((c) => String(c || "").trim() === ""))) {
-        showPopup("File Excel không có dữ liệu. Vui lòng kiểm tra lại.");
+        showPopup("File Excel không có dữ liệu. Vui lòng kiểm tra lại."); //hiển thị thông báo lỗi nếu file không có dữ liệu
         return;
       }
 
-      const header = (rows2d[0] || []).map((h) => String(h).trim());
-      const idx = (name: string) => header.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+      const header = (rows2d[0] || []).map((h) => String(h).trim()); //lấy header từ file Excel
+      const idx = (name: string) => header.findIndex((h) => h.toLowerCase() === name.toLowerCase()); //lấy index của header từ file Excel
       const i = {
         fullName: idx("Họ tên"),
         phone: idx("SĐT"),
@@ -457,15 +458,15 @@ export default function AdminQuanLyGVHDPage() {
         faculty: idx("Khoa"),
         degree: idx("Bậc")
       };
-      const hasAll = Object.values(i).every((x) => x >= 0);
+      const hasAll = Object.values(i).every((x) => x >= 0); //kiểm tra xem có tất cả các cột có dữ liệu không
       if (!hasAll) {
-        showPopup("File Excel không đúng cột dữ liệu. Vui lòng kiểm tra lại.");
+        showPopup("File Excel không đúng cột dữ liệu. Vui lòng kiểm tra lại."); //hiển thị thông báo lỗi nếu file không đúng cột dữ liệu
         return;
       }
 
-      const payloadRows: any[] = [];
+      const payloadRows: any[] = []; //dữ liệu giảng viên hướng dẫn import
       for (let rIdx = 1; rIdx < rows2d.length; rIdx++) {
-        const line = rIdx + 1;
+        const line = rIdx + 1; //lấy số dòng từ file Excel  
         const row = rows2d[rIdx] || [];
         const get = (k: keyof typeof i) => String(row[i[k]] ?? "").trim();
         payloadRows.push({
@@ -482,18 +483,18 @@ export default function AdminQuanLyGVHDPage() {
         });
       }
 
-      const res = await fetch("/api/admin/supervisors/import", {
+      const res = await fetch("/api/admin/supervisors/import", { //gửi request import giảng viên hướng dẫn từ API
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows: payloadRows })
       });
-      const data = await res.json();
+      const data = await res.json(); //lấy dữ liệu từ API
       if (!res.ok || !data.success) {
-        showPopup(data.message || "Tạo danh sách giảng viên hướng dẫn thất bại.");
+        showPopup(data.message || "Tạo danh sách giảng viên hướng dẫn thất bại."); //hiển thị thông báo lỗi nếu tạo giảng viên hướng dẫn thất bại
         return;
       }
       showPopup(data.message || "Tạo danh sách giảng viên hướng dẫn thành công.");
-      setImportOpen(false);
+      setImportOpen(false); //đóng popup import giảng viên hướng dẫn
       setImportFile(null);
       deleteCacheByPrefix("admin:supervisors:");
       setPage(1);
@@ -505,7 +506,7 @@ export default function AdminQuanLyGVHDPage() {
     }
   };
 
-  return (
+  return ( //render component
     <main className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Quản lý giảng viên hướng dẫn</h1>

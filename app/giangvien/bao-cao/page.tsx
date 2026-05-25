@@ -62,10 +62,10 @@ export default function GiangvienQuanLyBCPage() {
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
 
-  async function exportFilteredExcel() {
+  async function exportFilteredExcel() { //hàm xuất file Excel theo điều kiện
     setExportBusy(true);
     try {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(); //hàm xử lý điều kiện
       if (q.trim()) params.set("q", q.trim());
       if (degreeFilter !== "all") params.set("degree", degreeFilter);
       if (statusFilter !== "all") params.set("status", statusFilter);
@@ -149,7 +149,7 @@ export default function GiangvienQuanLyBCPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, degreeFilter, statusFilter]);
 
-  async function submitUpdateInternship() {
+  async function submitUpdateInternship() { //hàm cập nhật trạng thái thực tập tự túc
     if (!updateTarget) return;
     setBusy(true);
     try {
@@ -168,7 +168,7 @@ export default function GiangvienQuanLyBCPage() {
     }
   }
 
-  async function submitApprove() {
+  async function submitApprove() { //hàm duyệt báo cáo thực tập
     if (!reviewTarget?.report) return;
     const err = validateGiangVienBaoCaoApprove({ reviewTarget, evaluation, dqtPoint, kthpPoint });
     if (err) { setToast(err); return; }

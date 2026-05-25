@@ -11,7 +11,7 @@ const PHONE_PATTERN = /^\d{8,12}$/;
 const CLASS_PATTERN = /^[\p{L}\d]{1,255}$/u;
 const KHOL_PATTERN = /^[\p{L}\d]{1,10}$/u;
 
-const ALLOWED_DEGREE_TEXT = new Map<string, "BACHELOR" | "ENGINEER">([
+const ALLOWED_DEGREE_TEXT = new Map<string, "BACHELOR" | "ENGINEER">([ //map bậc
   ["cu nhan", "BACHELOR"],
   ["ky su", "ENGINEER"]
 ]);
@@ -22,9 +22,9 @@ const ALLOWED_GENDER_TEXT = new Map<string, "MALE" | "FEMALE" | "OTHER">([
   ["khac", "OTHER"]
 ]);
 
-async function resolveFromNamesToCodes(provinceName: string, wardName: string) {
+async function resolveFromNamesToCodes(provinceName: string, wardName: string) { //hàm lấy mã tỉnh và mã huyện từ tên tỉnh và tên huyện
   const provinces = await fetchProvinceList();
-  const provNeedle = normalizeText(provinceName);
+  const provNeedle = normalizeText(provinceName); //lấy tên tỉnh
   const prov =
     provinces.find((p) => normalizeText(p.name) === provNeedle) ??
     provinces.find((p) => {
@@ -43,7 +43,7 @@ async function resolveFromNamesToCodes(provinceName: string, wardName: string) {
   return { provinceCode: String(prov.code), wardCode: ward ? String(ward.code) : null };
 }
 
-async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
+async function resolveProvinceWardNames(provinceCode: string, wardCode: string) { //hàm lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
   const provinces = await fetchProvinceList();
   const prov = provinces.find((p) => String(p.code) === String(provinceCode));
   if (!prov) return { provinceName: null as string | null, wardName: null as string | null };
@@ -51,8 +51,8 @@ async function resolveProvinceWardNames(provinceCode: string, wardCode: string) 
   const ward = wards.find((w) => String(w.code) === String(wardCode));
   return { provinceName: prov.name, wardName: ward?.name ?? null };
 }
-
-type ImportRow = {
+ 
+type ImportRow = { //type dữ liệu sinh viên
   line: number;
   msv: string;
   fullName: string;
@@ -89,7 +89,7 @@ type PreparedRow = {
   permanentWardName: string;
 };
 
-function normalizeText(s: string) {
+function normalizeText(s: string) { //hàm chuyển đổi text thành lowercase và loại bỏ dấu
   return s
     .toLowerCase()
     .trim()
@@ -149,7 +149,7 @@ function validateRowFormat(row: ImportRow) {
   return { ok: true as const };
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request) { //hàm import sinh viên từ API
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
@@ -212,7 +212,7 @@ export async function POST(request: Request) {
       wardCode = resolved.wardCode || "";
     }
     if (!provinceCode || !wardCode) {
-      return NextResponse.json(
+      return NextResponse.json( //trả về thông báo lỗi
         {
           success: false,
           message: `Dòng ${line} có dữ liệu nhập vào không đúng định dạng. Vui lòng kiểm tra lại.`,
@@ -227,7 +227,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { provinceName, wardName } = await resolveProvinceWardNames(provinceCode, wardCode);
+    const { provinceName, wardName } = await resolveProvinceWardNames(provinceCode, wardCode); //lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
     if (!provinceName || !wardName) {
       return NextResponse.json(
         {
@@ -264,7 +264,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const ms2 = prepared.map((r) => r.msv);
+  const ms2 = prepared.map((r) => r.msv); 
   const emails = prepared.map((r) => r.email);
   const phones = prepared.map((r) => r.phone);
 

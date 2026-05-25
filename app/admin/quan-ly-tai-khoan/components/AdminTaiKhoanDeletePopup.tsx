@@ -1,18 +1,18 @@
 "use client";
-
+//popup xác nhận xóa tài khoản sinh viên, giảng viên hoặc doanh nghiệp
 import type { AccountRow } from "@/lib/types/admin-quan-ly-tai-khoan";
 import { roleLabel } from "@/lib/constants/admin-quan-ly-tai-khoan";
 import MessagePopup from "../../../components/MessagePopup";
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
+type Props = { //props popup xóa tài khoản
   target: AccountRow | null;
   busy: boolean;
   onClose: () => void;
   onConfirm: () => void;
 };
 
-export default function AdminTaiKhoanDeletePopup(props: Props) {
+export default function AdminTaiKhoanDeletePopup(props: Props) { //hàm hiển thị popup xóa tài khoản
   const { target, busy, onClose, onConfirm } = props;
   if (!target) return null;
 

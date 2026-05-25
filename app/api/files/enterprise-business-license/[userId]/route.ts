@@ -10,15 +10,24 @@ import {
   filenameWithSniffedExtension,
   resolveContentTypeForBytes,
   sniffBinaryKind
-} from "@/lib/utils/binary-file-sniff";
+} from "@/lib/utils/binary-file-sniff"; //hàm xử lý file
 
+/**
+ * TỔNG QUAN FILE:
+ * File này định nghĩa một API Route (phương thức GET) để xử lý việc tải xuống hoặc xem trực tuyến (inline) 
+ * file giấy phép kinh doanh của doanh nghiệp. API hỗ trợ phân quyền bảo mật (chỉ Admin hệ thống hoặc chính 
+ * doanh nghiệp sở hữu file mới có quyền truy cập), đồng thời tự động xử lý nguồn file linh hoạt từ chuỗi Base64 
+ * lưu trong Database hoặc kéo file binary từ Cloudinary, cuối cùng nhận diện định dạng chuẩn của file để trả về cho client.
+ */
+
+/* CẤU HÌNH THỜI GIAN THỰC THI TỐI ĐA (TIMEOUT) CHO API ROUTE */
 export const maxDuration = 60;
-
+/* CÁC HÀM TRỢ GIÚP CHUẨN HÓA TÊN FILE VÀ ĐỊNH DẠNG HEADER CONTENT-DISPOSITION (XEM TRỰC TIẾP HOẶC TẢI XUỐNG) */
 function safeFilename(name: string): string {
   return String(name || "giay-phep.pdf").replace(/["\r\n]/g, "").trim() || "giay-phep.pdf";
 }
 
-function contentDispositionHeader(download: boolean, filename: string): string {
+function contentDispositionHeader(download: boolean, filename: string): string { //hàm xử lý định dạng header content-disposition
   const safe = safeFilename(filename);
   const quoted = safe.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const star = encodeURIComponent(safe);
@@ -26,7 +35,7 @@ function contentDispositionHeader(download: boolean, filename: string): string {
     ? `attachment; filename="${quoted}"; filename*=UTF-8''${star}`
     : `inline; filename="${quoted}"; filename*=UTF-8''${star}`;
 }
-
+/*   HÀM ĐỌC VÀ TRÍCH XUẤT CÁC THÔNG TIN METADATA CỦA GIẤY PHÉP KINH DOANH TỪ TRƯỜNG ENTERPRISE_META */
 function readLicenseMeta(meta: unknown): {
   publicIdRef: string | null;
   mime: string;
@@ -41,7 +50,7 @@ function readLicenseMeta(meta: unknown): {
   const base64 = typeof m.businessLicenseBase64 === "string" && m.businessLicenseBase64.trim() ? m.businessLicenseBase64.trim() : null;
   return { publicIdRef, mime, fileName, base64 };
 }
-
+/* PHƯƠNG THỨC GET - ĐỌC THAM SỐ ĐẦU VÀO, KIỂM TRA VÀ XÁC THỰC QUYỀN TRUY CẬP (ADMIN HOẶC CHÍNH DOANH NGHIỆP) */
 export async function GET(request: Request, ctx: { params: Promise<{ userId: string }> }) {
   const { userId } = await ctx.params;
   const sp = new URL(request.url).searchParams;
@@ -66,8 +75,8 @@ export async function GET(request: Request, ctx: { params: Promise<{ userId: str
   if (!allowed) {
     return NextResponse.json({ success: false, message: "Không có quyền truy cập." }, { status: 403 });
   }
-
-  const user = await prisma.user.findUnique({
+/*  TRUY VẤN THÔNG TIN DOANH NGHIỆP TRONG DATABASE ĐỂ LẤY METADATA CỦA GIẤY PHÉP */
+  const user = await prisma.user.findUnique({ //tìm kiếm user theo id
     where: { id: userId },
     select: { id: true, role: true, enterpriseMeta: true }
   });
@@ -80,7 +89,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ userId: str
 
   let bytes: Buffer;
   let upstreamContentType: string | null | undefined;
-
+/*   XỬ LÝ ĐỌC DỮ LIỆU FILE BINARY TỪ CHUỖI BASE64 HOẶC KÉO TỪ CLOUDINARY VỀ BỘ NHỚ ĐỆM (BUFFER) */
   if (base64) {
     try {
       bytes = Buffer.from(base64, "base64");
@@ -105,8 +114,8 @@ export async function GET(request: Request, ctx: { params: Promise<{ userId: str
   const outFilename = filenameWithSniffedExtension(fileName, sniff);
 
   const body = new Uint8Array(bytes);
-
-  return new NextResponse(body, {
+/* THIẾT LẬP CÁC HTTP HEADERS AN TOÀN (CACHE, CONTENT-TYPE...) VÀ TRẢ FILE VỀ CHO TRÌNH DUYỆT */
+  return new NextResponse(body, { //trả về file cho trình duyệt
     status: 200,
     headers: {
       "Content-Type": mime,

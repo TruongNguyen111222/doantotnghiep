@@ -1,15 +1,15 @@
 import type { JobStatus, WorkType } from "@/lib/types/admin-quan-ly-tin-tuyen-dung";
 
-export const ADMIN_QUAN_LY_TIN_TUYEN_DUNG_PAGE_SIZE = 10;
+export const ADMIN_QUAN_LY_TIN_TUYEN_DUNG_PAGE_SIZE = 10; //số lượng việc làm trên mỗi trang
 
-export const statusLabel: Record<JobStatus, string> = {
+export const statusLabel: Record<JobStatus, string> = { //label trạng thái việc làm 
   PENDING: "Chờ duyệt",
   REJECTED: "Từ chối duyệt",
   ACTIVE: "Đang hoạt động",
   STOPPED: "Dừng hoạt động"
 };
 
-export const workTypeLabel: Record<WorkType, string> = {
+export const workTypeLabel: Record<WorkType, string> = { //label loại hình làm việc
   PART_TIME: "part-time",
   FULL_TIME: "full-time"
 };

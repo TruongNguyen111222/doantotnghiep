@@ -1,11 +1,11 @@
 "use client";
 
 import type { Degree } from "@/lib/types/admin-quan-ly-gvhd";
-import { ADMIN_QUAN_LY_GVHD_DEGREE_OPTIONS } from "@/lib/constants/admin-quan-ly-gvhd";
+import { ADMIN_QUAN_LY_GVHD_DEGREE_OPTIONS } from "@/lib/constants/admin-quan-ly-gvhd"; //hằng số bậc giảng viên
 
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
+type Props = { //type props toolbar giảng viên
   searchQ: string;
   filterFaculty: string;
   filterDegree: Degree | "all";

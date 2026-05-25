@@ -1,18 +1,19 @@
 "use client";
-
-import type { AccountRow } from "@/lib/types/admin-quan-ly-tai-khoan";
+//bảng hiển thị danh sách tài khoản kèm các nút chức năng (xem chi tiết, 
+// sửa trạng thái, xóa) và thanh phân trang ở phía dưới.
+import type { AccountRow } from "@/lib/types/admin-quan-ly-tai-khoan"; //type tài khoản
 import {
   ADMIN_QUAN_LY_TAI_KHOAN_PAGE_SIZE,
   roleLabel,
   statusLabel
-} from "@/lib/constants/admin-quan-ly-tai-khoan";
-import Pagination from "../../../components/Pagination";
-import TableIconButton from "../../../components/TableIconButton";
-import { FiEye, FiSliders, FiTrash2 } from "react-icons/fi";
-import styles from "../../styles/dashboard.module.css";
-import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
+} from "@/lib/constants/admin-quan-ly-tai-khoan"; //hằng số tài khoản
+import Pagination from "../../../components/Pagination"; //component phân trang
+import TableIconButton from "../../../components/TableIconButton"; //component nút icon 
+import { FiEye, FiSliders, FiTrash2 } from "react-icons/fi"; //icon
+import styles from "../../styles/dashboard.module.css"; //style
+import { ChartStyleLoading } from "@/app/components/ChartStyleLoading"; //component loading
 
-type Props = {
+type Props = { //props bảng tài khoản
   loading: boolean;
   items: AccountRow[];
   totalItems: number;
@@ -24,7 +25,7 @@ type Props = {
   onDelete: (row: AccountRow) => void;
 };
 
-export default function AdminTaiKhoanTableSection(props: Props) {
+export default function AdminTaiKhoanTableSection(props: Props) { //hàm hiển thị bảng tài khoản
   const { loading, items, totalItems, page, busyId, onPageChange, onView, onStatus, onDelete } = props;
 
   if (loading && items.length === 0) return <ChartStyleLoading variant="compact" />;

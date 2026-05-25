@@ -21,7 +21,7 @@ import AdminTienDoTableSection from "./components/AdminTienDoTableSection";
 import AdminTienDoViewPopup from "./components/AdminTienDoViewPopup";
 import AdminTienDoEditModal from "./components/AdminTienDoEditModal";
 
-export default function AdminTienDoThucTapPage() {
+export default function AdminTienDoThucTapPage() { //hàm tạo trang quản lý tiến độ thực tập
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -54,7 +54,7 @@ export default function AdminTienDoThucTapPage() {
   const [exportBusy, setExportBusy] = useState(false);
   const [toast, setToast] = useState("");
 
-  const fetchProgressDetailCached = async (id: string, force = false) =>
+  const fetchProgressDetailCached = async (id: string, force = false) => //hàm lấy chi tiết tiến độ thực tập từ cache
     getOrFetchCached<any>(
       `admin:tien-do:detail:${id}`,
       async () => {
@@ -67,8 +67,8 @@ export default function AdminTienDoThucTapPage() {
       },
       { force }
     );
-
-  async function load(opts?: { force?: boolean; silent?: boolean }) {
+ 
+  async function load(opts?: { force?: boolean; silent?: boolean }) { //hàm tải dữ liệu tiến độ thực tập
     const force = Boolean(opts?.force);
     const silent = Boolean(opts?.silent);
     try {
@@ -77,8 +77,8 @@ export default function AdminTienDoThucTapPage() {
       if (filterFaculty !== "all") sp.set("faculty", filterFaculty);
       if (filterDegree !== "all") sp.set("degree", filterDegree);
       if (filterStatus !== "all") sp.set("status", filterStatus);
-      const url = `/api/admin/tien-do-thuc-tap?${sp.toString()}`;
-      const cacheKey = `admin:tien-do:list:${url}`;
+      const url = `/api/admin/tien-do-thuc-tap?${sp.toString()}`; //url tải dữ liệu tiến độ thực tập
+      const cacheKey = `admin:tien-do:list:${url}`; //key cache tải dữ liệu tiến độ thực tập
       if (!silent && !hasCachedValue(cacheKey)) setLoading(true);
       setError("");
       const data = await getOrFetchCached<any>(
@@ -92,9 +92,9 @@ export default function AdminTienDoThucTapPage() {
         { force }
       );
 
-      setItems(Array.isArray(data.items) ? data.items : []);
-      setFaculties(Array.isArray(data.faculties) ? data.faculties : []);
-      setProgressStats(data.progressStats ?? null);
+      setItems(Array.isArray(data.items) ? data.items : []); //set dữ liệu tiến độ thực tập vào items
+      setFaculties(Array.isArray(data.faculties) ? data.faculties : []); //set dữ liệu khoa vào faculties
+      setProgressStats(data.progressStats ?? null); //set dữ liệu thống kê tiến độ thực tập vào progressStats
       setPage(1);
     } catch (e: any) {
       setError(e?.message || "Không thể tải dữ liệu.");
@@ -104,9 +104,9 @@ export default function AdminTienDoThucTapPage() {
     }
   }
 
-  async function openView(row: ListRow) {
+  async function openView(row: ListRow) { //hàm mở popup xem chi tiết tiến độ thực tập
     try {
-      const data = await fetchProgressDetailCached(row.id);
+      const data = await fetchProgressDetailCached(row.id); //lấy chi tiết tiến độ thực tập từ cache
       setViewTarget(data.item as Detail);
       setViewOpen(true);
     } catch (e) {
@@ -114,10 +114,10 @@ export default function AdminTienDoThucTapPage() {
     }
   }
 
-  async function openEdit(row: ListRow) {
+  async function openEdit(row: ListRow) { //hàm mở popup cập nhật trạng thái cuối cùng
     if (!row.canFinalUpdate) return;
     try {
-      const data = await fetchProgressDetailCached(row.id);
+      const data = await fetchProgressDetailCached(row.id); //lấy chi tiết tiến độ thực tập từ cache
       setEditTarget(data.item as Detail);
       setFinalStatusDraft("COMPLETED");
       setEditOpen(true);
@@ -126,15 +126,15 @@ export default function AdminTienDoThucTapPage() {
     }
   }
 
-  async function exportFilteredExcel() {
+  async function exportFilteredExcel() { //hàm xuất file Excel theo điều kiện lọc
     setExportBusy(true);
     try {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(); //tạo đối tượng URLSearchParams để lưu các tham số query
       if (q.trim()) params.set("q", q.trim());
-      if (filterFaculty !== "all") params.set("faculty", filterFaculty);
-      if (filterDegree !== "all") params.set("degree", filterDegree);
-      if (filterStatus !== "all") params.set("status", filterStatus);
-      const res = await fetch(`/api/admin/tien-do-thuc-tap/export?${params.toString()}`);
+      if (filterFaculty !== "all") params.set("faculty", filterFaculty); //thêm tham số faculty vào query
+      if (filterDegree !== "all") params.set("degree", filterDegree); //thêm tham số degree vào query
+      if (filterStatus !== "all") params.set("status", filterStatus); //thêm tham số status vào query
+      const res = await fetch(`/api/admin/tien-do-thuc-tap/export?${params.toString()}`); //gửi request xuất file Excel
       if (!res.ok) {
         const j = (await res.json().catch(() => null)) as { message?: string } | null;
         throw new Error(j?.message || "Không xuất được file Excel.");
@@ -160,7 +160,7 @@ export default function AdminTienDoThucTapPage() {
       a.href = url;
       a.download = fn;
       document.body.appendChild(a);
-      a.click();
+      a.click(); //click vào link để tải file Excel
       a.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -170,13 +170,13 @@ export default function AdminTienDoThucTapPage() {
     }
   }
 
-  async function submitEdit() {
-    if (!editTarget) return;
-    if (!editTarget.ui.canFinalUpdate) return;
+  async function submitEdit() { //hàm gửi dữ liệu cập nhật trạng thái cuối cùng
+    if (!editTarget) return; //nếu không có dữ liệu cập nhật thì không xử lý
+    if (!editTarget.ui.canFinalUpdate) return; //nếu không có quyền cập nhật thì không xử lý
 
     setBusyId(editTarget.student.id);
     try {
-      const res = await fetch(`/api/admin/tien-do-thuc-tap/${editTarget.student.id}`, {
+      const res = await fetch(`/api/admin/tien-do-thuc-tap/${editTarget.student.id}`, { //gửi request cập nhật trạng thái cuối cùng từ API
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ finalStatus: finalStatusDraft })
@@ -213,7 +213,7 @@ export default function AdminTienDoThucTapPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
-  return (
+  return ( //render trang quản lý tiến độ thực tập
     <main className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Quản lý tiến độ thực tập</h1>

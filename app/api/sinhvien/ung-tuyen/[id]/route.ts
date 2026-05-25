@@ -10,7 +10,7 @@ import { escapeHtml, mailCalloutHtml } from "@/lib/mail-layout";
 
 type StudentAction = "CONFIRM_INTERVIEW" | "DECLINE_INTERVIEW" | "CONFIRM_INTERNSHIP" | "DECLINE_INTERNSHIP";
 
-async function getStudentUserId() {
+async function getStudentUserId() { //hàm lấy id sinh viên
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
@@ -25,8 +25,8 @@ async function getStudentUserId() {
   }
 }
 
-async function fetchMailContext(prismaAny: any, applicationId: string) {
-  const app = await prismaAny.jobApplication.findFirst({
+async function fetchMailContext(prismaAny: any, applicationId: string) { //hàm lấy context email
+  const app = await prismaAny.jobApplication.findFirst({ //lấy ứng tuyển theo id
     where: { id: applicationId },
     select: {
       jobPost: {
@@ -39,7 +39,7 @@ async function fetchMailContext(prismaAny: any, applicationId: string) {
       studentUser: { select: { fullName: true, email: true, phone: true } }
     }
   });
-  return {
+  return { //trả về context email
     jobTitle: (app?.jobPost?.title ?? "") as string,
     expertise: (app?.jobPost?.expertise ?? null) as string | null,
     companyName: (app?.jobPost?.enterpriseUser?.companyName ?? "") as string,
@@ -50,18 +50,18 @@ async function fetchMailContext(prismaAny: any, applicationId: string) {
   };
 }
 
-export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const auth = await getStudentUserId();
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm phản hồi ứng tuyển
+  const auth = await getStudentUserId(); //lấy id sinh viên
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
-  const { id } = await ctx.params;
-  const body = (await request.json()) as { action?: StudentAction };
+  const { id } = await ctx.params; //lấy id ứng tuyển
+  const body = (await request.json()) as { action?: StudentAction }; //lấy body request
   const action = (body.action || "").trim() as StudentAction;
 
-  if (!action) return NextResponse.json({ success: false, message: "Hành động bắt buộc." }, { status: 400 });
+  if (!action) return NextResponse.json({ success: false, message: "Hành động bắt buộc." }, { status: 400 }); //trả về lỗi nếu không có action
 
   const prismaAny = prisma as any;
-  const app = await prismaAny.jobApplication.findFirst({
+  const app = await prismaAny.jobApplication.findFirst({ //lấy ứng tuyển theo id và id sinh viên
     where: { id, studentUserId: userId },
     select: {
       id: true,
@@ -89,19 +89,19 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ success: false, message: "Chỉ được xác nhận hoặc từ chối thực tập." }, { status: 400 });
   }
 
-  const now = new Date();
+  const now = new Date(); //lấy thời gian hiện tại
   const prevHistory = Array.isArray(app.history) ? app.history : [];
-  const historyEvent = {
+  const historyEvent = { //lấy lịch sử ứng tuyển
     at: now.toISOString(),
     by: "STUDENT",
     action,
     fromStatus: app.status
   };
 
-  let responseMessage = "";
+  let responseMessage = ""; //lấy message phản hồi
 
   if (action === "CONFIRM_INTERVIEW") {
-    await prismaAny.jobApplication.update({
+    await prismaAny.jobApplication.update({ //cập nhật ứng tuyển
       where: { id },
       data: {
         response: "ACCEPTED",
@@ -111,7 +111,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     });
     responseMessage = "Đã xác nhận phỏng vấn.";
   } else if (action === "DECLINE_INTERVIEW") {
-    await prismaAny.jobApplication.update({
+    await prismaAny.jobApplication.update({ //cập nhật ứng tuyển
       where: { id },
       data: {
         status: "STUDENT_DECLINED",
@@ -122,7 +122,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     });
     responseMessage = "Đã từ chối phỏng vấn.";
   } else if (action === "DECLINE_INTERNSHIP") {
-    await prismaAny.jobApplication.update({
+    await prismaAny.jobApplication.update({ //cập nhật ứng tuyển
       where: { id },
       data: {
         status: "STUDENT_DECLINED",
@@ -134,7 +134,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     responseMessage = "Đã từ chối thực tập.";
   } else {
     // CONFIRM_INTERNSHIP
-    await prismaAny.$transaction(async (tx: any) => {
+    await prismaAny.$transaction(async (tx: any) => { //cập nhật ứng tuyển
       await tx.jobApplication.update({
         where: { id },
         data: {
@@ -144,7 +144,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
         }
       });
 
-      const student = await tx.studentProfile.findFirst({
+      const student = await tx.studentProfile.findFirst({ //lấy hồ sơ sinh viên   
         where: { userId },
         select: { id: true, internshipStatus: true }
       });
@@ -172,7 +172,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
 
   // Send email notifications
   try {
-    const appUrl = getPublicAppUrl();
+    const appUrl = getPublicAppUrl(); //lấy url ứng dụng
     const { jobTitle, expertise, companyName, enterpriseEmail, svFullName, svEmail, svPhone } =
       await fetchMailContext(prismaAny, id);
 
@@ -233,7 +233,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       const safeJob = escapeHtml(jobTitle);
       const safeUrl = escapeHtml(`${appUrl}/sinhvien`);
 
-      const actionLabel =
+      const actionLabel = //lấy label hành động
         action === "CONFIRM_INTERVIEW"
           ? "Xác nhận phỏng vấn"
           : action === "DECLINE_INTERVIEW"

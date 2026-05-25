@@ -1,6 +1,12 @@
 import type { JobListItem } from "@/lib/types/doanhnghiep-tuyen-dung";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 
+/**
+ * TỔNG QUAN FILE:
+ * Component TuyenDungDeletePopup hiển thị một cửa sổ bật lên (Modal/Popup) để xác nhận và thực hiện thao tác XÓA
+ * một tin tuyển dụng cụ thể. Hỗ trợ trạng thái tải dữ liệu bất đồng bộ (busyId) khi đang đợi phản hồi từ API.
+ */
+
 type Props = {
   deleteTarget: JobListItem | null;
   busyId: string | null;

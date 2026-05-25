@@ -1,8 +1,8 @@
-import type { EnterpriseAccountFormState } from "@/lib/types/doanhnghiep-tai-khoan";
+import type { EnterpriseAccountFormState } from "@/lib/types/doanhnghiep-tai-khoan"; //kiểu dữ liệu trả về từ API
 
-export const ENTERPRISE_ACCOUNT_ME_ENDPOINT = "/api/doanhnghiep/me";
+export const ENTERPRISE_ACCOUNT_ME_ENDPOINT = "/api/doanhnghiep/me"; //url API lấy thông tin doanh nghiệp
 
-export const ENTERPRISE_ACCOUNT_EMPTY_FORM: EnterpriseAccountFormState = {
+export const ENTERPRISE_ACCOUNT_EMPTY_FORM: EnterpriseAccountFormState = { //form rỗng
   email: "",
   phone: "",
   representativeName: "",
@@ -16,12 +16,12 @@ export const ENTERPRISE_ACCOUNT_EMPTY_FORM: EnterpriseAccountFormState = {
   addressDetail: ""
 };
 
-export const ENTERPRISE_ACCOUNT_ERROR_REPRESENTATIVE_NAME =
+export const ENTERPRISE_ACCOUNT_ERROR_REPRESENTATIVE_NAME = //lỗi tên người đại diện
   "Ho va ten chi gom ky tu chu, dai 1-255.";
-export const ENTERPRISE_ACCOUNT_ERROR_REPRESENTATIVE_TITLE =
+export const ENTERPRISE_ACCOUNT_ERROR_REPRESENTATIVE_TITLE = //lỗi chức vụ người đại diện
   "Chuc vu chi gom ky tu chu, dai 1-255.";
-export const ENTERPRISE_ACCOUNT_ERROR_WEBSITE = "Website khong dung dinh dang.";
-export const ENTERPRISE_ACCOUNT_ERROR_EMAIL = "Email khong dung dinh dang.";
+export const ENTERPRISE_ACCOUNT_ERROR_WEBSITE = "Website khong dung dinh dang."; //lỗi website không hợp lệ
+export const ENTERPRISE_ACCOUNT_ERROR_EMAIL = "Email khong dung dinh dang."; //lỗi email không hợp lệ
 export const ENTERPRISE_ACCOUNT_ERROR_ADDRESS = "Dia chi chi tiet chi gom chu, so va khoang trang (1-255).";
 export const ENTERPRISE_ACCOUNT_ERROR_PROVINCE = "Vui long chon tinh/thanh.";
 export const ENTERPRISE_ACCOUNT_ERROR_WARD = "Vui long chon phuong/xa.";

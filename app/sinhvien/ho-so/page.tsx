@@ -27,22 +27,22 @@ const PROVINCES_CACHE_KEY = "vn-address:provinces";
 
 type ProfilePayload = { success: boolean; item?: SinhVienHoSoProfile | null; message?: string };
 
-function readCachedProfileItem(): SinhVienHoSoProfile | null {
+function readCachedProfileItem(): SinhVienHoSoProfile | null { //hàm lấy thông tin hồ sơ sinh viên từ cache
   if (typeof window === "undefined") return null;
   const d = getCachedValue<ProfilePayload>(PROFILE_CACHE_KEY);
   return (d?.item ?? null) as SinhVienHoSoProfile | null;
 }
-
-async function fetchProfilePayload(): Promise<ProfilePayload> {
+ 
+async function fetchProfilePayload(): Promise<ProfilePayload> { //hàm lấy thông tin hồ sơ sinh viên từ API
   const res = await fetch(SINHVIEN_HO_SO_PROFILE_ENDPOINT);
   const data = (await res.json()) as ProfilePayload;
   if (!res.ok || !data?.success) throw new Error(data?.message || SINHVIEN_HO_SO_LOAD_PROFILE_ERROR_DEFAULT);
   return data;
 }
-
-export default function SinhVienHoSoPage() {
+ 
+export default function SinhVienHoSoPage() { //trang hồ sơ sinh viên
   const [toast, setToast] = useState("");
-
+  //state loading, error, profile, provinces, wards, wardLoading
   const [profileLoading, setProfileLoading] = useState(() =>
     typeof window === "undefined" ? true : !hasCachedValue(PROFILE_CACHE_KEY)
   );
@@ -67,7 +67,7 @@ export default function SinhVienHoSoPage() {
   const [wards, setWards] = useState<Ward[]>([]);
   const [wardLoading, setWardLoading] = useState(false);
 
-  const syncDraftFromProfile = (p: SinhVienHoSoProfile | null) => {
+  const syncDraftFromProfile = (p: SinhVienHoSoProfile | null) => { //hàm đồng bộ thông tin hồ sơ sinh viên từ profile sang draft
     const draft = mapProfileToDraft(p);
     setPhone(draft.phone);
     setEmail(draft.email);
@@ -81,7 +81,7 @@ export default function SinhVienHoSoPage() {
     setFieldErrors({});
   };
 
-  useEffect(() => {
+  useEffect(() => { //hàm tải dữ liệu hồ sơ sinh viên
     void (async () => {
       try {
         if (!hasCachedValue(PROFILE_CACHE_KEY)) setProfileLoading(true);
@@ -97,7 +97,7 @@ export default function SinhVienHoSoPage() {
     })();
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { //hàm poll nền tải dữ liệu hồ sơ sinh viên mỗi 30 giây
     const timer = setInterval(() => {
       if (isEditing || saving) return;
       void (async () => {
@@ -113,7 +113,7 @@ export default function SinhVienHoSoPage() {
     return () => clearInterval(timer);
   }, [isEditing, saving]);
 
-  useEffect(() => {
+  useEffect(() => { //hàm tải dữ liệu tỉnh/thành
     void (async () => {
       try {
         const items = await getOrFetchCached<Province[]>(PROVINCES_CACHE_KEY, async () => {
@@ -129,7 +129,7 @@ export default function SinhVienHoSoPage() {
     })();
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { //hàm tải dữ liệu phường/xã
     if (!currentProvinceCode) {
       setWards([]);
       setCurrentWardCode("");
@@ -164,7 +164,7 @@ export default function SinhVienHoSoPage() {
     return isValid;
   };
 
-  const onPickCv = async (file: File | null) => {
+  const onPickCv = async (file: File | null) => { //hàm chọn file CV
     if (!file) return;
     const mime = file.type || "";
     if (!isCvMimeAllowed(mime)) {
@@ -178,12 +178,12 @@ export default function SinhVienHoSoPage() {
     setFieldErrors((p) => ({ ...p, cv: "" }));
   };
 
-  const submitProfile = async () => {
+  const submitProfile = async () => { //hàm cập nhật hồ sơ sinh viên
     if (!isEditing) return;
     if (!validateProfile()) return;
     setSaving(true);
     try {
-      const payload = buildSinhVienHoSoPatchPayload({
+      const payload = buildSinhVienHoSoPatchPayload({ //tạo payload để cập nhật hồ sơ sinh viên
         phone,
         email,
         currentProvinceCode,
@@ -202,7 +202,7 @@ export default function SinhVienHoSoPage() {
       if (cvFile) fd.set("cv", cvFile);
       if (removeCv) fd.set("removeCv", "1");
 
-      const res = await fetch(SINHVIEN_HO_SO_PROFILE_ENDPOINT, { method: "PATCH", body: fd });
+      const res = await fetch(SINHVIEN_HO_SO_PROFILE_ENDPOINT, { method: "PATCH", body: fd }); //gửi request cập nhật hồ sơ sinh viên từ API
       const data = await res.json();
       if (!res.ok || !data?.success) {
         if (data?.errors) setFieldErrors(data.errors);
@@ -220,17 +220,17 @@ export default function SinhVienHoSoPage() {
     }
   };
 
-  const startEdit = () => {
+  const startEdit = () => { //hàm bắt đầu chỉnh sửa hồ sơ sinh viên
     setFieldErrors({});
     setIsEditing(true);
   };
 
-  const cancelEdit = () => {
+  const cancelEdit = () => { //hàm hủy chỉnh sửa hồ sơ sinh viên
     syncDraftFromProfile(profile);
     setIsEditing(false);
   };
 
-  return (
+  return ( //render trang hồ sơ sinh viên
     <main className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Hồ sơ cá nhân</h1>

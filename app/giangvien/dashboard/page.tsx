@@ -9,12 +9,12 @@ import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/cl
 
 type Batch = { id: string; name: string; status: string };
 
-type ChartData = {
+type ChartData = { //kiểu dữ liệu cho đồ thị cột
   labels: string[];
   values: number[];
 };
 
-type OverviewPayload = {
+type OverviewPayload = { //kiểu dữ liệu cho đồ thị cột
   success: boolean;
   batches: Batch[];
   selectedBatchId: string | null;
@@ -22,30 +22,30 @@ type OverviewPayload = {
   internshipStatus: ChartData;
 };
 
-const shellChartMin = { minHeight: 300 } as const;
+const shellChartMin = { minHeight: 300 } as const; //chiều cao nhỏ nhất của đồ thị cột
 
-function gvDashboardOverviewCacheKey(batchId: string) {
-  const qs = new URLSearchParams();
-  if (batchId && batchId !== "all") qs.set("batchId", batchId);
-  const url = `/api/giangvien/dashboard/overview?${qs.toString()}`;
+function gvDashboardOverviewCacheKey(batchId: string) { //tạo key cache cho dashboard
+  const qs = new URLSearchParams(); //tạo query string
+  if (batchId && batchId !== "all") qs.set("batchId", batchId); //thêm batchId vào query string
+  const url = `/api/giangvien/dashboard/overview?${qs.toString()}`; //tạo url cho request
   return `gv:dashboard:overview:${url}`;
 }
 
-const GV_DASHBOARD_INITIAL_KEY = gvDashboardOverviewCacheKey("all");
+const GV_DASHBOARD_INITIAL_KEY = gvDashboardOverviewCacheKey("all"); //tạo key cache cho dashboard
 
-export default function LecturerDashboardPage() {
+export default function LecturerDashboardPage() { //trang dashboard giảng viên  
   const [loading, setLoading] = useState(() => !hasCachedValue(GV_DASHBOARD_INITIAL_KEY));
   const [error, setError] = useState<string | null>(null);
   const [batchId, setBatchId] = useState("all");
   const [payload, setPayload] = useState<OverviewPayload | null>(() => getCachedValue<OverviewPayload>(GV_DASHBOARD_INITIAL_KEY) ?? null);
 
-  useEffect(() => {
-    let cancelled = false;
+  useEffect(() => { //hàm load dữ liệu cho dashboard
+    let cancelled = false; //biến để kiểm tra xem có bị hủy không - nếu bị hủy sẽ không load dữ liệu
     async function load(opts?: { force?: boolean; silent?: boolean }) {
-      const force = Boolean(opts?.force);
-      const silent = Boolean(opts?.silent);
+      const force = Boolean(opts?.force); //biến để kiểm tra xem có bị hủy không - nếu bị hủy sẽ không load dữ liệu
+      const silent = Boolean(opts?.silent); //biến để kiểm tra xem có bị hủy không - nếu bị hủy sẽ không load dữ liệu
       try {
-        const qs = new URLSearchParams();
+        const qs = new URLSearchParams(); //tạo query string
         if (batchId && batchId !== "all") qs.set("batchId", batchId);
         const url = `/api/giangvien/dashboard/overview?${qs.toString()}`;
         const cacheKey = `gv:dashboard:overview:${url}`;

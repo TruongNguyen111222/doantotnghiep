@@ -1,19 +1,19 @@
 "use client";
-
+//popup xem thông tin sinh viên
 import type { ViewStudent } from "@/lib/types/admin-quan-ly-sinh-vien";
 import {
   ADMIN_QUAN_LY_SINH_VIEN_DEGREE_LABEL,
   ADMIN_QUAN_LY_SINH_VIEN_GENDER_LABEL,
   ADMIN_QUAN_LY_SINH_VIEN_INTERNSHIP_STATUS_LABEL
-} from "@/lib/constants/admin-quan-ly-sinh-vien";
-import { toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-sinh-vien-dates";
+} from "@/lib/constants/admin-quan-ly-sinh-vien"; //hằng số sinh viên
+import { toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-sinh-vien-dates"; //hàm chuyển đổi ngày sinh sang định dạng input
 import MessagePopup from "../../../components/MessagePopup";
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
-  open: boolean;
-  student: ViewStudent | null;
-  onClose: () => void;
+type Props = { //type props popup xem sinh viên
+  open: boolean; //trạng thái popup
+  student: ViewStudent | null; //dữ liệu sinh viên
+  onClose: () => void; //hàm đóng popup
 };
 
 export default function AdminSinhVienViewPopup(props: Props) {

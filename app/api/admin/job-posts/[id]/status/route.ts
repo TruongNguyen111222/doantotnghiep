@@ -1,33 +1,33 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/admin-session";
+import { getAdminSession } from "@/lib/auth/admin-session"; 
 import { prisma } from "@/lib/prisma";
-import { sendMail } from "@/lib/mail";
-import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF } from "@/lib/constants/school";
+import { sendMail } from "@/lib/mail"; //hàm gửi email
+import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF } from "@/lib/constants/school"; //hàm gửi email
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
 
-type JobStatus = "PENDING" | "REJECTED" | "ACTIVE" | "STOPPED";
+type JobStatus = "PENDING" | "REJECTED" | "ACTIVE" | "STOPPED"; //trạng thái việc làm
 
 export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
-  const { id } = await ctx.params;
+  const { id } = await ctx.params; //lấy id việc làm
   const body = (await request.json()) as {
     action?: "approve" | "reject" | "stop";
     rejectionReason?: string;
   };
 
-  const action = body.action;
-  const rejectionReason = (body.rejectionReason || "").trim();
+  const action = body.action; //lấy hành động từ body
+  const rejectionReason = (body.rejectionReason || "").trim(); //lấy lý do từ chối từ body
 
-  const job = await (prisma as any).jobPost.findFirst({
+  const job = await (prisma as any).jobPost.findFirst({ //tìm kiếm việc làm theo id
     where: { id },
     select: {
       id: true,
       title: true,
       status: true,
       expertise: true,
-      enterpriseUser: { select: { email: true, companyName: true } }
+      enterpriseUser: { select: { email: true, companyName: true } } //lấy thông tin doanh nghiệp
     }
   });
   if (!job) return NextResponse.json({ success: false, message: "Không tìm thấy tin tuyển dụng." }, { status: 404 });
@@ -52,7 +52,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   }
 
   try {
-    await (prisma as any).jobPost.update({
+    await (prisma as any).jobPost.update({ //cập nhật trạng thái việc làm
       where: { id },
       data: {
         status: nextStatus,
@@ -67,7 +67,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
 
   // Send email notification to enterprise
   try {
-    const appUrl = getPublicAppUrl();
+    const appUrl = getPublicAppUrl(); //lấy url hệ thống
     const enterpriseEmail: string | null = job.enterpriseUser?.email ?? null;
     const companyName: string = job.enterpriseUser?.companyName ?? "Doanh nghiệp";
     const jobTitle: string = job.title ?? "Tin tuyển dụng";

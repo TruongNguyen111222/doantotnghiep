@@ -1,5 +1,5 @@
 "use client";
-//omponent “thẻ thống kê nhỏ” trong dashboard admin.
+//component “thẻ thống kê nhỏ” trong dashboard admin.
 import type { ReactNode } from "react";
 import type { IconType } from "react-icons";
 import summaryStyles from "./dashboard-stat-summary-card.module.css";

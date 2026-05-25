@@ -10,17 +10,17 @@ import { toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-gvhd-dates";
 import MessagePopup from "../../../components/MessagePopup";
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
-  open: boolean;
-  item: SupervisorListItem | null;
-  onClose: () => void;
+type Props = { //type props popup xem giảng viên
+  open: boolean; //trạng thái popup
+  item: SupervisorListItem | null; //dữ liệu giảng viên
+  onClose: () => void; //hàm đóng popup
 };
 
-export default function AdminGiangVienViewPopup(props: Props) {
+export default function AdminGiangVienViewPopup(props: Props) { //component popup xem giảng viên
   const { open, item, onClose } = props;
   if (!open || !item) return null;
 
-  return (
+  return ( //render component
     <MessagePopup open title="Xem thông tin giảng viên hướng dẫn" size="extraWide" onClose={onClose}>
       <table className={styles.viewModalDetailTable}>
         <tbody>

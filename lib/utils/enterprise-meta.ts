@@ -1,7 +1,7 @@
 //xử lý thông tin doanh nghiệp
-export function metaRecord(meta: unknown): Record<string, unknown> {
-  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return {};
-  return meta as Record<string, unknown>;
+export function metaRecord(meta: unknown): Record<string, unknown> { //hàm xử lý thông tin doanh nghiệp
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return {}; //nếu meta không hợp lệ thì trả về empty object
+  return meta as Record<string, unknown>; //trả về meta
 }
 
 /** Bỏ base64 nặng khỏi enterpriseMeta khi trả API admin (danh sách / chi tiết). */

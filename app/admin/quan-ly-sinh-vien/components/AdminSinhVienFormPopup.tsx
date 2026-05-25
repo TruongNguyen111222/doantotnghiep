@@ -1,12 +1,12 @@
 "use client";
-
+//popup thêm/sửa thông tin sinh viên
 import type { Dispatch, SetStateAction } from "react";
 import type { Degree, Gender, Province, StudentFormState, Ward } from "@/lib/types/admin-quan-ly-sinh-vien";
 import {
   ADMIN_QUAN_LY_SINH_VIEN_DEGREE_OPTIONS,
   ADMIN_QUAN_LY_SINH_VIEN_FACULTY_CUSTOM_VALUE,
   ADMIN_QUAN_LY_SINH_VIEN_SEMESTER_GENDER_OPTIONS
-} from "@/lib/constants/admin-quan-ly-sinh-vien";
+} from "@/lib/constants/admin-quan-ly-sinh-vien"; //hằng số sinh viên
 import FormPopup from "../../../components/FormPopup";
 import styles from "../../styles/dashboard.module.css";
 import formStyles from "../../../auth/styles/register.module.css";
@@ -46,9 +46,9 @@ export default function AdminSinhVienFormPopup(props: Props) {
 
   if (!open) return null;
 
-  const isCreate = mode === "create";
+  const isCreate = mode === "create"; //trạng thái thêm/sửa
 
-  return (
+  return ( //render component popup thêm/sửa thông tin sinh viên
     <FormPopup
       open
       title={isCreate ? "Thêm từng SV" : "Sửa thông tin SV"}

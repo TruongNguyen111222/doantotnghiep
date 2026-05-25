@@ -1,7 +1,7 @@
-export type Gender = "MALE" | "FEMALE" | "OTHER";
+export type Gender = "MALE" | "FEMALE" | "OTHER"; //giới tính nam, nữ, khác
 export type Degree = "MASTER" | "PHD" | "ASSOC_PROF" | "PROF";
 
-export type SupervisorListItem = {
+export type SupervisorListItem = { //type dữ liệu giảng viên  
   id: string;
   fullName: string;
   phone: string | null;
@@ -16,10 +16,10 @@ export type SupervisorListItem = {
   permanentWardName: string | null;
 };
 
-export type Province = { code: number; name: string };
-export type Ward = { code: number; name: string };
+export type Province = { code: number; name: string }; //type dữ liệu tỉnh
+export type Ward = { code: number; name: string }; //type dữ liệu huyện
 
-export type SupervisorFormState = {
+export type SupervisorFormState = { //type form giảng viên
   fullName: string;
   phone: string;
   email: string;

@@ -9,29 +9,29 @@ import {
 
 const MAX_EXPORT = 8000;
 
-function fmtPoint(v: unknown): string {
-  if (v == null) return "";
-  const n = typeof v === "number" ? v : Number(v);
-  if (Number.isNaN(n)) return "";
-  return String(n);
+function fmtPoint(v: unknown): string { //hàm format điểm
+  if (v == null) return ""; //nếu v là null thì trả về ""
+  const n = typeof v === "number" ? v : Number(v); //nếu v là number thì trả về v, nếu không thì chuyển đổi v thành number
+  if (Number.isNaN(n)) return ""; //nếu n là NaN thì trả về ""
+  return String(n); //trả về chuỗi của n
 }
 
-function reviewLabel(s: string | null | undefined): string {
-  if (!s) return "";
-  if (s === "APPROVED") return "Đã duyệt";
-  if (s === "REJECTED") return "Từ chối";
-  return "Chờ duyệt";
+function reviewLabel(s: string | null | undefined): string { //hàm format trạng thái review báo cáo thực tập
+  if (!s) return ""; //nếu s là null thì trả về ""
+  if (s === "APPROVED") return "Đã duyệt"; //nếu s là "APPROVED" thì trả về "Đã duyệt"
+  if (s === "REJECTED") return "Từ chối"; //nếu s là "REJECTED" thì trả về "Từ chối"
+  return "Chờ duyệt"; //nếu s không phải "APPROVED" hoặc "REJECTED" thì trả về "Chờ duyệt"
 }
 
-function submittedDate(iso: string | null | undefined): string {
+function submittedDate(iso: string | null | undefined): string { //hàm format ngày nộp báo cáo thực tập
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toISOString().slice(0, 10);
 }
 
-export async function GET(request: Request) {
-  const gv = await resolveGiangVienSupervisorProfileId();
+export async function GET(request: Request) { //hàm xuất file Excel theo điều kiện
+  const gv = await resolveGiangVienSupervisorProfileId(); //hàm lấy id giảng viên
   if (!gv.ok) return gv.response;
 
   try {
@@ -44,11 +44,11 @@ export async function GET(request: Request) {
       );
     }
 
-    const degreeLookup = degreeLabel as Record<string, string>;
+    const degreeLookup = degreeLabel as Record<string, string>; //hàm xử lý độ bậc
 
     const dataRows = items.map((row: any) => {
-      const rep = row.report;
-      const ent = row.enterprise;
+      const rep = row.report; //hàm xử lý báo cáo thực tập
+      const ent = row.enterprise; //hàm xử lý doanh nghiệp
       return [
         String(row.msv ?? ""),
         String(row.fullName ?? ""),
@@ -70,8 +70,8 @@ export async function GET(request: Request) {
       ];
     });
 
-    const aoa = [[...GIANGVIEN_BAO_CAO_EXPORT_HEADER], ...dataRows];
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const aoa = [[...GIANGVIEN_BAO_CAO_EXPORT_HEADER], ...dataRows]; //hàm xử lý dữ liệu excel
+    const ws = XLSX.utils.aoa_to_sheet(aoa); //hàm xử lý dữ liệu excel
     const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
     for (let c = range.s.c; c <= range.e.c; c++) {
       for (let r = range.s.r + 1; r <= range.e.r; r++) {
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
 
     const disposition = `attachment; filename="bao_cao_thuc_tap.xlsx"; filename*=UTF-8''${encodeURIComponent("bao_cao_thuc_tap_theo_loc.xlsx")}`;
 
-    return new NextResponse(buf, {
+    return new NextResponse(Buffer.from(buf), {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": disposition

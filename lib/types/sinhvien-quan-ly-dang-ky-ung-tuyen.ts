@@ -2,7 +2,7 @@ export type AppStatus = "PENDING_REVIEW" | "INTERVIEW_INVITED" | "OFFERED" | "RE
 export type ResponseStatus = "PENDING" | "ACCEPTED" | "DECLINED";
 export type WorkType = "PART_TIME" | "FULL_TIME";
 
-export type SinhVienQuanLyDangKyUngTuyenRow = {
+export type SinhVienQuanLyDangKyUngTuyenRow = { //hàng trong bảng quan ly dang ky ung tuyen
   id: string;
   status: AppStatus;
   response: ResponseStatus;
@@ -21,9 +21,9 @@ export type SinhVienQuanLyDangKyUngTuyenRow = {
   };
 };
 
-export type StatusFilter = "all" | AppStatus;
+export type StatusFilter = "all" | AppStatus; //trạng thái lọc
 
-export type RespondAction =
+export type RespondAction = //hàm phản hồi
   | "CONFIRM_INTERVIEW"
   | "DECLINE_INTERVIEW"
   | "CONFIRM_INTERNSHIP"

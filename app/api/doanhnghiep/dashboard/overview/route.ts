@@ -4,9 +4,9 @@ import { verifySession } from "@/lib/auth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns";
 import { prisma } from "@/lib/prisma";
 
-async function getEnterpriseUserId() {
+async function getEnterpriseUserId() { //hàm lấy id doanh nghiệp kiểm tra đăng nhập
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value; 
   if (!token)
     return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
   try {
@@ -19,7 +19,7 @@ async function getEnterpriseUserId() {
   }
 }
 
-type SimpleChartSeries = { name: string; data: number[]; color: string };
+type SimpleChartSeries = { name: string; data: number[]; color: string }; //kiểu dữ liệu cho đồ thị đường
 
 const CHART_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#0ea5e9", "#84cc16"];
 
@@ -27,21 +27,21 @@ function monthKey(d: Date) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-function monthLabel(key: string) {
+function monthLabel(key: string) { //hàm tạo nhãn cho đồ thị đường
   const [y, m] = key.split("-");
-  return `${m}/${y}`;
+  return `${m}/${y}`; //trả về nhãn cho đồ thị đường
 }
 
 export async function GET(request: Request) {
-  const auth = await getEnterpriseUserId();
+  const auth = await getEnterpriseUserId(); //gọi hàm lấy id doanh nghiệp
   if ("error" in auth) return auth.error;
-  const enterpriseUserId = auth.userId;
+  const enterpriseUserId = auth.userId; //lấy id doanh nghiệp
   const prismaAny = prisma as any;
 
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(request.url); //lấy tham số từ URL
     const dateFromParam = searchParams.get("dateFrom") ?? "";
-    const dateToParam = searchParams.get("dateTo") ?? "";
+    const dateToParam = searchParams.get("dateTo") ?? ""; //lấy tham số từ URL    
 
     const dateFilter: { gte?: Date; lte?: Date } = {};
     if (dateFromParam) {
@@ -50,24 +50,24 @@ export async function GET(request: Request) {
     }
     if (dateToParam) {
       const d = new Date(dateToParam);
-      if (!isNaN(d.getTime())) {
+      if (!isNaN(d.getTime())) { //nếu ngày không phải là số thì trả về lỗi 400
         d.setHours(23, 59, 59, 999);
         dateFilter.lte = d;
       }
     }
 
-    const createdAtFilter = Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {};
+    const createdAtFilter = Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}; //lấy điều kiện tìm kiếm
 
     // --- Fetch all applications for this enterprise within date range ---
-    const allApps: Array<{
+    const allApps: Array<{ //lấy danh sách ứng tuyển
       status: string;
       response: string;
       createdAt: Date;
       jobPost: { expertise: string | null };
       studentUser: { studentProfile: { faculty: string } | null } | null;
-    }> = await prismaAny.jobApplication.findMany({
+    }> = await prismaAny.jobApplication.findMany({ //lấy danh sách ứng tuyển
       where: {
-        jobPost: { enterpriseUserId },
+        jobPost: { enterpriseUserId }, //điều kiện tìm kiếm
         ...createdAtFilter
       },
       select: {
@@ -80,15 +80,15 @@ export async function GET(request: Request) {
     });
 
     // --- Fetch all job posts for this enterprise within date range ---
-    const allPosts: Array<{ status: string; expertise: string | null; createdAt: Date }> =
-      await prismaAny.jobPost.findMany({
+    const allPosts: Array<{ status: string; expertise: string | null; createdAt: Date }> = //lấy danh sách tin tuyển dụng
+      await prismaAny.jobPost.findMany({ //lấy danh sách tin tuyển dụng
         where: { enterpriseUserId, ...createdAtFilter },
         select: { status: true, expertise: true, createdAt: true }
       });
 
-    // --- Double bar: accepted vs declined by expertise ---
-    const acceptedByExpertise = new Map<string, number>();
-    const declinedByExpertise = new Map<string, number>();
+    // --- Double bar: accepted vs declined by expertise --- 
+    const acceptedByExpertise = new Map<string, number>(); // XỬ LÝ DỮ LIỆU CHO ĐỒ THỊ CỘT 
+    const declinedByExpertise = new Map<string, number>(); 
     for (const app of allApps) {
       const ex = app.jobPost?.expertise ?? "Khác";
       if (app.response === "ACCEPTED") {
@@ -98,39 +98,39 @@ export async function GET(request: Request) {
         declinedByExpertise.set(ex, (declinedByExpertise.get(ex) ?? 0) + 1);
       }
     }
-    const expertiseSet = new Set([...acceptedByExpertise.keys(), ...declinedByExpertise.keys()]);
-    const doubleBarLabels = Array.from(expertiseSet).sort();
-    const doubleBar = {
+    const expertiseSet = new Set([...acceptedByExpertise.keys(), ...declinedByExpertise.keys()]); 
+    const doubleBarLabels = Array.from(expertiseSet).sort(); //lấy danh sách tin tuyển dụng 
+    const doubleBar = { //lấy danh sách tin tuyển dụng 
       labels: doubleBarLabels,
-      accepted: doubleBarLabels.map((ex) => acceptedByExpertise.get(ex) ?? 0),
-      declined: doubleBarLabels.map((ex) => declinedByExpertise.get(ex) ?? 0)
+      accepted: doubleBarLabels.map((ex) => acceptedByExpertise.get(ex) ?? 0), //lấy danh sách tin tuyển dụng 
+      declined: doubleBarLabels.map((ex) => declinedByExpertise.get(ex) ?? 0) //lấy danh sách tin tuyển dụng 
     };
 
-    // --- Line chart: application count per expertise per month ---
-    const monthKeysSet = new Set<string>();
-    const appsByExpertiseMonth = new Map<string, Map<string, number>>();
+    // --- Line chart: application count per expertise per month --- //XỬ LÝ DỮ LIỆU CHO ĐỒ THỊ ĐƯỜNG
+    const monthKeysSet = new Set<string>(); 
+    const appsByExpertiseMonth = new Map<string, Map<string, number>>(); 
 
-    for (const app of allApps) {
+    for (const app of allApps) { 
       const ex = app.jobPost?.expertise ?? "Khác";
-      const mk = app.createdAt ? monthKey(new Date(app.createdAt)) : null;
-      if (!mk) continue;
-      monthKeysSet.add(mk);
-      if (!appsByExpertiseMonth.has(ex)) appsByExpertiseMonth.set(ex, new Map());
-      const monthMap = appsByExpertiseMonth.get(ex)!;
-      monthMap.set(mk, (monthMap.get(mk) ?? 0) + 1);
+      const mk = app.createdAt ? monthKey(new Date(app.createdAt)) : null; 
+      if (!mk) continue; //nếu ngày không phải là số thì trả về lỗi 400
+      monthKeysSet.add(mk); //thêm ngày vào danh sách tin tuyển dụng 
+      if (!appsByExpertiseMonth.has(ex)) appsByExpertiseMonth.set(ex, new Map()); //nếu danh sách tin tuyển dụng không có ngành/khoa thì thêm vào danh sách tin tuyển dụng 
+      const monthMap = appsByExpertiseMonth.get(ex)!;  
+      monthMap.set(mk, (monthMap.get(mk) ?? 0) + 1); //thêm ngày vào danh sách tin tuyển dụng 
     }
 
-    const sortedMonthKeys = Array.from(monthKeysSet).sort();
-    const lastMonthKeys = sortedMonthKeys.length > 8 ? sortedMonthKeys.slice(-8) : sortedMonthKeys;
+    const sortedMonthKeys = Array.from(monthKeysSet).sort(); //lấy danh sách tin tuyển dụng 
+    const lastMonthKeys = sortedMonthKeys.length > 8 ? sortedMonthKeys.slice(-8) : sortedMonthKeys; //lấy danh sách tin tuyển dụng 
 
-    // Top 5 expertise by total application count
-    const expertiseTotals = Array.from(appsByExpertiseMonth.entries())
+    // Top 5 expertise by total application count //XỬ LÝ DỮ LIỆU CHO ĐỒ THỊ ĐƯỜNG
+    const expertiseTotals = Array.from(appsByExpertiseMonth.entries()) 
       .map(([ex, monthMap]) => ({ ex, total: Array.from(monthMap.values()).reduce((s, v) => s + v, 0) }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+      .sort((a, b) => b.total - a.total) //sắp xếp theo số lượng tin tuyển dụng 
+      .slice(0, 5); //lấy 5 tin tuyển dụng 
 
-    const lineChartSeries: SimpleChartSeries[] = expertiseTotals.map(({ ex }, i) => {
-      const monthMap = appsByExpertiseMonth.get(ex) ?? new Map<string, number>();
+    const lineChartSeries: SimpleChartSeries[] = expertiseTotals.map(({ ex }, i) => { //lấy danh sách tin tuyển dụng 
+      const monthMap = appsByExpertiseMonth.get(ex) ?? new Map<string, number>(); //lấy danh sách tin tuyển dụng 
       return {
         name: ex,
         data: lastMonthKeys.map((mk) => monthMap.get(mk) ?? 0),
@@ -143,8 +143,8 @@ export async function GET(request: Request) {
       series: lineChartSeries
     };
 
-    // --- Application status bar ---
-    const appStatusCount: Record<string, number> = {
+    // --- Application status bar --- //XỬ LÝ DỮ LIỆU CHO ĐỒ THỊ CỘT
+    const appStatusCount: Record<string, number> = { 
       PENDING_REVIEW: 0,
       INTERVIEW_INVITED: 0,
       OFFERED: 0,
@@ -154,7 +154,7 @@ export async function GET(request: Request) {
     for (const app of allApps) {
       if (app.status in appStatusCount) appStatusCount[app.status]++;
     }
-    const applicationStatus = {
+    const applicationStatus = { //lấy danh sách tin tuyển dụng 
       labels: ["Chờ xem xét", "Mời phỏng vấn", "Trúng tuyển", "Từ chối"],
       values: [
         appStatusCount.PENDING_REVIEW,
@@ -164,8 +164,8 @@ export async function GET(request: Request) {
       ]
     };
 
-    // --- Job post status bar ---
-    const postStatusCount: Record<string, number> = {
+    // --- Job post status bar --- //XỬ LÝ DỮ LIỆU CHO ĐỒ THỊ CỘT
+    const postStatusCount: Record<string, number> = { 
       PENDING: 0, REJECTED: 0, ACTIVE: 0, STOPPED: 0
     };
     for (const p of allPosts) {
@@ -181,7 +181,7 @@ export async function GET(request: Request) {
       ]
     };
 
-    return NextResponse.json({
+    return NextResponse.json({ //trả về dữ liệu cho client
       success: true,
       doubleBar,
       lineChart,

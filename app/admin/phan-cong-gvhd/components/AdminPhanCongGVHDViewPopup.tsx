@@ -1,5 +1,5 @@
 "use client";
-
+//component xem chi tiết phân công giảng viên hướng dẫn
 import type { AssignmentItem } from "@/lib/types/admin-phan-cong-gvhd";
 import { ADMIN_PHAN_CONG_GVHD_STATUS_LABEL } from "@/lib/constants/admin-phan-cong-gvhd";
 import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display";
@@ -8,17 +8,17 @@ import MessagePopup from "../../../components/MessagePopup";
 
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
+type Props = { //props component xem phân công giảng viên hướng dẫn
   viewTarget: AssignmentItem | null;
   onClose: () => void;
 };
 
-export default function AdminPhanCongGVHDViewPopup(props: Props) {
-  const { viewTarget, onClose } = props;
+export default function AdminPhanCongGVHDViewPopup(props: Props) { //component xem chi tiết phân công giảng viên hướng dẫn
+  const { viewTarget, onClose } = props; //lấy props
 
-  if (!viewTarget) return null;
+  if (!viewTarget) return null; //nếu không có phân công giảng viên hướng dẫn thì không hiển thị
 
-  return (
+  return ( //render component
     <MessagePopup
       open
       title="Xem phân công"

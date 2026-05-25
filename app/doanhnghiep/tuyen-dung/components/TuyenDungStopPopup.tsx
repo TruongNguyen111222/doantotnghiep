@@ -1,8 +1,13 @@
-import type { JobListItem } from "@/lib/types/doanhnghiep-tuyen-dung";
+import type { JobListItem } from "@/lib/types/doanhnghiep-tuyen-dung"; //type dữ liệu tin tuyển dụng
 import adminStyles from "../../../admin/styles/dashboard.module.css";
-
-type Props = {
-  stopTarget: JobListItem | null;
+ 
+/**
+ * TỔNG QUAN FILE:
+ * Component TuyenDungStopPopup hiển thị một cửa sổ bật lên (Modal/Popup) để xác nhận và thực hiện thao tác DỪNG hoạt động
+ * của một tin tuyển dụng cụ thể. Hỗ trợ trạng thái tải dữ liệu bất đồng bộ (busyId) khi đang đợi phản hồi từ API.
+ */
+type Props = { 
+  stopTarget: JobListItem | null; //tin tuyển dụng cần dừng hoạt động
   busyId: string | null;
   onConfirm: () => void;
   onCancel: () => void;

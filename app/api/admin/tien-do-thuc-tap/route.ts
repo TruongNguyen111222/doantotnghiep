@@ -14,8 +14,8 @@ type InternshipStatus =
   | "COMPLETED"
   | "REJECTED";
 
-export async function GET(request: Request) {
-  const admin = await getAdminSession();
+export async function GET(request: Request) { //hàm lấy danh sách tiến độ thực tập
+  const admin = await getAdminSession(); //lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   try {
@@ -26,9 +26,9 @@ export async function GET(request: Request) {
     const whereStats = buildAdminTienDoStatsWhere(searchParams) as any;
 
     const [rows, faculties, total, notStarted, doing, selfFinanced, approvedReport, completed] = await Promise.all([
-      prismaAny.studentProfile.findMany({
+      prismaAny.studentProfile.findMany({ //tìm kiếm sinh viên theo điều kiện
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "desc" }, //sắp xếp theo thời gian
         select: {
           id: true,
           msv: true,
@@ -41,11 +41,11 @@ export async function GET(request: Request) {
           internshipReport: { select: { reviewStatus: true } }
         }
       }),
-      prismaAny.studentProfile
+      prismaAny.studentProfile //tìm kiếm sinh viên theo khoa
         .findMany({
-          distinct: ["faculty"],
-          select: { faculty: true },
-          orderBy: { faculty: "asc" }
+          distinct: ["faculty"], //lấy khoa khác nhau
+          select: { faculty: true }, //lấy khoa
+          orderBy: { faculty: "asc" } //sắp xếp theo khoa
         })
         .then((xs: any[]) => xs.map((x) => x.faculty).filter(Boolean)),
       prismaAny.studentProfile.count({ where: whereStats }),
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
     const notCompletedInternship = Math.max(0, (total ?? 0) - (completed ?? 0));
 
-    return NextResponse.json({
+    return NextResponse.json({ //trả về dữ liệu danh sách tiến độ thực tập
       success: true,
       progressStats: {
         notStarted: notStarted ?? 0,

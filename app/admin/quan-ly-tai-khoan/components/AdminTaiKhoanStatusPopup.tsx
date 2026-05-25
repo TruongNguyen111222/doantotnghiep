@@ -1,10 +1,10 @@
 "use client";
-
+//popup xác nhận chuyển đổi trạng thái tài khoản sinh viên, giảng viên hoặc doanh nghiệp
 import type { AccountStatus } from "@/lib/types/admin-quan-ly-tai-khoan";
 import MessagePopup from "../../../components/MessagePopup";
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
+type Props = { //props popup sửa trạng thái tài khoản
   open: boolean;
   statusDraft: AccountStatus;
   busy: boolean;
@@ -13,7 +13,7 @@ type Props = {
   onChangeStatus: (v: AccountStatus) => void;
 };
 
-export default function AdminTaiKhoanStatusPopup(props: Props) {
+export default function AdminTaiKhoanStatusPopup(props: Props) { //hàm hiển thị popup sửa trạng thái tài khoản
   const { open, statusDraft, busy, onClose, onConfirm, onChangeStatus } = props;
   if (!open) return null;
 

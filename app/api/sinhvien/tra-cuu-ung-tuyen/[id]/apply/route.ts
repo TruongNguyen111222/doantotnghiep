@@ -6,14 +6,14 @@ import { prisma } from "@/lib/prisma";
 import { uploadCvBytesToCloudinary } from "@/lib/storage/cloudinary";
 import { sniffBinaryKind } from "@/lib/utils/binary-file-sniff";
 
-const PHONE_PATTERN = /^\d{8,12}$/;
-const CV_ALLOWED_MIMES = [
+const PHONE_PATTERN = /^\d{8,12}$/;  
+const CV_ALLOWED_MIMES = [ //kiểu MIME file CV cho phép
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ] as const;
 
-async function getStudentUserId() {
+async function getStudentUserId() { //hàm lấy id sinh viên
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
@@ -28,7 +28,7 @@ async function getStudentUserId() {
   }
 }
 
-export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm nộp hồ sơ ứng tuyển
   const auth = await getStudentUserId();
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
@@ -99,7 +99,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
         : null;
   if (!effectiveCv) return NextResponse.json({ success: false, errors: { cv: "Vui lòng đính kèm file CV." } }, { status: 400 });
 
-  const cvUpload =
+  const cvUpload = //hàm upload file CV lên cloudinary
     "bytes" in (effectiveCv as any)
       ? await uploadCvBytesToCloudinary({
           bytes: (effectiveCv as any).bytes as Buffer,
@@ -121,7 +121,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
         cvPublicId
       }
     });
-    await tx.jobApplication.create({
+    await tx.jobApplication.create({ //tạo ứng tuyển
       data: {
         jobPostId: id,
         studentUserId: userId,

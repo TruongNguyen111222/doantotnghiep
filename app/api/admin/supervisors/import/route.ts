@@ -8,21 +8,22 @@ import { fetchProvinceList, fetchWardsForProvince } from "@/lib/vn-open-api";
 const NAME_PATTERN = /^[\p{L}\s]{1,255}$/u;
 const PHONE_PATTERN = /^\d{8,12}$/;
 const KHOL_PATTERN = /^[\p{L}\d\s]{1,255}$/u;
-
+//hàm kiểm tra tên giảng viên hướng dẫn
+//
 const ALLOWED_DEGREE_TEXT = new Map<string, "MASTER" | "PHD" | "ASSOC_PROF" | "PROF">([
   ["thac si", "MASTER"],
   ["tien si", "PHD"],
   ["pho giao su", "ASSOC_PROF"],
   ["giao su", "PROF"]
 ]);
-
-const ALLOWED_GENDER_TEXT = new Map<string, "MALE" | "FEMALE" | "OTHER">([
+//hàm kiểm tra giới tính giảng viên hướng dẫn
+const ALLOWED_GENDER_TEXT = new Map<string, "MALE" | "FEMALE" | "OTHER">([ 
   ["nam", "MALE"],
   ["nu", "FEMALE"],
   ["khac", "OTHER"]
 ]);
 
-function normalizeText(s: string) {
+function normalizeText(s: string) { //hàm chuyển đổi văn bản thành định dạng chuẩn
   return s
     .toLowerCase()
     .trim()
@@ -30,7 +31,7 @@ function normalizeText(s: string) {
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "");
 }
-
+ //hàm lấy mã tỉnh và mã huyện từ tên tỉnh và tên huyện
 async function resolveFromNamesToCodes(provinceName: string, wardName: string) {
   const provinces = await fetchProvinceList();
   const provNeedle = normalizeText(provinceName);
@@ -51,7 +52,7 @@ async function resolveFromNamesToCodes(provinceName: string, wardName: string) {
     });
   return { provinceCode: String(prov.code), wardCode: ward ? String(ward.code) : null };
 }
-
+ //hàm lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
 async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
   const provinces = await fetchProvinceList();
   const prov = provinces.find((p) => String(p.code) === String(provinceCode));
@@ -61,7 +62,7 @@ async function resolveProvinceWardNames(provinceCode: string, wardCode: string) 
   return { provinceName: prov.name, wardName: ward?.name ?? null };
 }
 
-type ImportRow = {
+type ImportRow = { //type dữ liệu giảng viên hướng dẫn
   line: number;
   fullName: string;
   phone: string;
@@ -74,7 +75,7 @@ type ImportRow = {
   degree: string;
 };
 
-type PreparedRow = {
+type PreparedRow = { //type dữ liệu giảng viên hướng dẫn
   line: number;
   fullName: string;
   phone: string;
@@ -90,7 +91,7 @@ type PreparedRow = {
   degree: "MASTER" | "PHD" | "ASSOC_PROF" | "PROF";
 };
 
-function validateRowFormat(row: ImportRow) {
+function validateRowFormat(row: ImportRow) { //hàm kiểm tra dữ liệu giảng viên hướng dẫn
   const line = row.line;
   const missing = (v: unknown) => v == null || String(v).trim() === "";
   const invalid = () => ({ ok: false as const, message: `Dòng ${line} có dữ liệu nhập vào không đúng định dạng. Vui lòng kiểm tra lại.` });
@@ -128,7 +129,7 @@ function validateRowFormat(row: ImportRow) {
 
   return { ok: true as const };
 }
-
+//hàm import giảng viên hướng dẫn từ API
 export async function POST(request: Request) {
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
@@ -152,11 +153,11 @@ export async function POST(request: Request) {
     seenEmail.set(email, r.line);
     seenPhone.set(phone, r.line);
   }
-
+ //lấy database
   const prismaAny = prisma as any;
-
-  const prepared: PreparedRow[] = [];
-  for (const r of rows) {
+  //lấy danh sách giảng viên hướng dẫn
+  const prepared: PreparedRow[] = []; 
+  for (const r of rows) { //lấy dữ liệu giảng viên hướng dẫn
     const line = r.line;
     const fullName = String(r.fullName).trim();
     const phone = String(r.phone).trim();
@@ -177,7 +178,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: `Dòng ${line} có dữ liệu nhập vào không đúng định dạng. Vui lòng kiểm tra lại.` }, { status: 400 });
     }
 
-    prepared.push({
+    prepared.push({ //thêm dữ liệu giảng viên hướng dẫn vào danh sách
       line,
       fullName,
       phone,
@@ -193,7 +194,7 @@ export async function POST(request: Request) {
       degree
     });
   }
-
+ //lấy danh sách email và số điện thoại giảng viên hướng dẫn
   const emails = prepared.map((r) => r.email);
   const phones = prepared.map((r) => r.phone);
   const existingUsers = await prismaAny.user.findMany({
@@ -208,7 +209,7 @@ export async function POST(request: Request) {
     if (u.email) existingEmailMap.set(String(u.email).toLowerCase(), u);
     if (u.phone) existingPhoneMap.set(String(u.phone), u);
   }
-
+ //kiểm tra dữ liệu giảng viên hướng dẫn
   for (const r of prepared) {
     const emailDup = existingEmailSet.has(r.email);
     const phoneDup = existingPhoneSet.has(r.phone);
@@ -229,9 +230,9 @@ export async function POST(request: Request) {
     }
   }
 
-  await prismaAny.$transaction(
+  await prismaAny.$transaction( //tạo giảng viên hướng dẫn
     async (tx: any) => {
-      for (const r of prepared) {
+      for (const r of prepared) { //tạo tài khoản giảng viên hướng dẫn
         const user = await tx.user.create({
           data: {
             email: r.email,
@@ -249,7 +250,7 @@ export async function POST(request: Request) {
           select: { id: true }
         });
 
-        await tx.supervisorProfile.create({
+        await tx.supervisorProfile.create({ //tạo thông tin giảng viên hướng dẫn
           data: {
             userId: user.id,
             faculty: r.faculty,

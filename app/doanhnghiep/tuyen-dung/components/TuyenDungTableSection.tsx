@@ -1,13 +1,22 @@
 import Pagination from "../../../components/Pagination";
 import TableIconButton from "../../../components/TableIconButton";
 import { FiEdit2, FiEye, FiPauseCircle, FiTrash2 } from "react-icons/fi";
-import type { JobListItem, JobStatus } from "@/lib/types/doanhnghiep-tuyen-dung";
-import { DOANHNGHIEP_TUYEN_DUNG_PAGE_SIZE, DOANHNGHIEP_TUYEN_DUNG_STATUS_LABEL, DOANHNGHIEP_TUYEN_DUNG_WORK_TYPE_LABEL } from "@/lib/constants/doanhnghiep-tuyen-dung";
-import { canEditStatus, canStopStatus, formatDateVi } from "@/lib/utils/doanhnghiep-tuyen-dung";
+import type { JobListItem, JobStatus } from "@/lib/types/doanhnghiep-tuyen-dung"; //type dữ liệu tin tuyển dụng
+import { DOANHNGHIEP_TUYEN_DUNG_PAGE_SIZE, DOANHNGHIEP_TUYEN_DUNG_STATUS_LABEL, 
+  DOANHNGHIEP_TUYEN_DUNG_WORK_TYPE_LABEL } from "@/lib/constants/doanhnghiep-tuyen-dung"; //hằng số cho API
+import { canEditStatus, 
+  canStopStatus, 
+  formatDateVi } from "@/lib/utils/doanhnghiep-tuyen-dung"; //hàm xử lý logic nghiệp vụ tin tuyển dụng trc khi gửi lên API
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import styles from "../../styles/dashboard.module.css";
-import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
+import { ChartStyleLoading } from "@/app/components/ChartStyleLoading"; //component loading
 
+/**
+ * TỔNG QUAN FILE:
+ * Component TuyenDungTableSection chịu trách nhiệm hiển thị danh sách tin tuyển dụng dưới dạng bảng dữ liệu (DataTable).
+ * Component hỗ trợ giao diện responsive qua data-label, tích hợp phân trang, hiển thị trạng thái tải dữ liệu (Loading),
+ * và phân quyền bật/tắt các nút Thao tác (Xem, Sửa, Dừng, Xóa) dựa trên trạng thái (Status) hiện tại của từng tin.
+ */
 const PAGE_SIZE = DOANHNGHIEP_TUYEN_DUNG_PAGE_SIZE;
 
 type Props = {

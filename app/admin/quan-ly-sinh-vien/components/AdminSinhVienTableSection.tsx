@@ -1,5 +1,5 @@
 "use client";
-
+//component table sinh viên hiển thị danh sách sinh viên và các nút chức năng (xem chi tiết, sửa, xóa)
 import type { StudentListItem } from "@/lib/types/admin-quan-ly-sinh-vien";
 import {
   ADMIN_QUAN_LY_SINH_VIEN_DEGREE_LABEL,

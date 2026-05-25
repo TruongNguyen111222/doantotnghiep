@@ -11,21 +11,21 @@ import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
 const SV_TAI_KHOAN_CACHE_KEY = "sinhvien:tai-khoan:me";
 
-export default function SinhVienTaiKhoanCaNhanPage() {
+export default function SinhVienTaiKhoanCaNhanPage() { //trang tài khoản cá nhân sinh viên
   const [loading, setLoading] = useState(() => !hasCachedValue(SV_TAI_KHOAN_CACHE_KEY));
   const [error, setError] = useState("");
   const [student, setStudent] = useState<StudentAccount | null>(() => getCachedValue<{ student?: StudentAccount | null }>(SV_TAI_KHOAN_CACHE_KEY)?.student ?? null);
 
-  useEffect(() => {
+  useEffect(() => { //hàm tải dữ liệu tài khoản sinh viên
     let cancelled = false;
-    void (async () => {
+    void (async () => { //gửi request lấy thông tin tài khoản sinh viên từ API
       try {
         if (!hasCachedValue(SV_TAI_KHOAN_CACHE_KEY)) setLoading(true);
         setError("");
         const data = await getOrFetchCached<{ success?: boolean; message?: string; student?: StudentAccount | null }>(
           SV_TAI_KHOAN_CACHE_KEY,
           async () => {
-            const res = await fetch(SINHVIEN_HO_SO_TAI_KHOAN_ENDPOINT);
+            const res = await fetch(SINHVIEN_HO_SO_TAI_KHOAN_ENDPOINT); //gửi request lấy thông tin tài khoản sinh viên từ API
             const json = await res.json();
             if (!res.ok || !json?.success) throw new Error(json?.message || SINHVIEN_HO_SO_LOAD_ACCOUNT_ERROR_DEFAULT);
             return json;
@@ -33,7 +33,7 @@ export default function SinhVienTaiKhoanCaNhanPage() {
         );
         if (!cancelled) setStudent((data.student ?? null) as StudentAccount | null);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || SINHVIEN_HO_SO_LOAD_ACCOUNT_ERROR_DEFAULT);
+        if (!cancelled) setError(e?.message || SINHVIEN_HO_SO_LOAD_ACCOUNT_ERROR_DEFAULT); //lấy lỗi tải thông tin tài khoản sinh viên
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -42,15 +42,15 @@ export default function SinhVienTaiKhoanCaNhanPage() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
+ 
+  useEffect(() => { //hàm poll nền tải dữ liệu tài khoản sinh viên mỗi 30 giây
     const timer = setInterval(() => {
       void (async () => {
         try {
           const data = await getOrFetchCached<{ success?: boolean; message?: string; student?: StudentAccount | null }>(
             SV_TAI_KHOAN_CACHE_KEY,
             async () => {
-              const res = await fetch(SINHVIEN_HO_SO_TAI_KHOAN_ENDPOINT);
+              const res = await fetch(SINHVIEN_HO_SO_TAI_KHOAN_ENDPOINT); //gửi request lấy thông tin tài khoản sinh viên từ API
               const json = await res.json();
               if (!res.ok || !json?.success) throw new Error(json?.message || SINHVIEN_HO_SO_LOAD_ACCOUNT_ERROR_DEFAULT);
               return json;

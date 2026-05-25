@@ -1,19 +1,19 @@
 "use client";
-
+//component toolbar tài khoản
 import type { AccountStatus, Role } from "@/lib/types/admin-quan-ly-tai-khoan";
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
-  searchQ: string;
-  filterRole: Role | "all";
-  filterStatus: AccountStatus | "all";
-  onChangeSearchQ: (v: string) => void;
-  onChangeFilterRole: (v: Role | "all") => void;
-  onChangeFilterStatus: (v: AccountStatus | "all") => void;
-  onSearch: () => void;
+type Props = { //props toolbar tài khoản
+  searchQ: string; //từ khóa tìm kiếm
+  filterRole: Role | "all"; //vai trò tìm kiếm
+  filterStatus: AccountStatus | "all"; //trạng thái tìm kiếm
+  onChangeSearchQ: (v: string) => void; //hàm xử lý từ khóa tìm kiếm
+  onChangeFilterRole: (v: Role | "all") => void; //hàm xử lý vai trò tìm kiếm
+  onChangeFilterStatus: (v: AccountStatus | "all") => void; //hàm xử lý trạng thái tìm kiếm
+  onSearch: () => void; //hàm xử lý tìm kiếm
 };
 
-export default function AdminTaiKhoanToolbar(props: Props) {
+export default function AdminTaiKhoanToolbar(props: Props) {  //
   const { searchQ, filterRole, filterStatus, onChangeSearchQ, onChangeFilterRole, onChangeFilterStatus, onSearch } = props;
 
   return (

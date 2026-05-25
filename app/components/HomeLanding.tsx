@@ -40,21 +40,20 @@ const HOME_EVENTS = [
 ] as const;
 
 export function HomeLanding() { 
-  const [menuOpen, setMenuOpen] = useState(false); //trạng thái menu mở/đóng
-  const sectionIds = ["gioi-thieu", "su-kien", "lien-he"] as const; //danh sách các section trên trang
-  const [activeSection, setActiveSection] = useState<(typeof sectionIds)[number] | null>(null); //trạng thái active section là section nào đang hiện
-  const activeIsHome = activeSection === null;  //trạng thái active là trang chủ
-  const closeMenu = () => setMenuOpen(false); //đóng menu
+  const [menuOpen, setMenuOpen] = useState(false); 
+  const sectionIds = ["gioi-thieu", "su-kien", "lien-he"] as const; 
+  const [activeSection, setActiveSection] = useState<(typeof sectionIds)[number] | null>(null);
+  const activeIsHome = activeSection === null; 
+  const closeMenu = () => setMenuOpen(false); 
+  
 
-  //Hàm cuộn về đầu trang
   const goToTop = () => { 
-    setActiveSection(null); //highlight "Trang chủ" trên menu
-    window.scrollTo({ top: 0, behavior: "smooth" }); //scroll lên đầu trang
+    setActiveSection(null); 
+    window.scrollTo({ top: 0, behavior: "smooth" }); 
   };
 
-  //Khi user click vào menu "Giới thiệu", "Sự kiện", "Liên hệ" → cuộn trang đến đúng section đó, không bị header che mất.
   const scrollToHash = (hash: string) => { 
-    const id = hash.replace(/^#/, ""); //lấy id của section
+    const id = hash.replace(/^#/, ""); 
     const el = document.getElementById(id); 
     if (!el) return;
 
@@ -66,7 +65,6 @@ export function HomeLanding() {
   };
 
   useEffect(() => {
-    // Khóa scroll nền khi mở menu (giống dashboard)
     if (!menuOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -77,7 +75,6 @@ export function HomeLanding() {
 
   useEffect(() => {
     const onHashChange = () => {
-      // Nếu hash bị xóa (về trang chủ) => luôn scroll đầu
       if (!window.location.hash && window.location.pathname === "/") {
         goToTop();
       }
@@ -93,12 +90,10 @@ export function HomeLanding() {
       let bestId: (typeof sectionIds)[number] | null = null;
       let bestTop = -Infinity;
 
-      // Ở gần đầu trang => active "Trang chủ"
       if (window.scrollY <= headerH + 8) {
         setActiveSection(null);
         return;
       }
-// 
       for (const id of sectionIds) {
         const el = document.getElementById(id);
         if (!el) continue;
@@ -116,12 +111,10 @@ export function HomeLanding() {
       void window.requestAnimationFrame(recalc);
     };
 
-    //đăng kí listener scroll và resize để tự động highlight section hiện tại.
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     recalc();
 
-    //xóa listener khi component unmount
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -129,7 +122,7 @@ export function HomeLanding() {
     };
   }, []);
 
-  return ( //render ra các phần tử HTML
+  return ( 
     <div className={styles.shell}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
@@ -139,7 +132,6 @@ export function HomeLanding() {
             onClick={(e) => {
               closeMenu();
               if (window.location.pathname === "/" && window.location.hash) {
-                // Không reload: chỉ xoá hash và scroll lên đầu
                 e.preventDefault();
                 window.history.pushState(null, "", window.location.pathname);
                 goToTop();
@@ -172,11 +164,10 @@ export function HomeLanding() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  replace={item.href.startsWith("/auth")} //nếu đường dẫn bắt đầu bằng /auth/ thì replace là true
+                  replace={item.href.startsWith("/auth")} 
                   className={`${styles.navLink} ${item.href === "/" && activeIsHome ? styles.navLinkActive : ""}`}
                   onClick={(e) => {
                     if (item.href === "/") {
-                      // Trên cùng trang: set active ngay
                       e.preventDefault();
                       setActiveSection(null);
                       closeMenu();

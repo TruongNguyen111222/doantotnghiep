@@ -1,9 +1,18 @@
+/**
+ * TỔNG QUAN FILE:
+ * File này chứa các định nghĩa kiểu dữ liệu (TypeScript Types) phục vụ riêng cho phân hệ Quản lý Tin Tuyển Dụng 
+ * của tài khoản Doanh nghiệp. Nó thiết lập cấu trúc chặt chẽ cho danh sách tin, dữ liệu chi tiết phản hồi từ API 
+ * và trạng thái dữ liệu lưu trữ trong Form nhập liệu (JobFormState), giúp đồng bộ dữ liệu chuẩn xác giữa giao diện UI và Backend.
+ */
+
 import type { JobStatus, WorkType } from "@/lib/types/doanhnghiep-tuyen-dung";
 import { DOANHNGHIEP_REGISTER_WEBSITE_PATTERN } from "@/lib/constants/doanhnghiep";
 
-export const DOANHNGHIEP_TUYEN_DUNG_PAGE_SIZE = 10;
+export const DOANHNGHIEP_TUYEN_DUNG_PAGE_SIZE = 10; //số lượng tin tuyển dụng trên mỗi trang
 
-export const DOANHNGHIEP_TUYEN_DUNG_STATUS_LABEL: Record<JobStatus, string> = {
+
+/* KHỐI 2: MAP TRẠNG THÁI VÀ HÌNH THỨC LÀM VIỆC SANG NGÔN NGỮ HIỂN THỊ TRÊN GIAO DIỆN (UI LABELS) */
+export const DOANHNGHIEP_TUYEN_DUNG_STATUS_LABEL: Record<JobStatus, string> = { //label cho trạng thái tin tuyển dụng
   PENDING: "Chờ duyệt",
   REJECTED: "Từ chối duyệt",
   ACTIVE: "Đang hoạt động",
@@ -15,6 +24,8 @@ export const DOANHNGHIEP_TUYEN_DUNG_WORK_TYPE_LABEL: Record<WorkType, string> = 
   FULL_TIME: "full-time"
 };
 
+/* KHỐI 3: CÁC BIỂU THỨC CHÍNH QUY (REGEX) DÙNG ĐỂ KIỂM TRA TÍNH HỢP LỆ CỦA DỮ LIỆU ĐẦU VÀO FORM */
+// Hỗ trợ các ký tự Unicode tiếng Việt có dấu và các ký tự đặc biệt phổ biến trong tin tuyển dụng (VD: "React/Next.js", "(Intern)", "C++").
 // Allow common punctuation used in job titles (e.g. "React/Next.js", "(Intern)", "C++").
 export const DOANHNGHIEP_TUYEN_DUNG_TITLE_PATTERN = /^[\p{L}\d\s.,/()&+\-_'":]{1,255}$/u;
 export const DOANHNGHIEP_TUYEN_DUNG_EXPERTISE_PATTERN = /^[\p{L}\d\s.,/()&+\-_'":]{1,255}$/u;

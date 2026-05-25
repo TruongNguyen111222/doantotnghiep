@@ -10,12 +10,12 @@ import type {
   RespondAction,
   SinhVienQuanLyDangKyUngTuyenRow,
   StatusFilter
-} from "@/lib/types/sinhvien-quan-ly-dang-ky-ung-tuyen";
-import {
+} from "@/lib/types/sinhvien-quan-ly-dang-ky-ung-tuyen";  
+import { 
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_LOAD_ERROR_DEFAULT,
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_RESPOND_NETWORK_ERROR_DEFAULT,
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_RESPOND_SUCCESS_DEFAULT
-} from "@/lib/constants/sinhvien-quan-ly-dang-ky-ung-tuyen";
+} from "@/lib/constants/sinhvien-quan-ly-dang-ky-ung-tuyen"; //import constants quan ly dang ky ung tuyen
 import {
   buildSinhVienQuanLyDangKyUngTuyenRespondEndpoint,
   buildSinhVienQuanLyDangKyUngTuyenListUrl
@@ -25,13 +25,13 @@ import QuanLyUngTuyenToolbar from "./components/QuanLyUngTuyenToolbar";
 import QuanLyUngTuyenTableSection from "./components/QuanLyUngTuyenTableSection";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
-type StatCard = {
+type StatCard = { //hàm card thống kê
   label: string;
   count: number;
   Icon: IconType;
 };
 
-function computeStats(rows: SinhVienQuanLyDangKyUngTuyenRow[]): StatCard[] {
+function computeStats(rows: SinhVienQuanLyDangKyUngTuyenRow[]): StatCard[] { //hàm tính số lượng ứng tuyển
   return [
     {
       label: "Chờ xem xét",
@@ -56,15 +56,15 @@ function computeStats(rows: SinhVienQuanLyDangKyUngTuyenRow[]): StatCard[] {
   ];
 }
 
-const SV_QL_UT_INIT_URL = buildSinhVienQuanLyDangKyUngTuyenListUrl("all");
-const SV_QL_UT_INIT_KEY = `sv:ql-ung-tuyen:list:${SV_QL_UT_INIT_URL}`;
+const SV_QL_UT_INIT_URL = buildSinhVienQuanLyDangKyUngTuyenListUrl("all"); //hàm tạo url danh sách ứng tuyển
+const SV_QL_UT_INIT_KEY = `sv:ql-ung-tuyen:list:${SV_QL_UT_INIT_URL}`; //hàm tạo key cache danh sách ứng tuyển
 
-function readSvQlUngTuyenInitialRows(): SinhVienQuanLyDangKyUngTuyenRow[] {
+function readSvQlUngTuyenInitialRows(): SinhVienQuanLyDangKyUngTuyenRow[] { //hàm lấy danh sách ứng tuyển
   const d = getCachedValue<{ items?: SinhVienQuanLyDangKyUngTuyenRow[] }>(SV_QL_UT_INIT_KEY);
   return Array.isArray(d?.items) ? d.items : [];
 }
 
-export default function SinhVienQuanLyUngTuyenPage() {
+export default function SinhVienQuanLyUngTuyenPage() { //hàm render trang quan ly ứng tuyển
   const [loading, setLoading] = useState(() => !hasCachedValue(SV_QL_UT_INIT_KEY));
   const [error, setError] = useState("");
   // Always keep full dataset; filter client-side for table display
@@ -78,7 +78,7 @@ export default function SinhVienQuanLyUngTuyenPage() {
     const silent = Boolean(opts?.silent);
     try {
       // Always fetch all so we can compute stats regardless of current filter
-      const url = buildSinhVienQuanLyDangKyUngTuyenListUrl("all");
+      const url = buildSinhVienQuanLyDangKyUngTuyenListUrl("all"); //hàm tạo url danh sách ứng tuyển
       const cacheKey = `sv:ql-ung-tuyen:list:${url}`;
       if (!silent && !hasCachedValue(cacheKey)) setLoading(true);
       setError("");
@@ -117,10 +117,10 @@ export default function SinhVienQuanLyUngTuyenPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function respond(applicationId: string, action: RespondAction) {
+  async function respond(applicationId: string, action: RespondAction) { //hàm phản hồi ứng tuyển
     setBusyId(applicationId);
     try {
-      const res = await fetch(buildSinhVienQuanLyDangKyUngTuyenRespondEndpoint(applicationId), {
+      const res = await fetch(buildSinhVienQuanLyDangKyUngTuyenRespondEndpoint(applicationId), { //gọi api phản hồi ứng tuyển
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action })
@@ -133,7 +133,7 @@ export default function SinhVienQuanLyUngTuyenPage() {
       setToast(data?.message || SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_RESPOND_SUCCESS_DEFAULT);
       await load({ force: true });
     } catch (e: unknown) {
-      setToast(
+      setToast( //trả về lỗi phản hồi ứng tuyển
         e instanceof Error
           ? e.message
           : SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_RESPOND_NETWORK_ERROR_DEFAULT

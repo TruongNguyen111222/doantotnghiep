@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { fetchProvinceList, fetchWardsForProvince } from "@/lib/vn-open-api";
 
 const PHONE_PATTERN = /^\d{8,12}$/;
-const DEGREE_ALLOWED = ["MASTER", "PHD", "ASSOC_PROF", "PROF"] as const;
+const DEGREE_ALLOWED = ["MASTER", "PHD", "ASSOC_PROF", "PROF"] as const; //hàm xử lý bậc giảng viên
 type Degree = (typeof DEGREE_ALLOWED)[number];
 
 async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
@@ -37,7 +37,7 @@ export async function GET() {
   const userId = auth.userId as string;
 
   const prismaAny = prisma as any;
-  const row = await prismaAny.supervisorProfile.findFirst({
+  const row = await prismaAny.supervisorProfile.findFirst({ //lấy dữ liệu giảng viên từ database
     where: { userId },
     select: {
       id: true,
@@ -55,7 +55,7 @@ export async function GET() {
 
   if (!row) return NextResponse.json({ success: false, message: "Không tìm thấy hồ sơ giảng viên." }, { status: 404 });
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về dữ liệu giảng viên
     success: true,
     item: {
       fullName: row.user?.fullName ?? "",
@@ -73,14 +73,14 @@ export async function GET() {
   });
 }
 
-type PatchBody = {
+type PatchBody = { //kiểu dữ liệu form chỉnh sửa tài khoản giảng viên
   phone: string;
   degree: Degree;
   permanentProvinceCode: string;
   permanentWardCode: string;
 };
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: Request) { //hàm chỉnh sửa tài khoản giảng viên
   const auth = await getGiangVienUserId();
   if ("error" in auth) return auth.error;
   const userId = auth.userId as string;
@@ -118,8 +118,8 @@ export async function PATCH(request: Request) {
     );
   }
 
-  await prismaAny.$transaction(async (tx: any) => {
-    await tx.user.update({ where: { id: userId }, data: { phone } });
+  await prismaAny.$transaction(async (tx: any) => { //cập nhật thông tin giảng viên
+    await tx.user.update({ where: { id: userId }, data: { phone } }); //cập nhật số điện thoại giảng viên
     await tx.supervisorProfile.update({
       where: { id: current.id },
       data: {

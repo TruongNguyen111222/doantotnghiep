@@ -12,21 +12,21 @@ import { FiCheckCircle, FiEye, FiTrash2 } from "react-icons/fi";
 import styles from "../../styles/dashboard.module.css";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
-type Props = {
-  loading: boolean;
-  items: JobListItem[];
-  page: number;
-  busyId: string | null;
-  onPageChange: (p: number) => void;
-  onView: (row: JobListItem) => void;
-  onStatus: (row: JobListItem) => void;
-  onDelete: (row: JobListItem) => void;
+type Props = { //type dữ liệu table việc làm
+  loading: boolean; //trạng thái tải việc làm
+  items: JobListItem[]; //danh sách việc làm
+  page: number; //trang hiện tại
+  busyId: string | null; //id việc làm đang xử lý
+  onPageChange: (p: number) => void; //hàm thay đổi trang
+  onView: (row: JobListItem) => void; //hàm xem chi tiết việc làm
+  onStatus: (row: JobListItem) => void; //hàm duyệt việc làm
+  onDelete: (row: JobListItem) => void; //hàm xóa việc làm
 };
 
-export default function AdminTinTuyenDungTableSection(props: Props) {
-  const { loading, items, page, busyId, onPageChange, onView, onStatus, onDelete } = props;
+export default function AdminTinTuyenDungTableSection(props: Props) { //hàm tạo table việc làm
+  const { loading, items, page, busyId, onPageChange, onView, onStatus, onDelete } = props; //lấy dữ liệu từ props
 
-  if (loading && items.length === 0) return <ChartStyleLoading variant="compact" />;
+  if (loading && items.length === 0) return <ChartStyleLoading variant="compact" />; //hiển thị loading nếu đang tải việc làm và không có việc làm
 
   const pagedItems = items.slice(
     (page - 1) * ADMIN_QUAN_LY_TIN_TUYEN_DUNG_PAGE_SIZE,

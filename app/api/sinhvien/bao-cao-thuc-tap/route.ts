@@ -9,22 +9,22 @@ import { sendMail } from "@/lib/mail";
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
 import { toCloudinaryRef, uploadInternshipReportBytesToCloudinary } from "@/lib/storage/cloudinary";
 
-const BCTT_ALLOWED_MIMES = [
+const BCTT_ALLOWED_MIMES = [  
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ] as const;
 
 type InternshipStatus = "NOT_STARTED" | "DOING" | "SELF_FINANCED" | "REPORT_SUBMITTED" | "COMPLETED" | "REJECTED";
 
-async function fetchMailParticipants(prismaAny: any, userId: string) {
-  const profile = await prismaAny.studentProfile.findFirst({
+async function fetchMailParticipants(prismaAny: any, userId: string) { //lấy thông tin mail participants
+  const profile = await prismaAny.studentProfile.findFirst({ 
     where: { userId },
     select: {
-      user: { select: { fullName: true, email: true } },
+      user: { select: { fullName: true, email: true } }, 
       assignmentLinks: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: {
+        orderBy: { createdAt: "desc" }, 
+        take: 1, 
+        select: { 
           supervisorAssignment: {
             select: {
               supervisorProfile: {
@@ -46,8 +46,8 @@ async function fetchMailParticipants(prismaAny: any, userId: string) {
   return { svFullName, svEmail, gvFullName, gvEmail };
 }
 
-async function getStudentUserId() {
-  const cookieStore = await cookies();
+async function getStudentUserId() { 
+  const cookieStore = await cookies(); 
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
   try {
@@ -61,7 +61,7 @@ async function getStudentUserId() {
   }
 }
 
-export async function GET() {
+export async function GET() { 
   const auth = await getStudentUserId();
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
@@ -112,10 +112,10 @@ export async function GET() {
 
   if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy hồ sơ sinh viên." }, { status: 404 });
 
-  const link = profile.assignmentLinks?.[0]?.supervisorAssignment;
+  const link = profile.assignmentLinks?.[0]?.supervisorAssignment; 
   const supervisor = link?.supervisorProfile
     ? {
-        fullName: link.supervisorProfile.user.fullName,
+        fullName: link.supervisorProfile.user.fullName, 
         phone: link.supervisorProfile.user.phone,
         email: link.supervisorProfile.user.email,
         gender: link.supervisorProfile.gender,
@@ -123,7 +123,7 @@ export async function GET() {
       }
     : null;
 
-  const report = profile.internshipReport
+  const report = profile.internshipReport 
     ? {
         id: profile.internshipReport.id,
         reviewStatus: profile.internshipReport.reviewStatus as string,
@@ -139,9 +139,9 @@ export async function GET() {
       }
     : null;
 
-  if (profile.internshipReport?.id) {
+  if (profile.internshipReport?.id) { 
     try {
-      const points = await prismaAny.$queryRaw<
+      const points = await prismaAny.$queryRaw< 
         Array<{ supervisorPoint: number | null; enterprisePoint: number | null }>
       >`
         SELECT
@@ -151,8 +151,8 @@ export async function GET() {
         WHERE "id" = ${profile.internshipReport.id}
       `;
 
-      const p = points?.[0];
-      if (report) {
+          const p = points?.[0]; 
+      if (report) { 
         report.supervisorPoint = p?.supervisorPoint ?? null;
         report.enterprisePoint = p?.enterprisePoint ?? null;
       }
@@ -160,13 +160,13 @@ export async function GET() {
     }
   }
 
-  const internshipStatus = profile.internshipStatus as InternshipStatus;
+  const internshipStatus = profile.internshipStatus as InternshipStatus; 
   const canSubmit = internshipStatus === "DOING" || internshipStatus === "SELF_FINANCED";
-  const canSubmitReport = canSubmit && !report;
-  const canEditReport = Boolean(report && report.reviewStatus === "REJECTED");
+  const canSubmitReport = canSubmit && !report; 
+  const canEditReport = Boolean(report && report.reviewStatus === "REJECTED"); 
 
-  return NextResponse.json({
-    success: true,
+  return NextResponse.json({ 
+    success: true, 
     item: {
       internshipStatus,
       supervisor,
@@ -184,29 +184,29 @@ export async function GET() {
   });
 }
 
-type SubmitBody = {
+type SubmitBody = { 
   reportFileName: string;
   reportMime: string;
   reportBase64: string;
 };
 
-export async function POST(request: Request) {
+export async function POST(request: Request) { 
   const auth = await getStudentUserId();
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
   const prismaAny = prisma as any;
   const body = (await request.json()) as SubmitBody;
 
-  const fileName = (body.reportFileName || "").trim();
-  const decoded = decodeEnterpriseFilePayload(body.reportBase64, body.reportMime, BCTT_ALLOWED_MIMES);
+  const fileName = (body.reportFileName || "").trim(); 
+  const decoded = decodeEnterpriseFilePayload(body.reportBase64, body.reportMime, BCTT_ALLOWED_MIMES); 
   if (!fileName || !decoded.ok) {
     return NextResponse.json(
-      { success: false, message: decoded.ok ? "Thiếu tên file." : decoded.message || "File báo cáo không hợp lệ." },
+      { success: false, message: decoded.ok ? "Thiếu tên file." : decoded.message || "File báo cáo không hợp lệ." }, //trả về lỗi nếu thiếu tên file hoặc file báo cáo không hợp lệ
       { status: 400 }
     );
   }
 
-  const profile = await prismaAny.studentProfile.findFirst({
+  const profile = await prismaAny.studentProfile.findFirst({ //lấy hồ sơ sinh viên
     where: { userId },
     select: { id: true, internshipStatus: true }
   });
@@ -217,17 +217,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: "Chỉ cho phép nộp BCTT khi trạng thái thực tập là Đang thực tập / Thực tập tự túc." }, { status: 400 });
   }
 
-  const existing = await prismaAny.internshipReport.findFirst({ where: { studentProfileId: profile.id }, select: { id: true } });
+  const existing = await prismaAny.internshipReport.findFirst({ where: { studentProfileId: profile.id }, select: { id: true } }); //lấy thông tin báo cáo thực tập
   if (existing) return NextResponse.json({ success: false, message: "Bạn đã nộp BCTT trước đó." }, { status: 409 });
 
-  const uploaded = await uploadInternshipReportBytesToCloudinary({
+  //upload file và lấy về đường dẫn id file
+  const uploaded = await uploadInternshipReportBytesToCloudinary({ 
     bytes: Buffer.from(decoded.base64, "base64"),
     mimeType: decoded.mime,
     ownerId: profile.id,
     originalName: fileName
   });
 
-  await prismaAny.$transaction(async (tx: any) => {
+  await prismaAny.$transaction(async (tx: any) => { //tạo báo cáo thực tập
     await tx.internshipReport.create({
       data: {
         studentProfileId: profile.id,
@@ -244,11 +245,11 @@ export async function POST(request: Request) {
         ]
       }
     });
-    await tx.studentProfile.update({
+    await tx.studentProfile.update({ 
       where: { id: profile.id },
       data: { internshipStatus: "REPORT_SUBMITTED" }
     });
-    await tx.internshipStatusHistory.create({
+    await tx.internshipStatusHistory.create({ 
       data: {
         studentProfileId: profile.id,
         fromStatus: internshipStatus,
@@ -260,7 +261,7 @@ export async function POST(request: Request) {
   });
 
   try {
-    const appUrl = getPublicAppUrl();
+    const appUrl = getPublicAppUrl(); //lấy url ứng dụng
     const { svFullName, svEmail, gvFullName, gvEmail } = await fetchMailParticipants(prismaAny, userId);
     if (gvEmail) {
       await sendMail(
@@ -283,12 +284,12 @@ export async function POST(request: Request) {
   return NextResponse.json({ success: true, message: "Nộp BCTT thành công." });
 }
 
-export async function PATCH(request: Request) {
-  const auth = await getStudentUserId();
+export async function PATCH(request: Request) { 
+  const auth = await getStudentUserId(); 
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
   const prismaAny = prisma as any;
-  const body = (await request.json()) as {
+  const body = (await request.json()) as { 
     reportFileName: string;
     reportMime: string;
     reportBase64: string;
@@ -304,13 +305,13 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const profile = await prismaAny.studentProfile.findFirst({
+  const profile = await prismaAny.studentProfile.findFirst({ 
     where: { userId },
     select: { id: true, internshipStatus: true }
   });
   if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy hồ sơ sinh viên." }, { status: 404 });
 
-  const report = await prismaAny.internshipReport.findFirst({
+  const report = await prismaAny.internshipReport.findFirst({ 
     where: { studentProfileId: profile.id },
     select: { id: true, reviewStatus: true }
   });
@@ -319,14 +320,14 @@ export async function PATCH(request: Request) {
 
   const prevInternshipStatus = profile.internshipStatus as InternshipStatus;
 
-  const uploaded = await uploadInternshipReportBytesToCloudinary({
+  const uploaded = await uploadInternshipReportBytesToCloudinary({ 
     bytes: Buffer.from(decoded.base64, "base64"),
     mimeType: decoded.mime,
     ownerId: profile.id,
     originalName: fileName
   });
 
-  await prismaAny.$transaction(async (tx: any) => {
+  await prismaAny.$transaction(async (tx: any) => { 
     await tx.internshipReport.update({
       where: { id: report.id },
       data: {
@@ -345,11 +346,11 @@ export async function PATCH(request: Request) {
         ]
       }
     });
-    await tx.studentProfile.update({
+    await tx.studentProfile.update({ 
       where: { id: profile.id },
       data: { internshipStatus: "REPORT_SUBMITTED" }
     });
-    await tx.internshipStatusHistory.create({
+    await tx.internshipStatusHistory.create({ 
       data: {
         studentProfileId: profile.id,
         fromStatus: prevInternshipStatus,
@@ -361,9 +362,9 @@ export async function PATCH(request: Request) {
   });
 
   try {
-    const appUrl = getPublicAppUrl();
-    const { svFullName, gvFullName, gvEmail } = await fetchMailParticipants(prismaAny, userId);
-    if (gvEmail) {
+    const appUrl = getPublicAppUrl(); 
+    const { svFullName, gvFullName, gvEmail } = await fetchMailParticipants(prismaAny, userId); 
+    if (gvEmail) { 
       await sendMail(
         gvEmail,
         `${MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX} – Sinh viên ${svFullName} đã nộp lại Báo cáo thực tập`,
@@ -374,6 +375,6 @@ export async function PATCH(request: Request) {
     // Email failure should not block the main response
   }
 
-  return NextResponse.json({ success: true, message: "Đã cập nhật BCTT, đang chờ GVHD duyệt." });
+  return NextResponse.json({ success: true, message: "Đã cập nhật BCTT, đang chờ GVHD duyệt." }); 
 }
 

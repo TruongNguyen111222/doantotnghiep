@@ -1,19 +1,19 @@
 "use client";
-
+//popup xem thông tin tài khoản sinh viên, giảng viên hoặc doanh nghiệp
 import type { AccountStatus, Role } from "@/lib/types/admin-quan-ly-tai-khoan";
-import type { Gender, StudentDegree, SupervisorDegree } from "@/lib/constants/admin-quan-ly-tai-khoan";
+import type { Gender, StudentDegree, SupervisorDegree } from "@/lib/constants/admin-quan-ly-tai-khoan"; //type bậc sinh viên, giảng viên và giới tính
 import {
   genderLabel,
   roleLabel,
   statusLabel,
   studentDegreeLabel,
   supervisorDegreeLabel
-} from "@/lib/constants/admin-quan-ly-tai-khoan";
-import { getAccountViewTitle } from "@/lib/utils/admin-quan-ly-tai-khoan";
-import MessagePopup from "../../../components/MessagePopup";
-import styles from "../../styles/dashboard.module.css";
+} from "@/lib/constants/admin-quan-ly-tai-khoan"; //hằng số bậc sinh viên, giảng viên và giới tính
+import { getAccountViewTitle } from "@/lib/utils/admin-quan-ly-tai-khoan"; //hàm lấy tiêu đề popup xem tài khoản
+import MessagePopup from "../../../components/MessagePopup"; //component popup
+import styles from "../../styles/dashboard.module.css"; //style
 
-type Props = {
+type Props = { //props popup xem tài khoản
   item: any | null;
   onClose: () => void;
 };

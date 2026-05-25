@@ -1,19 +1,19 @@
 "use client";
-
+//component xóa phân công giảng viên hướng dẫn
 import type { AssignmentItem } from "@/lib/types/admin-phan-cong-gvhd";
 import MessagePopup from "../../../components/MessagePopup";
-import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display";
+import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display"; //hàm hiển thị sinh viên và giảng viên hướng dẫn
 
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
-  deleteTarget: AssignmentItem | null;
-  busyId: string | null;
-  onClose: () => void;
-  onConfirm: () => void;
+type Props = { //props component xóa phân công giảng viên hướng dẫn
+  deleteTarget: AssignmentItem | null; //phân công giảng viên hướng dẫn cần xóa
+  busyId: string | null; //id phân công giảng viên hướng dẫn đang xử lý
+  onClose: () => void; //hàm xử lý đóng popup
+  onConfirm: () => void; //hàm xử lý xác nhận xóa phân công giảng viên hướng dẫn
 };
 
-export default function AdminPhanCongGVHDDeletePopup(props: Props) {
+export default function AdminPhanCongGVHDDeletePopup(props: Props) { //component xóa phân công giảng viên hướng dẫn
   const { deleteTarget, busyId, onClose, onConfirm } = props;
 
   if (!deleteTarget) return null;

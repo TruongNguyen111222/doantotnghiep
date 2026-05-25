@@ -1,17 +1,17 @@
 "use client";
-
+//component thêm phân công giảng viên hướng dẫn , nhận dữ liệu xử lý trả lại cho page gọi api để thêm phân công giảng viên hướng dẫn
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import type { OpenBatch, SupervisorOption, StudentOption } from "@/lib/types/admin-phan-cong-gvhd";
-import FormPopup from "../../../components/FormPopup";
+import FormPopup from "../../../components/FormPopup"; //component popup form
 
 import styles from "../../styles/dashboard.module.css";
-import formStyles from "../../../auth/styles/register.module.css";
-import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display";
+import formStyles from "../../../auth/styles/register.module.css"; //style form
+import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display"; //hàm hiển thị sinh viên và giảng viên hướng dẫn
 
-function normalize(s: string) {
+function normalize(s: string) { //Chuyển chuỗi chữ Tiếng Việt có dấu thành chữ không dấu
   return s
     .toLowerCase()
     .normalize("NFD")
@@ -19,45 +19,45 @@ function normalize(s: string) {
     .trim();
 }
 
-export type Props = {
-  open: boolean;
-  busyId: string | null;
+export type Props = { //props component thêm phân công giảng viên hướng dẫn
+  open: boolean; //trạng thái open của popup
+  busyId: string | null; //id phân công giảng viên hướng dẫn đang xử lý
 
-  faculties: string[];
-  openBatches: OpenBatch[];
-  supervisorOptions: SupervisorOption[];
-  studentOptions: StudentOption[];
-  optionsLoading: boolean;
+  faculties: string[]; //danh sách khoa
+  openBatches: OpenBatch[]; //danh sách đợt thực tập
+  supervisorOptions: SupervisorOption[]; //danh sách giảng viên hướng dẫn
+  studentOptions: StudentOption[]; //danh sách sinh viên
+  optionsLoading: boolean; //trạng thái loading
 
-  formFaculty: string;
-  formBatchId: string;
-  formSupervisorId: string;
-  formStudentIds: string[];
-  fieldErrors: Record<string, string>;
+  formFaculty: string; //khoa đang chọn
+  formBatchId: string; //đợt thực tập đang chọn
+  formSupervisorId: string; //giảng viên hướng dẫn đang chọn
+  formStudentIds: string[]; //danh sách sinh viên đang chọn
+  fieldErrors: Record<string, string>; //lỗi form
 
-  supervisorQ: string;
-  studentQ: string;
+  supervisorQ: string; //từ khóa tìm kiếm giảng viên hướng dẫn
+  studentQ: string; //từ khóa tìm kiếm sinh viên
 
-  onClose: () => void;
-  onSubmit: () => void;
+  onClose: () => void; //hàm xử lý đóng popup
+  onSubmit: () => void; //hàm xử lý submit form
 
-  setFormFaculty: Dispatch<SetStateAction<string>>;
-  setFormBatchId: Dispatch<SetStateAction<string>>;
-  setFormSupervisorId: Dispatch<SetStateAction<string>>;
-  setFormStudentIds: Dispatch<SetStateAction<string[]>>;
-  setSupervisorQ: Dispatch<SetStateAction<string>>;
-  setStudentQ: Dispatch<SetStateAction<string>>;
+  setFormFaculty: Dispatch<SetStateAction<string>>; //hàm xử lý set khoa
+  setFormBatchId: Dispatch<SetStateAction<string>>; //hàm xử lý set đợt thực tập
+  setFormSupervisorId: Dispatch<SetStateAction<string>>; //hàm xử lý set giảng viên hướng dẫn
+  setFormStudentIds: Dispatch<SetStateAction<string[]>>; //hàm xử lý set danh sách sinh viên
+  setSupervisorQ: Dispatch<SetStateAction<string>>; //hàm xử lý set từ khóa tìm kiếm giảng viên hướng dẫn
+  setStudentQ: Dispatch<SetStateAction<string>>; //hàm xử lý set từ khóa tìm kiếm sinh viên
 };
 
-type AnchorPos = { top: number; left: number; width: number };
+type AnchorPos = { top: number; left: number; width: number }; //vị trí popup
 
-function readAnchorPos(el: HTMLElement | null): AnchorPos | null {
+function readAnchorPos(el: HTMLElement | null): AnchorPos | null { //hàm lấy vị trí popup
   if (!el) return null;
   const r = el.getBoundingClientRect();
-  return { top: r.bottom + 6, left: r.left, width: r.width };
+  return { top: r.bottom + 6, left: r.left, width: r.width }; //vị trí popup
 }
 
-export default function AdminPhanCongGVHDFormPopup(props: Props) {
+export default function AdminPhanCongGVHDFormPopup(props: Props) { //component thêm phân công giảng viên hướng dẫn
   const {
     open,
     busyId,
@@ -88,7 +88,7 @@ export default function AdminPhanCongGVHDFormPopup(props: Props) {
     setStudentQ
   } = props;
 
-  if (!open) return null;
+  if (!open) return null; //nếu không có popup thì không hiển thị
 
   const [supervisorOpen, setSupervisorOpen] = useState(false);
   const supervisorRootRef = useRef<HTMLDivElement | null>(null);

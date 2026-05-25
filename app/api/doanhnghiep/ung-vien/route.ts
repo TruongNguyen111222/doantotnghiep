@@ -12,7 +12,7 @@ function parseDateOnly(input: string) {
   const d = new Date(`${input}T00:00:00.000Z`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
-
+//
 export async function GET(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   if (role !== "doanhnghiep") return NextResponse.json({ success: false, message: "Không có quyền truy cập." }, { status: 403 });
-
+//  Đọc và chuẩn hóa các tham số tìm kiếm, lọc, phân trang từ URL Query Parameters
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") || "").trim();
   const createdDate = (searchParams.get("createdDate") || "").trim();
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
   if (q && q.length >= 2) and.push({ title: { contains: q, mode: "insensitive" } });
   if (status !== "all") and.push({ status });
-
+// Thêm điều kiện lọc theo Ngày đăng và Hạn tuyển dụng
   const created = createdDate ? parseDateOnly(createdDate) : null;
   if (created) {
     const next = new Date(created);
@@ -61,10 +61,10 @@ export async function GET(request: Request) {
   if (and.length) where.AND = and;
 
   const prismaAny = prisma as any;
-
-  const [totalItems, rows, appStatusRows] = await Promise.all([
-    prismaAny.jobPost.count({ where }),
-    prismaAny.jobPost.findMany({
+// 6. Thực hiện đồng thời (Parallel) 3 câu lệnh truy vấn tới Database để tối ưu hiệu năng
+  const [totalItems, rows, appStatusRows] = await Promise.all([ //lấy tổng số lượng tin tuyển dụng, danh sách tin tuyển dụng và danh sách trạng thái ứng viên
+    prismaAny.jobPost.count({ where }), //đếm tổng số lượng tin tuyển dụng
+    prismaAny.jobPost.findMany({ //lấy danh sách tin tuyển dụng
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
@@ -80,18 +80,18 @@ export async function GET(request: Request) {
       }
     }),
     // Aggregate all application statuses for this enterprise (ignoring current search filters)
-    prismaAny.jobApplication.findMany({
+    prismaAny.jobApplication.findMany({ //lấy danh sách trạng thái ứng viên
       where: { jobPost: { enterpriseUserId: sub } },
       select: { status: true }
     }) as Promise<Array<{ status: string }>>
   ]);
-
+// 7. Khối xử lý Logic duyệt qua danh sách trạng thái để gom nhóm và tính toán số lượng thống kê (Aggregation)
   const appStats = { PENDING_REVIEW: 0, INTERVIEW_INVITED: 0, OFFERED: 0, REJECTED: 0, STUDENT_DECLINED: 0 };
   for (const row of appStatusRows) {
     if (row.status in appStats) appStats[row.status as keyof typeof appStats]++;
   }
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về dữ liệu danh sách tin tuyển dụng
     success: true,
     appStats,
     page,

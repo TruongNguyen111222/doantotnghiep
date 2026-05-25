@@ -20,32 +20,35 @@ export {
   toCloudinaryRef
 } from "./cloudinary-public";
 
-function requiredEnv(name: string): string {
+
+
+//tải file lên cloudinary (đóng gói file , ký xác thực và gửi lên api cloudinary)
+function requiredEnv(name: string): string { //lấy tên env
   const v = process.env[name];
   if (!v) throw new Error(`Missing env: ${name}`);
   return v;
 }
 
-function sanitizeSegment(s: string): string {
+function sanitizeSegment(s: string): string { //làm sạch chuỗi
   return String(s || "")
     .replace(/[^\w.\-() ]+/g, "")
     .trim()
     .slice(0, 120);
 }
 
-function removeExtension(filename: string): string {
+function removeExtension(filename: string): string { //xóa đuôi file
   const parsed = path.parse(filename);
   return parsed.name || filename;
 }
-
-export function buildCvPublicId(ownerId: string, originalName: string): string {
+//hồ sơ sinh viên
+export function buildCvPublicId(ownerId: string, originalName: string): string { //tạo public id cho file cv
   const safeOwner = sanitizeSegment(ownerId) || "anonymous";
   const safeOriginal = sanitizeSegment(originalName) || "resume";
   const nameNoExt = sanitizeSegment(removeExtension(safeOriginal)).slice(0, 80) || "resume";
   const safeName = nameNoExt.replace(/\s+/g, "_");
   return `resumes/${safeOwner}_${Date.now()}_${safeName}`;
 }
-
+//tạo id file báo cáo thực tập
 export function buildInternshipReportPublicId(ownerId: string, originalName: string): string {
   const safeOwner = sanitizeSegment(ownerId) || "anonymous";
   const safeOriginal = sanitizeSegment(originalName) || "report";
@@ -53,13 +56,13 @@ export function buildInternshipReportPublicId(ownerId: string, originalName: str
   const safeName = nameNoExt.replace(/\s+/g, "_");
   return `internship_reports/${safeOwner}_${Date.now()}_${safeName}`;
 }
-
+//lấy đuôi file giấy phép doanh nghiệp
 function licensePublicIdSuffix(originalName: string): string {
   const ext = path.extname(String(originalName || "").trim()).toLowerCase();
   if (/^\.(pdf|docx?)$/i.test(ext)) return ext.replace(/[^.a-z0-9]/gi, "") || ".pdf";
   return ".pdf";
 }
-
+//tạo id file giấy phép doanh nghiệp
 export function buildEnterpriseLicensePublicId(ownerKey: string, originalName: string): string {
   const safeOwner = sanitizeSegment(ownerKey) || "enterprise";
   const safeOriginal = sanitizeSegment(originalName) || "business_license";
@@ -68,7 +71,7 @@ export function buildEnterpriseLicensePublicId(ownerKey: string, originalName: s
   const suffix = licensePublicIdSuffix(safeOriginal);
   return `enterprise_licenses/${safeOwner}_${Date.now()}_${safeName}${suffix}`;
 }
-
+//tạo id file logo doanh nghiệp
 export function buildEnterpriseLogoPublicId(ownerKey: string, originalName: string): string {
   const safeOwner = sanitizeSegment(ownerKey) || "enterprise";
   const safeOriginal = sanitizeSegment(originalName) || "company_logo";
@@ -76,29 +79,29 @@ export function buildEnterpriseLogoPublicId(ownerKey: string, originalName: stri
   const safeName = nameNoExt.replace(/\s+/g, "_");
   return `enterprise_logos/${safeOwner}_${Date.now()}_${safeName}`;
 }
-
+//tạo chữ ký bảo mật
 function buildSignature(params: Record<string, string>, apiSecret: string): string {
-  const toSign = Object.keys(params)
+  const toSign = Object.keys(params) //id - nối lại 
     .sort()
     .map((k) => `${k}=${params[k]}`)
     .join("&");
-  return crypto.createHash("sha1").update(toSign + apiSecret).digest("hex");
+  return crypto.createHash("sha1").update(toSign + apiSecret).digest("hex"); //gắn secret vào toSign để mã hóa
 }
-
+//bọc lại để upload file cv lên cloudinary
 export async function uploadCvBytesToCloudinary(input: {
-  bytes: Buffer;
-  mimeType: string;
-  ownerId: string;
-  originalName: string;
+  bytes: Buffer; //nội dung file base64
+  mimeType: string; //định dạng file
+  ownerId: string; 
+  originalName: string; 
 }): Promise<CloudinaryUploadResult> {
   return uploadBytesToCloudinary({
     bytes: input.bytes,
     mimeType: input.mimeType,
-    publicId: buildCvPublicId(input.ownerId, input.originalName),
-    resourceType: "raw"
+    publicId: buildCvPublicId(input.ownerId, input.originalName), //tạo tên id file cv
+    resourceType: "raw" //file thô 
   });
 }
-
+//tải file báo cáo thực tập lên cloudinary
 export async function uploadInternshipReportBytesToCloudinary(input: {
   bytes: Buffer;
   mimeType: string;
@@ -112,7 +115,7 @@ export async function uploadInternshipReportBytesToCloudinary(input: {
     resourceType: "raw"
   });
 }
-
+//tải file giấy phép doanh nghiệp lên cloudinary
 export async function uploadEnterpriseLicenseBytesToCloudinary(input: {
   bytes: Buffer;
   mimeType: string;
@@ -126,7 +129,7 @@ export async function uploadEnterpriseLicenseBytesToCloudinary(input: {
     resourceType: "raw"
   });
 }
-
+//tải file logo doanh nghiệp lên cloudinary
 export async function uploadEnterpriseLogoBytesToCloudinary(input: {
   bytes: Buffer;
   mimeType: string;
@@ -140,28 +143,31 @@ export async function uploadEnterpriseLogoBytesToCloudinary(input: {
     resourceType: "image"
   });
 }
-
+//tải file lên cloudinary (đóng gói file , ký xác thực và gửi lên api cloudinary)
 async function uploadBytesToCloudinary(input: {
   bytes: Buffer;
   mimeType: string;
   publicId: string;
   resourceType: "raw" | "image";
 }): Promise<CloudinaryUploadResult> {
+  //lấy tên cloud name, api key và api secret từ env
   const cloudName = requiredEnv("CLOUDINARY_CLOUD_NAME");
   const apiKey = requiredEnv("CLOUDINARY_API_KEY");
   const apiSecret = requiredEnv("CLOUDINARY_API_SECRET");
 
-  const timestamp = String(Math.floor(Date.now() / 1000));
-  const publicId = input.publicId;
+  const timestamp = String(Math.floor(Date.now() / 1000)); //thời gian hiện tại
+  const publicId = input.publicId; //tên id file
 
-  const signParams: Record<string, string> = {
+  const signParams: Record<string, string> = { //tham số ký xác thực
     public_id: publicId,
     timestamp
   };
   const signature = buildSignature(signParams, apiSecret);
 
-  const form = new FormData();
+  const form = new FormData(); //tạo form data để gửi lên api cloudinary
+  //tạo url dữ liệu file base64
   const fileDataUrl = `data:${input.mimeType};base64,${input.bytes.toString("base64")}`;
+  //nhét dữ liệu file vào form data
   form.set("file", fileDataUrl);
   form.set("api_key", apiKey);
   form.set("timestamp", timestamp);
@@ -169,10 +175,11 @@ async function uploadBytesToCloudinary(input: {
   form.set("resource_type", input.resourceType);
   form.set("signature", signature);
 
+  //gửi lên api cloudinary
   const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/${input.resourceType}/upload`;
   const res = await fetch(endpoint, { method: "POST", body: form });
   const data = (await res.json()) as any;
-
+  //kiểm tra response có lỗi không
   if (!res.ok) {
     const msg = typeof data?.error?.message === "string" ? data.error.message : "Cloudinary upload failed";
     throw new Error(msg);
@@ -181,9 +188,15 @@ async function uploadBytesToCloudinary(input: {
   const outPublicId = String(data?.public_id || "");
   if (!outPublicId) throw new Error("Cloudinary response missing public_id");
 
-  return { publicId: outPublicId };
+  return { publicId: outPublicId }; //trả về tên id file
 }
 
+
+
+/**
+ * Tải file raw/image từ Cloudinary (proxy API).
+ * Thứ tự: URL ký (SDK) → raw delivery công khai → image delivery (fallback public_id nhầm loại).
+ */
 function cloudinarySigningEnv(): { cloud_name: string; api_key: string; api_secret: string } | null {
   const cloud_name =
     String(process.env.CLOUDINARY_CLOUD_NAME || "").trim() ||
@@ -194,10 +207,6 @@ function cloudinarySigningEnv(): { cloud_name: string; api_key: string; api_secr
   return { cloud_name, api_key, api_secret };
 }
 
-/**
- * Tải file raw/image từ Cloudinary (proxy API).
- * Thứ tự: URL ký (SDK) → raw delivery công khai → image delivery (fallback public_id nhầm loại).
- */
 function encodedPublicIdPath(pid: string): string {
   return String(pid || "")
     .trim()
@@ -331,6 +340,7 @@ function isLikelyCloudinaryErrorBody(contentType: string, bytes: Buffer): boolea
   return false;
 }
 
+//tải file từ cloudinary
 export async function fetchCloudinaryBytesByPublicId(publicId: string): Promise<{ bytes: Buffer; contentType: string } | null> {
   const pid = String(publicId || "").trim().replace(/^\/+/, "");
   if (!pid) return null;

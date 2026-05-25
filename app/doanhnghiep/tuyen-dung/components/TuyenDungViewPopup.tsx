@@ -1,10 +1,17 @@
 import type { JobDetailResponse, JobStatus, WorkType } from "@/lib/types/doanhnghiep-tuyen-dung";
-import { DOANHNGHIEP_TUYEN_DUNG_STATUS_LABEL, DOANHNGHIEP_TUYEN_DUNG_WORK_TYPE_LABEL } from "@/lib/constants/doanhnghiep-tuyen-dung";
-import { formatDateVi } from "@/lib/utils/doanhnghiep-tuyen-dung";
+import { DOANHNGHIEP_TUYEN_DUNG_STATUS_LABEL, 
+  DOANHNGHIEP_TUYEN_DUNG_WORK_TYPE_LABEL } from "@/lib/constants/doanhnghiep-tuyen-dung"; //hằng số cho API
+import { formatDateVi } from "@/lib/utils/doanhnghiep-tuyen-dung"; //hàm xử lý logic nghiệp vụ tin tuyển dụng trc khi gửi lên API
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
-type Props = {
+/**
+ * TỔNG QUAN FILE:
+ * Component TuyenDungViewPopup hiển thị một cửa sổ bật lên (Modal/Popup) để xem toàn bộ thông tin chi tiết
+ * của một tin tuyển dụng cụ thể, bao gồm thông tin hồ sơ Doanh nghiệp và nội dung chi tiết bài đăng tuyển.
+ * Hỗ trợ trạng thái tải dữ liệu bất đồng bộ (viewLoading) khi đang đợi phản hồi chi tiết từ API.
+ */
+type Props = { 
   viewJob: JobDetailResponse | null;
   viewLoading: boolean;
   onClose: () => void;

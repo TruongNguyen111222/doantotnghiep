@@ -18,21 +18,21 @@ type Props = {
   onOpenAdd: () => void;
 };
 
-export default function AdminPhanCongGVHDToolbar(props: Props) {
+export default function AdminPhanCongGVHDToolbar(props: Props) {  
   const {
-    searchQ,
-    filterFaculty,
-    filterStatus,
-    faculties,
-    loading,
-    onChangeSearchQ,
-    onChangeFilterFaculty,
-    onChangeFilterStatus,
-    onSearch,
-    onOpenAdd
+    searchQ,// từ khóa tìm kiếm
+    filterFaculty,// khoa tìm kiếm
+    filterStatus,// trạng thái tìm kiếm
+    faculties,// danh sách khoa
+    loading,// trạng thái loading
+    onChangeSearchQ,// hàm xử lý từ khóa tìm kiếm
+    onChangeFilterFaculty,// hàm xử lý khoa tìm kiếm
+    onChangeFilterStatus,// hàm xử lý trạng thái tìm kiếm
+    onSearch,// hàm xử lý tìm kiếm
+    onOpenAdd,// hàm xử lý mở thêm phân công giảng viên hướng dẫn
   } = props;
 
-  return (
+  return ( //render component
     <div className={styles.searchToolbar}>
       <div className={`${styles.searchField} ${styles.searchFieldGrow}`}>
         <label>Tìm kiếm</label>

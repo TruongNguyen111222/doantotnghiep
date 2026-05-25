@@ -4,13 +4,13 @@ import { verifySession } from "@/lib/auth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns";
 import { prisma } from "@/lib/prisma";
 
-type GuidanceStatus = "GUIDING" | "COMPLETED";
+type GuidanceStatus = "GUIDING" | "COMPLETED"; //hàm xử lý trạng thái hướng dẫn
 
-async function getGiangVienProfileId() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+async function getGiangVienProfileId() { //hàm lấy id giảng viên
+  const cookieStore = await cookies(); //lấy cookie store
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value; //lấy token từ cookie
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
-  try {
+  try { //lấy id giảng viên từ database
     const verified = await verifySession(token);
     if (verified.role !== "giangvien") return { error: NextResponse.json({ success: false, message: "Không có quyền truy cập." }, { status: 403 }) };
     const prismaAny = prisma as any;
@@ -22,27 +22,27 @@ async function getGiangVienProfileId() {
   }
 }
 
-export async function GET(request: Request) {
-  const giangVien = await getGiangVienProfileId();
+export async function GET(request: Request) { //hàm lấy dữ liệu sinh viên
+  const giangVien = await getGiangVienProfileId(); //lấy id giảng viên từ database
   if ("error" in giangVien) return giangVien.error;
   const supervisorProfileId = giangVien.supervisorProfileId as string;
 
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = new URL(request.url); 
   const q = (searchParams.get("q") || "").trim();
   const internshipBatchId = (searchParams.get("batchId") || "").trim();
   const guidanceStatus = (searchParams.get("status") || "all").trim();
 
   const prismaAny = prisma as any;
 
-  const batchIdsRows = await prismaAny.supervisorAssignment.findMany({
+  const batchIdsRows = await prismaAny.supervisorAssignment.findMany({ //lấy danh sách id đợt thực tập từ database
     where: { supervisorProfileId },
     distinct: ["internshipBatchId"],
     select: { internshipBatchId: true }
   });
-  const batchIds = batchIdsRows.map((r: any) => r.internshipBatchId).filter(Boolean);
+  const batchIds = batchIdsRows.map((r: any) => r.internshipBatchId).filter(Boolean); //lấy danh sách id đợt thực tập từ database
 
   const batchOptionsRows = batchIds.length
-    ? await prismaAny.internshipBatch.findMany({
+    ? await prismaAny.internshipBatch.findMany({ //lấy danh sách đợt thực tập từ database
         where: { id: { in: batchIds } },
         select: { id: true, name: true, startDate: true },
         orderBy: { startDate: "desc" }
@@ -52,18 +52,18 @@ export async function GET(request: Request) {
   const batchOptions = batchOptionsRows.map((r: any) => ({ id: String(r.id), name: r.name }));
 
   // Đợt mới nhất (theo ngày bắt đầu) mà GV có phân công
-  const latestBatchRow = batchOptionsRows[0] ?? null;
-  let latestBatchGuidanceStats: {
-    batchId: string | null;
-    batchName: string | null;
-    guiding: number;
-    completed: number;
-  } = { batchId: null, batchName: null, guiding: 0, completed: 0 };
+  const latestBatchRow = batchOptionsRows[0] ?? null; //lấy đợt thực tập mới nhất từ database
+  let latestBatchGuidanceStats: { //hàm xử lý thống kê đợt thực tập
+    batchId: string | null; //id đợt thực tập
+    batchName: string | null; //tên đợt thực tập
+    guiding: number; //số lượng đang hướng dẫn
+    completed: number; //số lượng hoàn thành
+  } = { batchId: null, batchName: null, guiding: 0, completed: 0 }; //hàm xử lý thống kê đợt thực tập mặc định
 
-  if (latestBatchRow) {
+  if (latestBatchRow) { //nếu có đợt thực tập mới nhất
     const bid = String(latestBatchRow.id);
     const [guiding, completed] = await Promise.all([
-      prismaAny.supervisorAssignmentStudent.count({
+      prismaAny.supervisorAssignmentStudent.count({ //lấy số lượng sinh viên đang hướng dẫn từ database
         where: {
           supervisorAssignment: {
             supervisorProfileId,
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
           }
         }
       }),
-      prismaAny.supervisorAssignmentStudent.count({
+      prismaAny.supervisorAssignmentStudent.count({ //lấy số lượng sinh viên hoàn thành hướng dẫn từ database
         where: {
           supervisorAssignment: {
             supervisorProfileId,
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
         }
       })
     ]);
-    latestBatchGuidanceStats = {
+    latestBatchGuidanceStats = { //set dữ liệu thống kê đợt thực tập vào latestBatchGuidanceStats
       batchId: bid,
       batchName: latestBatchRow.name ?? null,
       guiding,
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
     };
   }
 
-  const where: any = {
+  const where: any = { //hàm xử lý điều kiện lấy dữ liệu sinh viên
     supervisorAssignment: {
       supervisorProfileId
     }
@@ -99,7 +99,7 @@ export async function GET(request: Request) {
   if (guidanceStatus !== "all") where.supervisorAssignment.status = guidanceStatus as GuidanceStatus;
 
   if (q) {
-    where.studentProfile = {
+    where.studentProfile = { //điều kiện tìm kiếm sinh viên
       OR: [
         { msv: { startsWith: q } },
         ...(q.length >= 2 ? [{ user: { fullName: { contains: q, mode: "insensitive" } } }] : [])
@@ -107,7 +107,7 @@ export async function GET(request: Request) {
     };
   }
 
-  const links = await prismaAny.supervisorAssignmentStudent.findMany({
+  const links = await prismaAny.supervisorAssignmentStudent.findMany({ //lấy danh sách sinh viên được phân công từ database
     where,
     orderBy: { createdAt: "desc" },
     select: {
@@ -142,10 +142,10 @@ export async function GET(request: Request) {
           }
         }
       },
-      supervisorAssignment: {
+      supervisorAssignment: { //lấy trạng thái hướng dẫn từ database
         select: {
           status: true,
-          statusHistory: {
+          statusHistory: { //lấy lịch sử trạng thái hướng dẫn từ database
             orderBy: { at: "desc" },
             select: { fromStatus: true, toStatus: true, at: true }
           }
@@ -156,11 +156,11 @@ export async function GET(request: Request) {
 
   const guidanceStatusLabel: Record<GuidanceStatus, string> = { GUIDING: "Đang hướng dẫn", COMPLETED: "Hoàn thành hướng dẫn" };
 
-  const items = links.map((x: any, idx: number) => {
+  const items = links.map((x: any, idx: number) => { //lấy danh sách sinh viên được phân công từ database
     const sp = x.studentProfile;
     const assignment = x.supervisorAssignment;
-    const r = sp.internshipReport;
-    return {
+    const r = sp.internshipReport; //lấy báo cáo thực tập từ database
+    return { //hàm xử lý dữ liệu sinh viên
       id: sp.id,
       stt: idx + 1,
       msv: sp.msv,
@@ -190,9 +190,9 @@ export async function GET(request: Request) {
       report: r
         ? {
             id: r.id,
-            reportFileName: r.reportFileName,
-            reportUrl: `/api/files/internship-report/${r.id}`,
-            reviewStatus: r.reviewStatus,
+            reportFileName: r.reportFileName, //tên file báo cáo thực tập
+            reportUrl: `/api/files/internship-report/${r.id}`, //url báo cáo thực tập
+            reviewStatus: r.reviewStatus, //trạng thái review báo cáo thực tập
             supervisorEvaluation: r.supervisorEvaluation ?? null,
             supervisorPoint: r.supervisorPoint ?? null,
             enterpriseEvaluation: r.enterpriseEvaluation ?? null,
@@ -202,7 +202,7 @@ export async function GET(request: Request) {
     };
   });
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về dữ liệu sinh viên
     success: true,
     items,
     batches: batchOptions,

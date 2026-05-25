@@ -1,13 +1,13 @@
-import type { GiangVienMe } from "@/lib/types/giangvien-tai-khoan";
-import { genderLabel } from "@/lib/constants/giangvien-tai-khoan";
-import { formatDateVi } from "@/lib/utils/giangvien-tai-khoan";
+import type { GiangVienMe } from "@/lib/types/giangvien-tai-khoan"; //kiểu dữ liệu giảng viên
+import { genderLabel } from "@/lib/constants/giangvien-tai-khoan"; //hàm xử lý giới tính
+import { formatDateVi } from "@/lib/utils/giangvien-tai-khoan"; //hàm xử lý ngày tháng năm
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 
 type Props = {
-  me: GiangVienMe;
+  me: GiangVienMe; //giảng viên
 };
 
-export default function GiangVienProfileInfo({ me }: Props) {
+export default function GiangVienProfileInfo({ me }: Props) { //component xem thông tin giảng viên
   return (
     <table className={adminStyles.viewModalDetailTable} style={{ marginTop: 8 }}>
       <tbody>

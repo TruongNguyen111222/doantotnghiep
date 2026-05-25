@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import styles from "../styles/dashboard.module.css";
-import { DashboardStatSummaryCard } from "@/app/components/DashboardStatSummaryCard";
+import { DashboardStatSummaryCard } from "@/app/components/DashboardStatSummaryCard"; //component thống kê sinh viên
 import MessagePopup from "../../components/MessagePopup";
 import {
   FiActivity,
@@ -13,8 +13,8 @@ import {
   FiUploadCloud,
   FiXCircle
 } from "react-icons/fi";
-import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
-import { ADMIN_STUDENT_EXCEL_HEADER, ADMIN_STUDENT_EXCEL_SAMPLE_ROWS } from "@/lib/constants/admin-students-excel";
+import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns"; //hằng số email đăng ký
+import { ADMIN_STUDENT_EXCEL_HEADER, ADMIN_STUDENT_EXCEL_SAMPLE_ROWS } from "@/lib/constants/admin-students-excel"; //hằng số excel sinh viên
 
 import type {
   Degree,
@@ -24,7 +24,7 @@ import type {
   StudentListItem,
   ViewStudent,
   Ward
-} from "@/lib/types/admin-quan-ly-sinh-vien";
+} from "@/lib/types/admin-quan-ly-sinh-vien"; //type sinh viên
 import {
   ADMIN_QUAN_LY_SINH_VIEN_FACULTY_CUSTOM_VALUE,
   ADMIN_QUAN_LY_SINH_VIEN_CLASS_PATTERN,
@@ -33,19 +33,19 @@ import {
   ADMIN_QUAN_LY_SINH_VIEN_NAME_PATTERN,
   ADMIN_QUAN_LY_SINH_VIEN_PHONE_PATTERN,
   ADMIN_QUAN_LY_SINH_VIEN_PAGE_SIZE
-} from "@/lib/constants/admin-quan-ly-sinh-vien";
-import { calcAgeFromBirthDate, toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-sinh-vien-dates";
-import { buildEmptyStudentFormState } from "@/lib/utils/admin-quan-ly-sinh-vien-form";
-import { deleteCacheByPrefix, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
+} from "@/lib/constants/admin-quan-ly-sinh-vien"; //hằng số sinh viên
+import { calcAgeFromBirthDate, toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-sinh-vien-dates"; //hàm tính tuổi từ ngày sinh
+import { buildEmptyStudentFormState } from "@/lib/utils/admin-quan-ly-sinh-vien-form"; //hàm tạo form sinh viên
+import { deleteCacheByPrefix, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache"; //hàm xóa cache
 
-import AdminSinhVienToolbar from "./components/AdminSinhVienToolbar";
-import AdminSinhVienTableSection from "./components/AdminSinhVienTableSection";
-const AdminSinhVienViewPopup = dynamic(() => import("./components/AdminSinhVienViewPopup"), { ssr: false });
-const AdminSinhVienDeletePopup = dynamic(() => import("./components/AdminSinhVienDeletePopup"), { ssr: false });
-const AdminSinhVienFormPopup = dynamic(() => import("./components/AdminSinhVienFormPopup"), { ssr: false });
-const AdminSinhVienImportPopup = dynamic(() => import("./components/AdminSinhVienImportPopup"), { ssr: false });
+import AdminSinhVienToolbar from "./components/AdminSinhVienToolbar"; //component toolbar sinh viên
+import AdminSinhVienTableSection from "./components/AdminSinhVienTableSection"; //component table sinh viên
+const AdminSinhVienViewPopup = dynamic(() => import("./components/AdminSinhVienViewPopup"), { ssr: false }); //component popup xem sinh viên
+const AdminSinhVienDeletePopup = dynamic(() => import("./components/AdminSinhVienDeletePopup"), { ssr: false }); //component popup xóa sinh viên
+const AdminSinhVienFormPopup = dynamic(() => import("./components/AdminSinhVienFormPopup"), { ssr: false }); //component popup thêm sinh viên
+const AdminSinhVienImportPopup = dynamic(() => import("./components/AdminSinhVienImportPopup"), { ssr: false }); //component popup import FILE sinh viên
 
-export default function AdminQuanLySinhVienPage() {
+export default function AdminQuanLySinhVienPage() { //state giữ dữ liệu sinh viên
   const [items, setItems] = useState<StudentListItem[]>([]);
   const [faculties, setFaculties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,36 +61,37 @@ export default function AdminQuanLySinhVienPage() {
     rejected: number;
   } | null>(null);
 
-  const [searchQ, setSearchQ] = useState("");
-  const [filterFaculty, setFilterFaculty] = useState<string>("all");
-  const [filterInternshipStatus, setFilterInternshipStatus] = useState<InternshipStatus | "all">("all");
-  const [filterDegree, setFilterDegree] = useState<Degree | "all">("all");
+  const [searchQ, setSearchQ] = useState(""); //từ khóa tìm kiếm
+  const [filterFaculty, setFilterFaculty] = useState<string>("all"); //khoa
+  const [filterInternshipStatus, setFilterInternshipStatus] = useState<InternshipStatus | "all">("all"); //trạng thái thực tập
+  const [filterDegree, setFilterDegree] = useState<Degree | "all">("all"); //bậc
 
-  const [toastPopup, setToastPopup] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  const [toastPopup, setToastPopup] = useState<{ open: boolean; message: string }>({ open: false, message: "" }); //popup thông báo
 
-  const [viewOpen, setViewOpen] = useState(false);
-  const [viewStudent, setViewStudent] = useState<ViewStudent | null>(null);
+  const [viewOpen, setViewOpen] = useState(false); //trạng thái popup xem sinh viên
+  const [viewStudent, setViewStudent] = useState<ViewStudent | null>(null); //dữ liệu sinh viên
 
-  const [deleteTarget, setDeleteTarget] = useState<StudentListItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<StudentListItem | null>(null); //dữ liệu sinh viên xóa
 
   const [addOpen, setAddOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false); //trạng thái popup import sinh viên
 
   const [editTarget, setEditTarget] = useState<StudentListItem | null>(null);
 
-  const [form, setForm] = useState<StudentFormState>(() => buildEmptyStudentFormState());
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<StudentFormState>(() => buildEmptyStudentFormState()); //form sinh viên
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({}); //lỗi form sinh viên
 
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [exportBusy, setExportBusy] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null); //trạng thái loading sinh viên
+  const [exportBusy, setExportBusy] = useState(false); //trạng thái loading xuất excel
   const [page, setPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  const [totalItems, setTotalItems] = useState(0); //tổng số sinh viên
 
+  //tải thông tin chi tiết của một sinh viên cụ thể theo ID
   const fetchStudentDetailCached = async (id: string, force = false) =>
     getOrFetchCached<any>(
       `admin:students:detail:${id}`,
       async () => {
-        const res = await fetch(`/api/admin/students/${id}`);
+        const res = await fetch(`/api/admin/students/${id}`); //gửi request lấy dữ liệu sinh viên từ API
         const payload = await res.json();
         if (!res.ok || !payload.success || !payload.item) throw new Error(payload.message || "Không tải được thông tin sinh viên.");
         return payload;
@@ -103,7 +104,7 @@ export default function AdminQuanLySinhVienPage() {
   const [wards, setWards] = useState<Ward[]>([]);
   const [addrLoading, setAddrLoading] = useState({ provinces: true, wards: false });
 
-  useEffect(() => {
+  useEffect(() => { //tải danh sách tỉnh/thành
     let cancelled = false;
     void (async () => {
       try {
@@ -122,16 +123,17 @@ export default function AdminQuanLySinhVienPage() {
     };
   }, []);
 
+  //tải danh sách phường/xã
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      if (!form.permanentProvinceCode) {
+      if (!form.permanentProvinceCode) { //nếu không chọn tỉnh/thành thì không hiển thị huyện/xã
         setWards([]);
         return;
       }
       setAddrLoading((s) => ({ ...s, wards: true }));
       try {
-        const res = await fetch(`/api/vn-address/provinces/${form.permanentProvinceCode}/wards`);
+        const res = await fetch(`/api/vn-address/provinces/${form.permanentProvinceCode}/wards`); //gửi request lấy danh sách huyện/xã từ API
         const data = await res.json();
         if (!cancelled) setWards((data.wards || []) as Ward[]);
       } catch {
@@ -150,31 +152,31 @@ export default function AdminQuanLySinhVienPage() {
     const silent = Boolean(opts?.silent);
     const targetPage = opts?.targetPage ?? page;
     try {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams();   
       if (searchQ.trim()) params.set("q", searchQ.trim());
       if (filterFaculty !== "all") params.set("faculty", filterFaculty);
       if (filterInternshipStatus !== "all") params.set("status", filterInternshipStatus);
       if (filterDegree !== "all") params.set("degree", filterDegree);
       params.set("page", String(targetPage));
       params.set("pageSize", String(ADMIN_QUAN_LY_SINH_VIEN_PAGE_SIZE));
-      const url = `/api/admin/students?${params.toString()}`;
-      const cacheKey = `admin:students:list:${url}`;
+      const url = `/api/admin/students?${params.toString()}`; 
+      const cacheKey = `admin:students:list:${url}`; 
       if (!silent && !hasCachedValue(cacheKey)) setLoading(true);
       setError("");
-      const data = await getOrFetchCached<any>(
+      const data = await getOrFetchCached<any>( 
         cacheKey,
         async () => {
-          const res = await fetch(url);
-          const payload = await res.json();
+          const res = await fetch(url); 
+          const payload = await res.json(); 
           if (!res.ok || !payload.success) throw new Error(payload.message || "Không tải được danh sách sinh viên.");
           return payload;
         },
         { force }
       );
-      setItems(data.items || []);
-      setFaculties(data.faculties || []);
-      setLatestBatchInternshipStats(data.latestBatchInternshipStats ?? null);
-      setTotalItems(Number(data.totalItems || 0));
+      setItems(data.items || []); 
+      setFaculties(data.faculties || []); 
+      setLatestBatchInternshipStats(data.latestBatchInternshipStats ?? null); 
+      setTotalItems(Number(data.totalItems || 0)); 
     } catch (e) {
       setError(e instanceof Error ? e.message : "Lỗi.");
       setItems([]);
@@ -186,7 +188,7 @@ export default function AdminQuanLySinhVienPage() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { 
     void load({ targetPage: page });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
@@ -205,24 +207,24 @@ export default function AdminQuanLySinhVienPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
-  const showPopup = (message: string) => setToastPopup({ open: true, message });
+  const showPopup = (message: string) => setToastPopup({ open: true, message }); 
 
-  const resetForm = () => {
+  const resetForm = () => { 
     setFieldErrors({});
     setForm(buildEmptyStudentFormState());
-  };
+  }; 
 
-  const openAddSingle = () => {
+  const openAddSingle = () => { 
     setEditTarget(null);
     resetForm();
     setAddOpen(true);
   };
 
-  const openAddBulk = () => {
+  const openAddBulk = () => { 
     setImportOpen(true);
   };
 
-  const openEdit = (row: StudentListItem) => {
+  const openEdit = (row: StudentListItem) => { 
     setEditTarget(row);
     setAddOpen(false);
     setImportOpen(false);
@@ -244,7 +246,7 @@ export default function AdminQuanLySinhVienPage() {
     });
   };
 
-  const computeValidationErrors = (draft: StudentFormState) => {
+  const computeValidationErrors = (draft: StudentFormState) => { 
     const next: Record<string, string> = {};
     if (!draft.msv || !ADMIN_QUAN_LY_SINH_VIEN_MSV_PATTERN.test(draft.msv.trim())) next.msv = "Mã sinh viên chỉ gồm số (8–15 ký tự).";
     if (!draft.fullName || !ADMIN_QUAN_LY_SINH_VIEN_NAME_PATTERN.test(draft.fullName.trim())) next.fullName = "Họ tên chỉ gồm chữ và dấu cách (1–255 ký tự).";
@@ -278,7 +280,7 @@ export default function AdminQuanLySinhVienPage() {
     return next;
   };
 
-  const submitCreateSingle = async () => {
+  const submitCreateSingle = async () => { 
     setBusyId("add");
     setFieldErrors({});
     try {
@@ -306,36 +308,36 @@ export default function AdminQuanLySinhVienPage() {
           permanentWardCode: form.permanentWardCode
         })
       });
-      const data = await res.json();
+      const data = await res.json(); 
       if (!res.ok) {
         if (data.errors) setFieldErrors(data.errors);
         showPopup(data.message || "Tạo sinh viên thất bại.");
         return;
       }
-      showPopup(data.message || "Tạo sinh viên thành công.");
-      setAddOpen(false);
+      showPopup(data.message || "Tạo sinh viên thành công."); 
+      setAddOpen(false); 
       resetForm();
       deleteCacheByPrefix("admin:students:");
-      setPage(1);
-      await load({ force: true, targetPage: 1 });
+      setPage(1); 
+      await load({ force: true, targetPage: 1 }); 
     } catch (e) {
-      showPopup(e instanceof Error ? e.message : "Tạo sinh viên thất bại.");
+      showPopup(e instanceof Error ? e.message : "Tạo sinh viên thất bại."); 
     } finally {
-      setBusyId(null);
+      setBusyId(null); 
     }
   };
 
-  const submitEditSingle = async () => {
-    if (!editTarget) return;
+  const submitEditSingle = async () => { 
+    if (!editTarget) return; 
     setBusyId(editTarget.id);
-    setFieldErrors({});
+    setFieldErrors({}); 
     try {
       const errors = computeValidationErrors(form);
       if (Object.keys(errors).length) {
         setFieldErrors(errors);
         return;
       }
-      const res = await fetch(`/api/admin/students/${editTarget.id}`, {
+      const res = await fetch(`/api/admin/students/${editTarget.id}`, { //gửi request sửa sinh viên từ API
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -372,22 +374,18 @@ export default function AdminQuanLySinhVienPage() {
     }
   };
 
-  const openView = async (row: StudentListItem) => {
+  const openView = async (row: StudentListItem) => { 
     try {
-      setViewStudent(null);
-      const data = await fetchStudentDetailCached(row.id);
-      setViewStudent(data.item as ViewStudent);
-      setViewOpen(true);
+      setViewStudent(null); 
+      const data = await fetchStudentDetailCached(row.id); 
+      setViewStudent(data.item as ViewStudent); 
+      setViewOpen(true); 
     } catch (e) {
       showPopup(e instanceof Error ? e.message : "Không tải được thông tin sinh viên.");
     }
   };
 
-  // Removed "Theo dõi" internship status popup per requirement.
-
-  // (openStatus, submitStatus, statusTarget, statusDraft removed)
-
-  const submitDelete = async () => {
+  const submitDelete = async () => { 
     if (!deleteTarget) return;
     setBusyId(deleteTarget.id);
     try {
@@ -408,23 +406,23 @@ export default function AdminQuanLySinhVienPage() {
     }
   };
 
-  const exportFilteredExcel = async () => {
+  const exportFilteredExcel = async () => { 
     setExportBusy(true);
     try {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(); 
       if (searchQ.trim()) params.set("q", searchQ.trim());
       if (filterFaculty !== "all") params.set("faculty", filterFaculty);
       if (filterInternshipStatus !== "all") params.set("status", filterInternshipStatus);
       if (filterDegree !== "all") params.set("degree", filterDegree);
-      const res = await fetch(`/api/admin/students/export?${params.toString()}`);
+      const res = await fetch(`/api/admin/students/export?${params.toString()}`); //gửi request xuất file Excel lọc theo điều kiện từ API
       if (!res.ok) {
-        const j = (await res.json().catch(() => null)) as { message?: string } | null;
+        const j = (await res.json().catch(() => null)) as { message?: string } | null; //lấy dữ liệu lỗi từ API
         throw new Error(j?.message || "Không xuất được file Excel.");
       }
-      const cd = res.headers.get("Content-Disposition");
-      let fn = "danh_sach_sinh_vien_theo_loc.xlsx";
+      const cd = res.headers.get("Content-Disposition"); //lấy header gửi dữ liệu
+      let fn = "danh_sach_sinh_vien_theo_loc.xlsx"; //tên file Excel
       if (cd) {
-        const star = /filename\*=UTF-8''([^;\s]+)/i.exec(cd);
+        const star = /filename\*=UTF-8''([^;\s]+)/i.exec(cd); //lấy tên file Excel từ header gửi dữ liệu
         if (star?.[1]) {
           try {
             fn = decodeURIComponent(star[1]);
@@ -436,30 +434,30 @@ export default function AdminQuanLySinhVienPage() {
           if (plain?.[1]) fn = plain[1];
         }
       }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const blob = await res.blob(); //lấy dữ liệu file Excel từ API
+      const url = URL.createObjectURL(blob); //tạo URL từ dữ liệu file Excel
       const a = document.createElement("a");
-      a.href = url;
-      a.download = fn;
+      a.href = url; //set URL từ dữ liệu file Excel
+      a.download = fn; //set tên file Excel
       document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      a.click(); //click vào thẻ a để tải file Excel
+      a.remove(); //xóa thẻ a
+      URL.revokeObjectURL(url); //xóa URL từ dữ liệu file Excel
     } catch (e) {
-      setToastPopup({ open: true, message: e instanceof Error ? e.message : "Không xuất được file Excel." });
+      setToastPopup({ open: true, message: e instanceof Error ? e.message : "Không xuất được file Excel." }); //hiển thị popup thông báo lỗi
     } finally {
-      setExportBusy(false);
+      setExportBusy(false); //đóng loading xuất file Excel
     }
   };
 
   // Excel import (bulk): parse in client and send rows to API.
-  const [importBusy, setImportBusy] = useState(false);
-  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importBusy, setImportBusy] = useState(false); //trạng thái loading import sinh viên
+  const [importFile, setImportFile] = useState<File | null>(null); //dữ liệu file import sinh viên
 
-  const downloadExcelTemplate = async () => {
-    const XLSXMod = await import("xlsx");
+  const downloadExcelTemplate = async () => { //tải file Excel mẫu
+    const XLSXMod = await import("xlsx"); //import module xlsx
     const XLSX = XLSXMod as any;
-    const ws = XLSX.utils.aoa_to_sheet([
+    const ws = XLSX.utils.aoa_to_sheet([ //tạo sheet từ file Excel
       [...ADMIN_STUDENT_EXCEL_HEADER],
       ...ADMIN_STUDENT_EXCEL_SAMPLE_ROWS.map((r) => [
         r.msv,
@@ -477,10 +475,10 @@ export default function AdminQuanLySinhVienPage() {
       ])
     ]);
 
-    const range = XLSX.utils.decode_range(ws["!ref"]);
+    const range = XLSX.utils.decode_range(ws["!ref"]); //lấy range từ file Excel
     for (let c = range.s.c; c <= range.e.c; c++) {
       for (let r = range.s.r + 1; r <= range.e.r; r++) {
-        const addr = XLSX.utils.encode_cell({ r, c });
+        const addr = XLSX.utils.encode_cell({ r, c }); //lấy cell từ file Excel
         const cell = ws[addr];
         if (!cell) continue;
         cell.t = "s";
@@ -504,44 +502,44 @@ export default function AdminQuanLySinhVienPage() {
       { wch: 26 } // Phường/Xã
     ];
 
-    const wb = XLSX.utils.book_new();
+    const wb = XLSX.utils.book_new(); //tạo workbook từ file Excel
     XLSX.utils.book_append_sheet(wb, ws, "Sinh viên");
     const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
-    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });  //tạo blob từ file Excel
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "mau_sinh_vien_co_du_lieu.xlsx";
+    a.download = "mau_sinh_vien_co_du_lieu.xlsx"; //set tên file Excel
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
   };
 
-  const handleImportFile = async (file: File | null) => {
+  const handleImportFile = async (file: File | null) => { //import file Excel
     if (!file) return;
-    setImportBusy(true);
+    setImportBusy(true); //set trạng thái loading import sinh viên
     try {
-      const lower = file.name.toLowerCase();
-      if (!lower.endsWith(".xlsx") && !lower.endsWith(".xls")) {
+      const lower = file.name.toLowerCase(); //lấy tên file Excel
+      if (!lower.endsWith(".xlsx") && !lower.endsWith(".xls")) { //kiểm tra file Excel
         showPopup("Chỉ hỗ trợ file Excel (.xlsx, .xls).");
         return;
       }
 
-      const XLSXMod = await import("xlsx");
+      const XLSXMod = await import("xlsx"); //import module xlsx
       const XLSX = XLSXMod as any;
-      const buf = await file.arrayBuffer();
+      const buf = await file.arrayBuffer(); //lấy dữ liệu file Excel từ API
       const wb = XLSX.read(buf, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
+      const ws = wb.Sheets[wb.SheetNames[0]]; //lấy sheet từ file Excel
       const rows2d: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
       // rows2d[0] is header
       if (!rows2d || rows2d.length <= 1 || rows2d.slice(1).every((r) => r.every((c) => String(c || "").trim() === ""))) {
-        showPopup("File Excel k có dữ liệu. Vui lòng kt lại");
+        showPopup("File Excel k có dữ liệu. Vui lòng kt lại"); //hiển thị popup thông báo lỗi
         return;
       }
 
-      const header = (rows2d[0] || []).map((h) => String(h).trim());
-      const idx = (name: string) => header.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+      const header = (rows2d[0] || []).map((h) => String(h).trim()); //lấy header từ file Excel
+      const idx = (name: string) => header.findIndex((h) => h.toLowerCase() === name.toLowerCase()); //lấy index của header từ file Excel
       const i = {
         msv: idx("MSV"),
         fullName: idx("Họ tên"),
@@ -563,7 +561,7 @@ export default function AdminQuanLySinhVienPage() {
         return;
       }
 
-      const payloadRows: any[] = [];
+      const payloadRows: any[] = []; //dữ liệu sinh viên import
       for (let rIdx = 1; rIdx < rows2d.length; rIdx++) {
         const line = rIdx + 1; // excel row number
         const row = rows2d[rIdx] || [];
@@ -584,7 +582,7 @@ export default function AdminQuanLySinhVienPage() {
           permanentWardName: get("ward")
         });
       }
-
+      //gửi dữ liệu sinh viên import từ API
       const res = await fetch("/api/admin/students/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -607,7 +605,7 @@ export default function AdminQuanLySinhVienPage() {
     }
   };
 
-  return (
+  return ( //render giao diện quan ly sinh vien
     <main className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Quản lý sinh viên</h1>

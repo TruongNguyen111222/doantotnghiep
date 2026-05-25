@@ -1,11 +1,11 @@
-import type { EnterpriseAccountFormState } from "@/lib/types/doanhnghiep-tai-khoan";
-import adminStyles from "../../../admin/styles/dashboard.module.css";
-import formStyles from "../../../auth/styles/register.module.css";
-import type { Province, Ward } from "@/lib/types/admin-quan-ly-sinh-vien";
+import type { EnterpriseAccountFormState } from "@/lib/types/doanhnghiep-tai-khoan"; //kiểu dữ liệu trả về từ API   
+import adminStyles from "../../../admin/styles/dashboard.module.css"; //style cho admin
+import formStyles from "../../../auth/styles/register.module.css"; //style cho auth
+import type { Province, Ward } from "@/lib/types/admin-quan-ly-sinh-vien"; //kiểu dữ liệu trả về từ API
+//component hiển thị form doanh nghiệp
+type FormState = EnterpriseAccountFormState; //kiểu dữ liệu trả về từ API
 
-type FormState = EnterpriseAccountFormState;
-
-type Props = {
+type Props = { //props cho component
   isEditing: boolean;
   saving: boolean;
   form: FormState;
@@ -20,7 +20,7 @@ type Props = {
   onSetLogoFile: (f: File | null) => void;
 };
 
-export default function EnterpriseAccountEditSection({
+export default function EnterpriseAccountEditSection({ //hàm xử lý form doanh nghiệp
   isEditing,
   saving,
   form,

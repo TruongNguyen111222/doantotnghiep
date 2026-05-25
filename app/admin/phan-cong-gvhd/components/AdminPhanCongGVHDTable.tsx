@@ -1,27 +1,27 @@
 "use client";
-
+ //component bảng phân công giảng viên hướng dẫn
 import type { AssignmentItem } from "@/lib/types/admin-phan-cong-gvhd";
 import {
   ADMIN_PHAN_CONG_GVHD_PAGE_SIZE,
   ADMIN_PHAN_CONG_GVHD_STATUS_LABEL
 } from "@/lib/constants/admin-phan-cong-gvhd";
 
-import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display";
+import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display"; //hàm hiển thị sinh viên và giảng viên hướng dẫn
 
 import TableIconButton from "../../../components/TableIconButton";
 import { FiEye, FiTrash2 } from "react-icons/fi";
 import styles from "../../styles/dashboard.module.css";
 
-export type Props = {
-  paged: AssignmentItem[];
-  page: number;
-  busyId: string | null;
-  onView: (item: AssignmentItem) => void;
-  onDelete: (item: AssignmentItem) => void;
+export type Props = { //props bảng phân công giảng viên hướng dẫn
+  paged: AssignmentItem[]; //danh sách phân công giảng viên hướng dẫn
+  page: number; //trang hiện tại
+  busyId: string | null; //id phân công giảng viên hướng dẫn đang xử lý
+  onView: (item: AssignmentItem) => void; //hàm xem phân công giảng viên hướng dẫn
+  onDelete: (item: AssignmentItem) => void; //hàm xóa phân công giảng viên hướng dẫn
 };
 
-export default function AdminPhanCongGVHDTable(props: Props) {
-  const { paged, page, busyId, onView, onDelete } = props;
+export default function AdminPhanCongGVHDTable(props: Props) { //component bảng phân công giảng viên hướng dẫn
+  const { paged, page, busyId, onView, onDelete } = props; //lấy props
 
   return (
     <div className={styles.tableWrap}>

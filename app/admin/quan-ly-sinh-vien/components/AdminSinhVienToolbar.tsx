@@ -5,27 +5,27 @@ import {
   ADMIN_QUAN_LY_SINH_VIEN_DEGREE_OPTIONS,
   ADMIN_QUAN_LY_SINH_VIEN_INTERNSHIP_STATUS_LABEL,
   ADMIN_QUAN_LY_SINH_VIEN_INTERNSHIP_STATUS_OPTIONS
-} from "@/lib/constants/admin-quan-ly-sinh-vien";
+} from "@/lib/constants/admin-quan-ly-sinh-vien"; 
 import styles from "../../styles/dashboard.module.css";
 
-type Props = {
+type Props = { 
   searchQ: string;
-  filterFaculty: string;
-  filterInternshipStatus: InternshipStatus | "all";
-  filterDegree: Degree | "all";
-  faculties: string[];
-  busy: boolean;
-  onChangeSearchQ: (v: string) => void;
-  onChangeFilterFaculty: (v: string) => void;
-  onChangeFilterInternshipStatus: (v: InternshipStatus | "all") => void;
-  onChangeFilterDegree: (v: Degree | "all") => void;
-  onSearch: () => void;
-  onExportFiltered: () => void;
-  onOpenAdd: () => void;
-  onOpenImport: () => void;
+  filterFaculty: string; 
+  filterInternshipStatus: InternshipStatus | "all"; 
+  filterDegree: Degree | "all"; 
+  faculties: string[]; 
+  busy: boolean; 
+  onChangeSearchQ: (v: string) => void; 
+  onChangeFilterFaculty: (v: string) => void; 
+  onChangeFilterInternshipStatus: (v: InternshipStatus | "all") => void; 
+  onChangeFilterDegree: (v: Degree | "all") => void; 
+  onSearch: () => void; 
+  onExportFiltered: () => void; 
+  onOpenAdd: () => void; 
+  onOpenImport: () => void; 
 };
 
-export default function AdminSinhVienToolbar(props: Props) {
+export default function AdminSinhVienToolbar(props: Props) { 
   const {
     searchQ,
     filterFaculty,
@@ -43,7 +43,7 @@ export default function AdminSinhVienToolbar(props: Props) {
     onOpenImport
   } = props;
 
-  return (
+  return ( 
     <div className={styles.searchToolbar}>
       <div className={`${styles.searchField} ${styles.searchFieldGrow}`}>
         <label>Tìm theo MSV / Họ tên / SĐT / Email</label>

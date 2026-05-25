@@ -11,7 +11,7 @@ import adminStyles from "../../../admin/styles/dashboard.module.css";
 import styles from "../../styles/dashboard.module.css";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
-const PAGE_SIZE = DOANHNGHIEP_UNG_VIEN_PAGE_SIZE;
+const PAGE_SIZE = DOANHNGHIEP_UNG_VIEN_PAGE_SIZE; //số lượng tin tuyển dụng trên mỗi trang
 
 type Props = {
   loading: boolean;

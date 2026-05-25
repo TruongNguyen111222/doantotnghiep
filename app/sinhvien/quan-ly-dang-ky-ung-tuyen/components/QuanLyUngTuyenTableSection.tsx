@@ -26,7 +26,7 @@ type Props = {
   onRespond: (applicationId: string, action: RespondAction) => void;
 };
 
-function ActionCell({
+function ActionCell({ //hàm cell thao tác
   row,
   busyId,
   onRespond,

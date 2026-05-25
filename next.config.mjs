@@ -19,7 +19,8 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: "45mb"
     }
-  }
+  },
+  serverExternalPackages: ["pdf-parse", "mammoth"]
 };
 
 export default nextConfig;

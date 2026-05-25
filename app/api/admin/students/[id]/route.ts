@@ -1,43 +1,43 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth/admin-session";
-import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns";
+import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns"; //hằng số email đăng ký
 import { fetchProvinceList, fetchWardsForProvince } from "@/lib/vn-open-api";
 
-const MSV_PATTERN = /^\d{8,15}$/;
+const MSV_PATTERN = /^\d{8,15}$/; //pattern mã sinh viên
 const NAME_PATTERN = /^[\p{L}\s]{1,255}$/u;
-const PHONE_PATTERN = /^\d{8,12}$/;
-const CLASS_PATTERN = /^[\p{L}\d]{1,255}$/u;
-const KHOL_PATTERN = /^[\p{L}\d]{1,10}$/u;
-const GENDER_VALUES = ["MALE", "FEMALE", "OTHER"] as const;
-const DEGREE_VALUES = ["BACHELOR", "ENGINEER"] as const;
+const PHONE_PATTERN = /^\d{8,12}$/; //pattern số điện thoại
+const CLASS_PATTERN = /^[\p{L}\d]{1,255}$/u; //pattern lớp
+const KHOL_PATTERN = /^[\p{L}\d]{1,10}$/u; //pattern khóa
+const GENDER_VALUES = ["MALE", "FEMALE", "OTHER"] as const; //giá trị giới tính
+const DEGREE_VALUES = ["BACHELOR", "ENGINEER"] as const; //giá trị bậc
 const INTERNSHIP_STATUS_VALUES = ["NOT_STARTED", "DOING", "SELF_FINANCED", "REPORT_SUBMITTED", "COMPLETED", "REJECTED"] as const;
 
-type Degree = (typeof DEGREE_VALUES)[number];
-type Gender = (typeof GENDER_VALUES)[number];
-type InternshipStatus = (typeof INTERNSHIP_STATUS_VALUES)[number];
+type Degree = (typeof DEGREE_VALUES)[number]; //type bậc
+type Gender = (typeof GENDER_VALUES)[number]; //type giới tính
+type InternshipStatus = (typeof INTERNSHIP_STATUS_VALUES)[number]; //type trạng thái thực tập
 
-function parseDateOnly(input: string) {
+function parseDateOnly(input: string) { //hàm chuyển đổi ngày tháng năm thành định dạng YYYY-MM-DD
   return new Date(`${input}T00:00:00.000Z`);
 }
 
-function calcAge(date: Date, now = new Date()) {
-  let age = now.getFullYear() - date.getUTCFullYear();
-  const m = now.getUTCMonth() - date.getUTCMonth();
-  if (m < 0 || (m === 0 && now.getUTCDate() < date.getUTCDate())) age -= 1;
-  return age;
+function calcAge(date: Date, now = new Date()) { //hàm tính tuổi từ ngày sinh
+  let age = now.getFullYear() - date.getUTCFullYear(); //tuổi
+  const m = now.getUTCMonth() - date.getUTCMonth(); //tháng
+  if (m < 0 || (m === 0 && now.getUTCDate() < date.getUTCDate())) age -= 1; //nếu tháng nhỏ hơn 0 hoặc tháng bằng 0 và ngày nhỏ hơn ngày thì trừ 1 tuổi
+  return age; //trả về tuổi
 }
 
-async function resolveProvinceWardNames(provinceCode: string, wardCode: string) {
-  const provinces = await fetchProvinceList();
+async function resolveProvinceWardNames(provinceCode: string, wardCode: string) { //hàm lấy tên tỉnh và huyện từ mã tỉnh và mã huyện
+  const provinces = await fetchProvinceList(); //gọi hàm lấy danh sách tỉnh/thành từ API
   const prov = provinces.find((p) => String(p.code) === String(provinceCode));
   if (!prov) return { provinceName: null as string | null, wardName: null as string | null };
-  const wards = await fetchWardsForProvince(String(provinceCode));
+  const wards = await fetchWardsForProvince(String(provinceCode)); //gọi hàm lấy danh sách huyện/xã từ API
   const ward = wards.find((w) => String(w.code) === String(wardCode));
-  return { provinceName: prov.name, wardName: ward?.name ?? null };
+  return { provinceName: prov.name, wardName: ward?.name ?? null }; //trả về tên tỉnh và huyện
 }
 
-type PatchStudentBody = {
+type PatchStudentBody = { //type dữ liệu sinh viên
   msv: string;
   fullName: string;
   className: string;
@@ -52,8 +52,8 @@ type PatchStudentBody = {
   permanentWardCode: string;
 };
 
-function validateCommon(body: PatchStudentBody) {
-  const errors: Record<string, string> = {};
+function validateCommon(body: PatchStudentBody) { //hàm kiểm tra dữ liệu sinh viên
+  const errors: Record<string, string> = {}; 
 
   const msv = (body.msv || "").trim();
   if (!MSV_PATTERN.test(msv)) errors.msv = "Mã sinh viên chỉ gồm số (8–15 ký tự).";
@@ -82,8 +82,8 @@ function validateCommon(body: PatchStudentBody) {
   if (!body.gender || !GENDER_VALUES.includes(body.gender)) errors.gender = "Giới tính không hợp lệ.";
   if (!body.degree || !DEGREE_VALUES.includes(body.degree)) errors.degree = "Bậc không hợp lệ.";
 
-  const provinceCode = (body.permanentProvinceCode || "").trim();
-  const wardCode = (body.permanentWardCode || "").trim();
+  const provinceCode = (body.permanentProvinceCode || "").trim(); //mã tỉnh
+  const wardCode = (body.permanentWardCode || "").trim(); //mã huyện
   if (!provinceCode || !/^\d+$/.test(provinceCode)) errors.permanentProvinceCode = "Tỉnh/thành không hợp lệ.";
   if (!wardCode || !/^\d+$/.test(wardCode)) errors.permanentWardCode = "Phường/xã không hợp lệ.";
 
@@ -99,14 +99,14 @@ function validateCommon(body: PatchStudentBody) {
   return errors;
 }
 
-export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminSession();
+export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm lấy dữ liệu sinh viên từ API
+  const admin = await getAdminSession(); //gọi hàm lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   const { id } = await ctx.params;
   const prismaAny = prisma as any;
 
-  const row = await prismaAny.studentProfile.findFirst({
+  const row = await prismaAny.studentProfile.findFirst({ //tìm kiếm sinh viên theo id
     where: { id },
     select: {
       id: true,
@@ -129,7 +129,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
 
   if (!row) return NextResponse.json({ success: false, message: "Không tìm thấy sinh viên." }, { status: 404 });
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về dữ liệu sinh viên
     success: true,
     item: {
       id: row.id,
@@ -153,8 +153,8 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
   });
 }
 
-export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminSession();
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm cập nhật dữ liệu sinh viên từ API
+  const admin = await getAdminSession(); //gọi hàm lấy session admin
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 
   const { id } = await ctx.params;
@@ -188,7 +188,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     );
   }
 
-  await prismaAny.user.update({
+  await prismaAny.user.update({ //cập nhật thông tin sinh viên 
     where: { id: current.userId },
     data: {
       fullName: body.fullName.trim(),
@@ -197,7 +197,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     }
   });
 
-  await prismaAny.studentProfile.update({
+  await prismaAny.studentProfile.update({ //cập nhật thông tin sinh viên 
     where: { id },
     data: {
       msv: body.msv.trim(),
@@ -217,7 +217,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   return NextResponse.json({ success: true, message: "Cập nhật sinh viên thành công." });
 }
 
-export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) { //hàm xóa sinh viên từ API
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ message: "Không có quyền truy cập." }, { status: 403 });
 

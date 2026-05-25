@@ -3,6 +3,12 @@ import TuyenDungJobFormFields from "./TuyenDungJobFormFields";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 
+/**
+ * TỔNG QUAN FILE:
+ * Component TuyenDungEditPopup hiển thị một cửa sổ bật lên (Modal/Popup) để thực hiện thao tác CẬP NHẬT (SỬA) tin tuyển dụng.
+ * Hỗ trợ trạng thái tải dữ liệu bất đồng bộ (busyId) khi đang đợi phản hồi từ API.
+ */
+
 type Props = {
   editTarget: JobListItem | null;
   editDetail: JobDetailResponse | null;

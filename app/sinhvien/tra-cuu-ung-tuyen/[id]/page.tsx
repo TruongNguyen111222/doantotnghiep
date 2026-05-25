@@ -11,8 +11,8 @@ import {
   SINHVIEN_TRA_CUU_UNG_TUYEN_LOAD_DETAIL_ERROR_DEFAULT,
   SINHVIEN_TRA_CUU_UNG_TUYEN_TITLE,
   SINHVIEN_TRA_CUU_UNG_TUYEN_SUBMIT_ERROR_DEFAULT
-} from "@/lib/constants/sinhvien-tra-cuu-ung-tuyen-detail";
-import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
+} from "@/lib/constants/sinhvien-tra-cuu-ung-tuyen-detail"; //import constants thông tin tin tuyển dụng
+import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache"; //import utils client query cache
 import {
   buildSinhVienTraCuuUngTuyenApplyPayload,
   buildSinhVienTraCuuUngTuyenApplyUrl,
@@ -23,7 +23,7 @@ import {
   getSinhVienTraCuuUngTuyenSubmitErrorMessage,
   getSinhVienTraCuuUngTuyenSubmitSuccessMessage,
   validateSinhVienApplyDraft
-} from "@/lib/utils/sinhvien-tra-cuu-ung-tuyen-detail";
+} from "@/lib/utils/sinhvien-tra-cuu-ung-tuyen-detail"; //import utils sinh vien tra cuu ung tuyen detail
 import JobDetailInfo from "./components/JobDetailInfo";
 import ApplyFormPopup from "./components/ApplyFormPopup";
 
@@ -50,7 +50,7 @@ export default function SinhVienJobDetailPage({ params }: { params: Promise<{ id
   const [removeCv, setRemoveCv] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function loadDetail(opts?: { force?: boolean; silent?: boolean }) {
+  async function loadDetail(opts?: { force?: boolean; silent?: boolean }) { //hàm load chi tiết tin tuyển dụng
     const force = Boolean(opts?.force);
     const silent = Boolean(opts?.silent);
     const cacheKey = `sv:tra-cuu-ung-tuyen:detail:${jobId}`;
@@ -66,7 +66,7 @@ export default function SinhVienJobDetailPage({ params }: { params: Promise<{ id
     }
   }
 
-  async function loadProfileForApply() {
+  async function loadProfileForApply() { //hàm load hồ sơ sinh viên
     const profile = await fetchSinhVienHoSoProfileForApply();
     setFullName(profile.fullName);
     setPhone(profile.phone ?? "");
@@ -117,8 +117,8 @@ export default function SinhVienJobDetailPage({ params }: { params: Promise<{ id
     setRemoveCv(false);
   }
 
-  async function submitApply() {
-    const draft: SinhVienApplyDraft = {
+  async function submitApply() { //hàm nộp hồ sơ ứng tuyển
+    const draft: SinhVienApplyDraft = { //tạo draft hồ sơ sinh viên
       phone,
       email,
       intro,
@@ -129,13 +129,13 @@ export default function SinhVienJobDetailPage({ params }: { params: Promise<{ id
       removeCv
     };
 
-    const { isValid, errors } = validateSinhVienApplyDraft(draft);
+    const { isValid, errors } = validateSinhVienApplyDraft(draft); //kiểm tra hồ sơ sinh viên
     setFieldErrors(errors);
     if (!isValid) return;
 
     setBusy(true);
     try {
-      const payload = buildSinhVienTraCuuUngTuyenApplyPayload(draft);
+      const payload = buildSinhVienTraCuuUngTuyenApplyPayload(draft); //tạo payload ứng tuyển
       const fd = new FormData();
       fd.set("phone", payload.phone);
       fd.set("email", payload.email);

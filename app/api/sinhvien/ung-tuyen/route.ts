@@ -4,7 +4,7 @@ import { verifySession } from "@/lib/auth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/constants/auth/patterns";
 import { prisma } from "@/lib/prisma";
 
-async function getStudentUserId() {
+async function getStudentUserId() { //hàm lấy id sinh viên
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return { error: NextResponse.json({ success: false, message: "Vui lòng đăng nhập." }, { status: 401 }) };
@@ -19,7 +19,7 @@ async function getStudentUserId() {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request) { //hàm lấy danh sách ứng tuyển
   const auth = await getStudentUserId();
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     }
   }
 
-  function extractHistoryMeta(history: any[]): { responseDeadline: string | null; interviewLocation: string | null } {
+  function extractHistoryMeta(history: any[]): { responseDeadline: string | null; interviewLocation: string | null } { //hàm lấy meta lịch sử ứng tuyển
     if (!Array.isArray(history) || !history.length) return { responseDeadline: null, interviewLocation: null };
     let responseDeadline: string | null = null;
     let interviewLocation: string | null = null;
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     return { responseDeadline, interviewLocation };
   }
 
-  const rows = await prismaAny.jobApplication.findMany({
+  const rows = await prismaAny.jobApplication.findMany({ //lấy danh sách ứng tuyển
     where,
     orderBy: { createdAt: "desc" },
     select: {
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
     }
   });
 
-  return NextResponse.json({
+  return NextResponse.json({ //trả về danh sách ứng tuyển
     success: true,
     items: rows.map((r: any) => ({
       id: r.id,

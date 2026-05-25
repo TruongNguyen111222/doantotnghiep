@@ -9,8 +9,8 @@ import MessagePopup from "../../../components/MessagePopup";
 import { ChartStyleLoading } from "@/app/components/ChartStyleLoading";
 import type { Applicant, JobApplicationStatus, JobDetail } from "@/lib/types/doanhnghiep-ung-vien-detail";
 import { getAvailableNextStatuses } from "@/lib/types/doanhnghiep-ung-vien-detail";
-import JobDetailInfo from "./components/JobDetailInfo";
-import ApplicantTableSection from "./components/ApplicantTableSection";
+import JobDetailInfo from "./components/JobDetailInfo"; //component cho thông tin tin tuyển dụng
+import ApplicantTableSection from "./components/ApplicantTableSection"; //component cho table ứng viên
 import { DOANHNGHIEP_UNG_VIEN_DETAIL_PAGE_SIZE } from "@/lib/constants/doanhnghiep-ung-vien-detail";
 import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
 import type { Province, Ward } from "@/lib/types/admin-quan-ly-sinh-vien";
@@ -246,7 +246,7 @@ export default function DoanhNghiepUngVienDetailPage({ params }: { params: Promi
       if (nextStatus === "OFFERED") {
         payload.responseDeadline = new Date(responseDeadline).toISOString();
       }
-      const res = await fetch(`/api/doanhnghiep/ung-vien/applications/${viewTarget.id}`, {
+      const res = await fetch(`/api/doanhnghiep/ung-vien/applications/${viewTarget.id}`, { //gửi yêu cầu cập nhật trạng thái ứng viên
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
