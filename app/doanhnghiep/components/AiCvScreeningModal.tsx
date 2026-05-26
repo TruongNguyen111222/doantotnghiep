@@ -1,7 +1,7 @@
 "use client";
 
 import FormPopup from "../../components/FormPopup";
-import aiStyles from "./ai-cv-screening.module.css";
+import modalStyles from "./ai-cv-screening-modal.module.css";
 import AiCvScreeningPanel from "./AiCvScreeningPanel";
 
 type Props = {
@@ -20,10 +20,12 @@ export default function AiCvScreeningModal({ open, applicationId, applicantName,
       title={`Phân tích CV bằng AI · ${applicantName}`}
       size="extraWide"
       busy={false}
+      backdropZIndex={60}
+      disableFieldset
       onClose={onClose}
       actions={
-        <div className={aiStyles.modalFooter}>
-          <button type="button" className={`${aiStyles.btnBase} ${aiStyles.btnSecondary}`} onClick={onClose}>
+        <div className={modalStyles.modalFooter}>
+          <button type="button" className={`${modalStyles.btnBase} ${modalStyles.btnSecondary}`} onClick={onClose}>
             Đóng
           </button>
         </div>

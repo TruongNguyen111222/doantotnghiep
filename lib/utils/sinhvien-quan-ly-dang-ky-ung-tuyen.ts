@@ -62,6 +62,27 @@ export function canRespond(status: AppStatus, response: ResponseStatus): boolean
   return (status === "INTERVIEW_INVITED" || status === "OFFERED") && response === "PENDING";
 }
 
+/** Đã xác nhận thực tập tại một tin OFFERED khác. */
+export function hasConfirmedInternshipElsewhere(
+  allRows: Pick<SinhVienQuanLyDangKyUngTuyenRow, "id" | "status" | "response">[],
+  excludeApplicationId?: string
+): boolean {
+  return allRows.some(
+    (r) =>
+      r.status === "OFFERED" &&
+      r.response === "ACCEPTED" &&
+      (!excludeApplicationId || r.id !== excludeApplicationId)
+  );
+}
+
+export function canConfirmInternship(
+  row: Pick<SinhVienQuanLyDangKyUngTuyenRow, "id" | "status" | "response">,
+  allRows: Pick<SinhVienQuanLyDangKyUngTuyenRow, "id" | "status" | "response">[]
+): boolean {
+  if (row.status !== "OFFERED" || row.response !== "PENDING") return false;
+  return !hasConfirmedInternshipElsewhere(allRows, row.id);
+}
+
 export function getRespondPayload(action: RespondAction): { action: RespondAction } { //hàm lấy payload phản hồi ứng tuyển
   return { action }; //trả về payload phản hồi ứng tuyển
 }

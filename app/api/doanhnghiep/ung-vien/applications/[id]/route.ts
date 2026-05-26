@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF } from "@/lib/constants/school";
 import { sendMail } from "@/lib/mail";
 import { signRespondToken } from "@/lib/utils/respond-token";
+import { validateInterviewInviteSchedule } from "@/lib/utils/doanhnghiep-ung-vien-detail";
 /**
  * TỔNG QUAN FILE:
  * Route Handler này xử lý API endpoint PATCH nhằm cho phép Doanh nghiệp (Enterprise) cập nhật trạng thái
@@ -180,11 +181,12 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     if (!(parsedDeadline.getTime() >= min)) {
       return NextResponse.json({ success: false, message: "Thời hạn phản hồi phải từ ngày mai trở đi." }, { status: 400 });
     }
-    if (!(parsedDeadline.getTime() >= parsedInterview.getTime())) {
-      return NextResponse.json(
-        { success: false, message: "Thời hạn phản hồi phải lớn hơn hoặc bằng thời gian phỏng vấn." },
-        { status: 400 }
-      );
+    const scheduleCheck = validateInterviewInviteSchedule(
+      parsedDeadline.toISOString(),
+      parsedInterview.toISOString()
+    );
+    if (!scheduleCheck.ok) {
+      return NextResponse.json({ success: false, message: scheduleCheck.message }, { status: 400 });
     }
     interviewAt = parsedInterview;
     responseDeadline = parsedDeadline;

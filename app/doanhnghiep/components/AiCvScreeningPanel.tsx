@@ -6,44 +6,44 @@ import {
   FiBriefcase,
   FiCheckCircle,
   FiCpu,
-  FiFileText,
+  FiFileText, 
   FiInfo,
   FiRefreshCw,
   FiUser,
   FiZap
-} from "react-icons/fi";
+} from "react-icons/fi"; //icon
 import styles from "./ai-cv-screening.module.css";
 import {
-  AI_CV_SCREENING_API_BASE,
+  AI_CV_SCREENING_API_BASE, ///api/ai/cv-screening
   AI_CV_SCREENING_DISCLAIMER
-} from "@/lib/constants/ai-cv-screening";
+} from "@/lib/constants/ai-cv-screening"; 
 import type { AiCvScreeningContext, AiCvScreeningRecord } from "@/lib/types/ai-cv-screening";
 
 type Props = {
   applicationId: string;
   active?: boolean;
 };
-
-function scoreLabel(score: number | null | undefined): string {
+// convert điểm phù hợp thành text
+function scoreLabel(score: number | null | undefined): string { 
   if (score == null) return "—";
   return `${Math.round(score)}`;
 }
-
+//màu sắc cho điểm phù hợp
 function scoreRingClass(score: number | null | undefined): string {
   if (score == null) return styles.scoreRingNeutral;
   if (score >= 70) return styles.scoreRingHigh;
   if (score >= 40) return styles.scoreRingMid;
   return styles.scoreRingLow;
 }
-
+// convert điểm phù hợp thành text
 function scoreTitle(score: number | null | undefined): string {
   if (score == null) return "Chưa có điểm";
   if (score >= 70) return "Phù hợp tốt";
   if (score >= 40) return "Cân nhắc thêm";
   return "Chiếm ít ưu thế";
 }
-
-function formatErrorForDisplay(message: string): string {
+// xử lý quota 
+function  formatErrorForDisplay(message: string): string {
   if (/429|quota|Too Many Requests|GEMINI|GoogleGenerativeAI/i.test(message)) {
     return "Không thể phân tích CV lúc này do hạn mức API Gemini (key hết quota hoặc chưa hợp lệ). Vui lòng thử lại sau.";
   }
@@ -53,6 +53,7 @@ function formatErrorForDisplay(message: string): string {
   return message;
 }
 
+// hiển thị danh sách kỹ năng và cảnh báo đỏ khi thiếu kỹ năng
 function TagList({ items, warn }: { items: string[]; warn?: boolean }) {
   if (!items.length) return <p className={styles.emptyHint}>Không có dữ liệu.</p>;
   return (
@@ -66,6 +67,7 @@ function TagList({ items, warn }: { items: string[]; warn?: boolean }) {
   );
 }
 
+// hiển thị thông báo lỗi
 function ErrorAlert({ message }: { message: string }) {
   return (
     <div className={styles.errorAlert} role="alert">
@@ -75,6 +77,7 @@ function ErrorAlert({ message }: { message: string }) {
   );
 }
 
+// hiển thị kết quả phân tích
 function ScreeningResultView({ screening }: { screening: AiCvScreeningRecord }) {
   if (screening.status === "FAILED") {
     return <ErrorAlert message={screening.errorMessage || "Phân tích thất bại."} />;
@@ -165,6 +168,7 @@ function ScreeningResultView({ screening }: { screening: AiCvScreeningRecord }) 
   );
 }
 
+// hiển thị thông tin ứng viên và kết quả phân tích
 export default function AiCvScreeningPanel({ applicationId, active = true }: Props) {
   const [context, setContext] = useState<AiCvScreeningContext | null>(null);
   const [loading, setLoading] = useState(false);
@@ -174,11 +178,11 @@ export default function AiCvScreeningPanel({ applicationId, active = true }: Pro
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
-    try {
+    try {                        ///api/ai/cv-screening/6546 (id của ứng viên)
       const res = await fetch(`${AI_CV_SCREENING_API_BASE}/${encodeURIComponent(applicationId)}`);
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || "Không tải được dữ liệu AI Screening.");
-      setContext(data.item as AiCvScreeningContext);
+      setContext(data.item as AiCvScreeningContext); //lưu vào state
     } catch (e) {
       setError(e instanceof Error ? e.message : "Không tải được dữ liệu.");
       setContext(null);
@@ -192,6 +196,8 @@ export default function AiCvScreeningPanel({ applicationId, active = true }: Pro
     void load();
   }, [active, load]);
 
+
+  // phân tích CV bằng AI
   async function runScreening() {
     setRunning(true);
     setError("");

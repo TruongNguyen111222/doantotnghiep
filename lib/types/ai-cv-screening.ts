@@ -1,6 +1,6 @@
 export type AiCvScreeningStatus = "PENDING" | "COMPLETED" | "FAILED";
 
-export type AiCvScreeningResult = {
+export type AiCvScreeningResult = { 
   matchScore: number;
   summary: string;
   extractedSkills: string[];
@@ -10,7 +10,7 @@ export type AiCvScreeningResult = {
   reasoning: string;
 };
 
-export type AiCvScreeningRecord = {
+export type AiCvScreeningRecord = { 
   id: string;
   jobApplicationId: string;
   status: AiCvScreeningStatus; 

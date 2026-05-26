@@ -1,19 +1,11 @@
 import type { SinhVienHoSoProfile, Province, Ward } from "@/lib/types/sinhvien-ho-so";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import formStyles from "../../../auth/styles/register.module.css";
+import { openFilePreviewWithCredentials } from "@/lib/utils/client-download-blob";
 
-async function openStudentCvPreview() { //hàm mở preview file CV sinh viên
-  const w = window.open("about:blank", "_blank", "noopener,noreferrer");
-  const res = await fetch("/api/files/sinhvien/cv"); //gửi request lấy file CV sinh viên từ API
-  if (!res.ok) {
-    try { w?.close(); } catch {}
-    return;
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  if (w) w.location.href = url;
-  else window.open(url, "_blank", "noopener,noreferrer");
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+async function openStudentCvPreview() {
+  const result = await openFilePreviewWithCredentials("/api/files/sinhvien/cv");
+  if (!result.ok) window.alert(result.message);
 }
 
 type Props = {

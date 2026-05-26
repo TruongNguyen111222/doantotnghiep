@@ -187,6 +187,7 @@ export default function SinhVienQuanLyUngTuyenPage() { //hàm render trang quan 
       ) : (
         <QuanLyUngTuyenTableSection
           rows={displayRows}
+          allRows={allRows}
           busyId={busyId}
           onRespond={(id, action) => void respond(id, action)}
         />

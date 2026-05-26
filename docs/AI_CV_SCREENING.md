@@ -48,9 +48,10 @@ lib/ai/gemini-client.ts
 lib/ai/cv-text-extract.ts
 lib/ai/cv-screening-service.ts
 app/api/ai/cv-screening/[applicationId]/route.ts
-app/doanhnghiep/ai-screen/[applicationId]/page.tsx
-app/doanhnghiep/ai-screen/[applicationId]/components/AiCvScreeningClient.tsx
-app/doanhnghiep/ai-screen/styles/ai-screen.module.css
+app/doanhnghiep/components/AiCvScreeningPanel.tsx
+app/doanhnghiep/components/AiCvScreeningModal.tsx
+app/doanhnghiep/components/ai-cv-screening.module.css
+app/doanhnghiep/ung-vien/[id]/components/ApplicantDetailPopup.tsx
 docs/AI_CV_SCREENING.md
 .env.example                                  # GEMINI_API_KEY
 package.json                                  # @google/generative-ai, pdf-parse, mammoth
@@ -61,15 +62,3 @@ package.json                                  # @google/generative-ai, pdf-parse
 - Hỗ trợ CV: **PDF**, **DOCX** (file `.doc` cũ báo lỗi).
 - PDF scan ảnh có thể không trích được chữ.
 - AI chỉ **gợi ý**; DN vẫn duyệt thủ công trên màn hình cũ.
-
-## Gắn link trên UI cũ (tuỳ chọn)
-
-Nếu muốn nút trên popup ứng viên, thêm link (không bắt buộc):
-
-```tsx
-import { buildAiCvScreeningPageUrl } from "@/lib/constants/ai-cv-screening";
-
-<a href={buildAiCvScreeningPageUrl(applicationId)} target="_blank" rel="noreferrer">
-  AI Screening CV
-</a>
-```

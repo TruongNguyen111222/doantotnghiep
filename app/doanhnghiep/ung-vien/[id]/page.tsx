@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import styles from "../../styles/dashboard.module.css";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
 import MessagePopup from "../../../components/MessagePopup";
@@ -12,10 +11,10 @@ import { getAvailableNextStatuses } from "@/lib/types/doanhnghiep-ung-vien-detai
 import JobDetailInfo from "./components/JobDetailInfo"; //component cho thông tin tin tuyển dụng
 import ApplicantTableSection from "./components/ApplicantTableSection"; //component cho table ứng viên
 import { DOANHNGHIEP_UNG_VIEN_DETAIL_PAGE_SIZE } from "@/lib/constants/doanhnghiep-ung-vien-detail";
+import { validateInterviewInviteSchedule } from "@/lib/utils/doanhnghiep-ung-vien-detail";
 import { getCachedValue, getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache";
 import type { Province, Ward } from "@/lib/types/admin-quan-ly-sinh-vien";
-import type { Props as ApplicantDetailPopupProps } from "./components/ApplicantDetailPopup";
-const ApplicantDetailPopup = dynamic<ApplicantDetailPopupProps>(() => import("./components/ApplicantDetailPopup"), { ssr: false });
+import ApplicantDetailPopup from "./components/ApplicantDetailPopup";
 
 function parseAddress3Parts(input: string): { addressDetail: string; wardName: string; provinceName: string } {
   const raw = String(input || "").trim();
@@ -33,14 +32,6 @@ function parseAddress3Parts(input: string): { addressDetail: string; wardName: s
 
 function joinAddressParts(parts: Array<string | null | undefined>): string {
   return parts.map((x) => String(x || "").trim()).filter(Boolean).join(", ");
-}
-
-function isAtLeastOneHourAfter(a: string, b: string): boolean {
-  // Expect datetime-local strings: YYYY-MM-DDTHH:mm
-  const da = new Date(a);
-  const db = new Date(b);
-  if (Number.isNaN(da.getTime()) || Number.isNaN(db.getTime())) return false;
-  return da.getTime() - db.getTime() >= 60 * 60 * 1000;
 }
 
 export default function DoanhNghiepUngVienDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -226,8 +217,9 @@ export default function DoanhNghiepUngVienDetailPage({ params }: { params: Promi
       if (!interviewAt) { setToast("Vui lòng nhập thời gian phỏng vấn."); return; }
       if (!interviewLocation.trim()) { setToast("Vui lòng nhập địa điểm phỏng vấn."); return; }
       if (!responseDeadline) { setToast("Vui lòng nhập thời hạn phản hồi."); return; }
-      if (!isAtLeastOneHourAfter(responseDeadline, interviewAt)) {
-        setToast("Thời hạn phản hồi phải lớn hơn thời gian phỏng vấn ít nhất 1 tiếng.");
+      const scheduleCheck = validateInterviewInviteSchedule(responseDeadline, interviewAt);
+      if (!scheduleCheck.ok) {
+        setToast(scheduleCheck.message);
         return;
       }
     }

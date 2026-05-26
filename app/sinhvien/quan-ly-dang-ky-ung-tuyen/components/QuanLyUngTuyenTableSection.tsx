@@ -2,6 +2,7 @@ import type { RespondAction, SinhVienQuanLyDangKyUngTuyenRow } from "@/lib/types
 import {
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_EMPTY_TEXT,
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_CONFIRM_INTERNSHIP_TEXT,
+  SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_CONFIRM_INTERNSHIP_BLOCKED_HINT,
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_CONFIRM_INTERVIEW_TEXT,
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_DECLINE_INTERNSHIP_TEXT,
   SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_DECLINE_INTERVIEW_TEXT,
@@ -10,7 +11,7 @@ import {
 import {
   formatDateVi,
   getSinhVienQuanLyDangKyUngTuyenResponseText,
-  canRespond
+  canConfirmInternship
 } from "@/lib/utils/sinhvien-quan-ly-dang-ky-ung-tuyen";
 import { formatDateTimeVi } from "@/lib/utils/doanhnghiep-ung-vien-detail";
 import adminStyles from "../../../admin/styles/dashboard.module.css";
@@ -22,23 +23,27 @@ import { FiCheck, FiInfo, FiX } from "react-icons/fi";
 
 type Props = {
   rows: SinhVienQuanLyDangKyUngTuyenRow[];
+  allRows: SinhVienQuanLyDangKyUngTuyenRow[];
   busyId: string | null;
   onRespond: (applicationId: string, action: RespondAction) => void;
 };
 
 function ActionCell({ //hàm cell thao tác
   row,
+  allRows,
   busyId,
   onRespond,
   onViewStatus
 }: {
   row: SinhVienQuanLyDangKyUngTuyenRow;
+  allRows: SinhVienQuanLyDangKyUngTuyenRow[];
   busyId: string | null;
   onRespond: (id: string, action: RespondAction) => void;
   onViewStatus: (row: SinhVienQuanLyDangKyUngTuyenRow) => void;
 }) {
   const isBusy = busyId === row.id;
   const alreadyResponded = row.response !== "PENDING";
+  const canConfirmOffer = canConfirmInternship(row, allRows);
   const canViewStatus = row.status === "INTERVIEW_INVITED" || row.status === "OFFERED";
 
   function confirmAndRespond(action: RespondAction) {
@@ -84,10 +89,14 @@ function ActionCell({ //hàm cell thao tác
           <FiInfo size={18} />
         </TableIconButton>
         <TableIconButton
-          label={SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_CONFIRM_INTERNSHIP_TEXT}
+          label={
+            canConfirmOffer
+              ? SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_CONFIRM_INTERNSHIP_TEXT
+              : SINHVIEN_QUAN_LY_DANG_KY_UNG_TUYEN_CONFIRM_INTERNSHIP_BLOCKED_HINT
+          }
           variant="success"
-          disabled={isBusy || alreadyResponded}
-          onClick={() => !alreadyResponded && confirmAndRespond("CONFIRM_INTERNSHIP")}
+          disabled={isBusy || alreadyResponded || !canConfirmOffer}
+          onClick={() => canConfirmOffer && !alreadyResponded && confirmAndRespond("CONFIRM_INTERNSHIP")}
         >
           <FiCheck size={18} />
         </TableIconButton>
@@ -106,7 +115,7 @@ function ActionCell({ //hàm cell thao tác
   return <span>—</span>;
 }
 
-export default function QuanLyUngTuyenTableSection({ rows, busyId, onRespond }: Props) {
+export default function QuanLyUngTuyenTableSection({ rows, allRows, busyId, onRespond }: Props) {
   const [viewStatusRow, setViewStatusRow] = useState<SinhVienQuanLyDangKyUngTuyenRow | null>(null);
 
   return (
@@ -176,7 +185,13 @@ export default function QuanLyUngTuyenTableSection({ rows, busyId, onRespond }: 
                     </td>
                     <td>{getSinhVienQuanLyDangKyUngTuyenResponseText(r)}</td>
                     <td>
-                      <ActionCell row={r} busyId={busyId} onRespond={onRespond} onViewStatus={setViewStatusRow} />
+                      <ActionCell
+                        row={r}
+                        allRows={allRows}
+                        busyId={busyId}
+                        onRespond={onRespond}
+                        onViewStatus={setViewStatusRow}
+                      />
                     </td>
                   </tr>
                 );

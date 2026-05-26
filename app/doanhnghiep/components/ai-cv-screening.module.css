@@ -160,63 +160,6 @@
   animation: aiSpin 0.85s linear infinite;
 }
 
-.modalFooter {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-.cvActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-}
-
-.aiBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 16px 0 12px;
-  border: none;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 48%, #2563eb 100%);
-  box-shadow: 0 3px 12px rgba(79, 70, 229, 0.28);
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    opacity 0.16s ease;
-}
-
-.aiBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.34);
-}
-
-.aiBtn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.aiBtnIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: 12px;
-}
-
 .loadingBox {
   display: flex;
   align-items: center;

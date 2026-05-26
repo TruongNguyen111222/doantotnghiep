@@ -7,6 +7,7 @@ import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF, SCHOOL_
 import { sendMail } from "@/lib/mail";
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
 import { escapeHtml, mailCalloutHtml } from "@/lib/mail-layout";
+import { assertStudentCanConfirmInternship } from "@/lib/server/student-internship-commitment";
 
 type StudentAction = "CONFIRM_INTERVIEW" | "DECLINE_INTERVIEW" | "CONFIRM_INTERNSHIP" | "DECLINE_INTERNSHIP";
 
@@ -87,6 +88,13 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   }
   if (isOffered && !["CONFIRM_INTERNSHIP", "DECLINE_INTERNSHIP"].includes(action)) {
     return NextResponse.json({ success: false, message: "Chỉ được xác nhận hoặc từ chối thực tập." }, { status: 400 });
+  }
+
+  if (action === "CONFIRM_INTERNSHIP") {
+    const commitCheck = await assertStudentCanConfirmInternship(prismaAny, userId, id);
+    if (!commitCheck.ok) {
+      return NextResponse.json({ success: false, message: commitCheck.message }, { status: 400 });
+    }
   }
 
   const now = new Date(); //lấy thời gian hiện tại

@@ -1,8 +1,5 @@
 "use client";
- // popup form để hiển thị form bọc các popup khác
- //Trong trang Admin của bạn, sau này sẽ có rất nhiều loại Pop-up (cửa sổ hiện lên)
- //không có file FormPopup này, thì ở mỗi file (Đợt thực tập, Sinh viên, Doanh nghiệp...), 
- // bạn đều phải tự tay viết lại từ đầu những thứ lặp đi lặp lại
+ // popup form để hiển thị form bọc các popup khá
  //Vì tất cả các form (Đợt thực tập, Sinh viên, Doanh nghiệp) đều dùng chung cái "Khung nhà mẫu" (FormPopup) này,
 import type { ReactNode } from "react";
 import adminStyles from "../admin/styles/dashboard.module.css";
@@ -17,6 +14,8 @@ export default function FormPopup({  //nhận các props từ component cha
   children, //nội dung của popup
   actions, //hành động của popup
   onClose, //hàm đóng popup
+  backdropZIndex,
+  disableFieldset = false,
 }: {
   open: boolean; 
   title: string;
@@ -25,6 +24,9 @@ export default function FormPopup({  //nhận các props từ component cha
   children: ReactNode;
   actions?: ReactNode;
   onClose?: () => void;
+  backdropZIndex?: number;
+  /** Popup chỉ xem (AI, preview) — tránh fieldset ảnh hưởng style con */
+  disableFieldset?: boolean;
 }) {
   return ( //render popup form
     <MessagePopup
@@ -32,6 +34,7 @@ export default function FormPopup({  //nhận các props từ component cha
       title={title}
       size={size}
       onClose={onClose}
+      backdropZIndex={backdropZIndex}
       actions={
         actions ?? (
           <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
@@ -42,9 +45,13 @@ export default function FormPopup({  //nhận các props từ component cha
         )
       }
     >
-      <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0 }}>
-        {children}
-      </fieldset>
+      {disableFieldset ? (
+        children
+      ) : (
+        <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0 }}>
+          {children}
+        </fieldset>
+      )}
     </MessagePopup>
   );
 }

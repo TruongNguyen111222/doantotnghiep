@@ -4,14 +4,7 @@ export const AI_CV_SCREENING_MODEL =
 
 export const AI_CV_SCREENING_MAX_CV_CHARS = 24_000;
 
-export const AI_CV_SCREENING_PAGE_PATH = "/doanhnghiep/ai-screen";
-
 export const AI_CV_SCREENING_API_BASE = "/api/ai/cv-screening";
-
-export function buildAiCvScreeningPageUrl(applicationId: string): string {
-  return `${AI_CV_SCREENING_PAGE_PATH}/${encodeURIComponent(applicationId)}`;
-}
- 
 export const AI_CV_SCREENING_DISCLAIMER =
   "Kết quả do AI tạo ra chỉ mang tính tham khảo. Doanh nghiệp vẫn là bên quyết định cuối cùng.";
 
@@ -22,4 +15,4 @@ export const AI_CV_SCREENING_ERROR_EMPTY_CV_TEXT =
   "Không trích xuất được nội dung CV (file scan ảnh hoặc định dạng không hỗ trợ).";
 
 export const AI_CV_SCREENING_ERROR_QUOTA =
-  "Đã hết hạn mức Gemini API (429). Tạo key mới tại Google AI Studio, thử model gemini-1.5-flash, hoặc đợi vài phút rồi thử lại.";
+  "Đã hết hạn mức Gemini API (429). Tạo key mới tại Google AI Studio, hoặc nạp thêm tiền để thêm lượt hỏi.";

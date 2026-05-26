@@ -11,6 +11,7 @@ import {
 import { fetchCloudinaryBytesByPublicId } from "@/lib/storage/cloudinary";
 import type { AiCvScreeningContext, AiCvScreeningRecord } from "@/lib/types/ai-cv-screening";
 
+//ép kiểu dữ liệu thành string[]
 function jsonStringArray(v: unknown): string[] {
   if (Array.isArray(v)) {
     return v.map((x) => String(x ?? "").trim()).filter(Boolean);
@@ -28,6 +29,7 @@ function jsonStringArray(v: unknown): string[] {
   return [];
 }
 
+//chuyển đổi dữ liệu từ database thành dữ liệu string
 function mapRow(row: any): AiCvScreeningRecord {
   return {
     id: String(row.id),
@@ -67,7 +69,8 @@ type LoadApplicationResult =
   | { error: "FORBIDDEN" }
   | { application: LoadedApplication };
 
-async function loadApplicationForEnterprise(
+  //tải thông tin ứng viên và bài đăng tuyển
+async function loadApplicationForEnterprise( 
   applicationId: string,
   enterpriseUserId: string
 ): Promise<LoadApplicationResult> {
@@ -112,7 +115,7 @@ async function loadApplicationForEnterprise(
       applicantName: String(row.studentUser?.fullName || "Sinh viên"),
       jobTitle: String(row.jobPost?.title || ""),
       jobDescription: String(row.jobPost?.jobDescription || ""),
-      candidateRequirements: String(row.jobPost?.candidateRequirements || ""),
+      candidateRequirements: String(row.jobPost?.candidateRequirements || ""), 
       experienceRequirement: String(row.jobPost?.experienceRequirement || ""),
       expertise: String(row.jobPost?.expertise || ""),
       coverLetter: String(row.coverLetter || ""),
@@ -123,6 +126,8 @@ async function loadApplicationForEnterprise(
   };
 }
 
+
+//lấy thông tin ứng viên và kết quả phân tích
 export async function getAiCvScreeningContext(
   applicationId: string,
   enterpriseUserId: string
@@ -144,6 +149,7 @@ export async function getAiCvScreeningContext(
   };
 }
 
+//phân tích CV bằng AI
 export async function runAiCvScreening(
   applicationId: string,
   enterpriseUserId: string
@@ -166,18 +172,19 @@ export async function runAiCvScreening(
   }
 
   const prismaAny = prisma as any;
-  await prismaAny.jobApplicationAiScreening.upsert({
+  await prismaAny.jobApplicationAiScreening.upsert({ //cập nhật kết quả phân tích
     where: { jobApplicationId: applicationId },
     create: { jobApplicationId: applicationId, status: "PENDING" },
     update: { status: "PENDING", errorMessage: null }
   });
 
   try {
-    const fetched = await fetchCloudinaryBytesByPublicId(app.cvPublicId);
+    const fetched = await fetchCloudinaryBytesByPublicId(app.cvPublicId); 
     if (!fetched) {
       throw new Error("Không tải được file CV từ Cloudinary.");
     }
 
+    //trích xuất nội dung CV
     let cvText = await extractCvTextFromBytes(fetched.bytes, app.cvMime || fetched.contentType);
     if (!cvText && app.coverLetter.trim()) {
       cvText = `[Thư giới thiệu]\n${app.coverLetter.trim()}`;
@@ -187,6 +194,7 @@ export async function runAiCvScreening(
       throw new Error(AI_CV_SCREENING_ERROR_EMPTY_CV_TEXT);
     }
 
+    //chạy gemini để phân tích CV
     const ai = await analyzeCvAgainstJobRequirements({
       cvText,
       jobTitle: app.jobTitle,
@@ -216,6 +224,7 @@ export async function runAiCvScreening(
 
     return { screening: mapRow(saved) };
   } catch (e) {
+    console.error("FULL GEMINI ERROR:", e); //log lỗi
     const message = e instanceof Error ? e.message : "Phân tích CV thất bại.";
     const friendly =
       message === "GEMINI_API_KEY_MISSING"

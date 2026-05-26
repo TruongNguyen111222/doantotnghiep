@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyRespondToken } from "@/lib/utils/respond-token";
 import { buildMailShell, escapeHtml, mailCalloutHtml, MAIL_ACCENT } from "@/lib/mail-layout";
+import {
+  assertStudentCanConfirmInternship,
+  STUDENT_ALREADY_COMMITTED_INTERNSHIP_MESSAGE
+} from "@/lib/server/student-internship-commitment";
 
 function htmlPage(title: string, bodyHtml: string, isSuccess: boolean) {
   const safeTitle = escapeHtml(title);
@@ -67,6 +71,7 @@ export async function GET(request: NextRequest) {
       status: true,
       response: true,
       history: true,
+      studentUserId: true,
       studentUser: { select: { fullName: true } },
       jobPost: { select: { title: true, enterpriseUser: { select: { companyName: true } } } }
     }
@@ -94,6 +99,16 @@ export async function GET(request: NextRequest) {
   const svName = app.studentUser?.fullName ?? "Sinh viên";
   const jobTitle = app.jobPost?.title ?? "vị trí";
   const company = app.jobPost?.enterpriseUser?.companyName ?? "Doanh nghiệp";
+
+  if (purpose === "respond_offer" && action === "CONFIRM" && app.status === "OFFERED") {
+    const commitCheck = await assertStudentCanConfirmInternship(prismaAny, app.studentUserId, appId);
+    if (!commitCheck.ok) {
+      return new NextResponse(
+        htmlPage("Không thể xác nhận thực tập", `<p style="margin:0;">${escapeHtml(STUDENT_ALREADY_COMMITTED_INTERNSHIP_MESSAGE)}</p>`, false),
+        { headers: { "Content-Type": "text/html; charset=utf-8" } }
+      );
+    }
+  }
 
   const prevHistory = Array.isArray(app.history) ? app.history : [];
   const now = new Date();

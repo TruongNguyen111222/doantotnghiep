@@ -11,25 +11,24 @@ import {
   responseLabel,
   degreeLabel
 } from "@/lib/constants/doanhnghiep-ung-vien-detail";
-import { formatDateTimeVi } from "@/lib/utils/doanhnghiep-ung-vien-detail";
+import {
+  formatDateTimeVi,
+  maxDateTimeLocal,
+  shiftLocalDateTimeHours,
+  tomorrowDateTimeLocalMin
+} from "@/lib/utils/doanhnghiep-ung-vien-detail";
 import { FiCpu } from "react-icons/fi";
-import aiStyles from "../../../components/ai-cv-screening.module.css";
+import aiTriggerStyles from "../../../components/ai-cv-screening-trigger.module.css";
 import adminStyles from "../../../../admin/styles/dashboard.module.css";
 import type { Province, Ward } from "@/lib/types/admin-quan-ly-sinh-vien";
+import { openFilePreviewWithCredentials } from "@/lib/utils/client-download-blob";
 
-async function openCvPreview(applicationId: string) { //hàm mở file CV đính kèm của ứng viên
-  const w = window.open("about:blank", "_blank", "noopener,noreferrer");
-  const res = await fetch(`/api/files/job-application/${applicationId}/cv`); //gọi API lấy file CV đính kèm
-  if (!res.ok) { //nếu không có file CV đính kèm
-    try { w?.close(); } catch {} //đóng cửa sổ mở file CV nếu có lỗi
-    return;
-  }
-  const blob = await res.blob(); //lấy file CV đính kèm
-  const url = URL.createObjectURL(blob);
-  if (w) w.location.href = url; //mở file CV đính kèm trong cửa sổ mới
-  else window.open(url, "_blank", "noopener,noreferrer"); //mở file CV đính kèm trong cửa sổ mới nếu cửa sổ mở file CV không tồn tại
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
-} //hàm mở file CV đính kèm của ứng viên
+async function openCvPreview(applicationId: string) {
+  const result = await openFilePreviewWithCredentials(
+    `/api/files/job-application/${encodeURIComponent(applicationId)}/cv`
+  );
+  if (!result.ok) window.alert(result.message);
+}
 
 export type Props = { //kiểu dữ liệu cho props của component
   viewTarget: Applicant | null;
@@ -65,30 +64,6 @@ const nextStatusLabel: Record<JobApplicationStatus, string> = {
   STUDENT_DECLINED: "Ứng viên từ chối"
 };
 
-function tomorrowDateTimeLocalMin(): string { //hàm tính toán ngày và giờ tối thiểu cho thời gian phỏng vấn
-  const d = new Date();
-  d.setDate(d.getDate() + 1); //tăng ngày thêm 1
-  d.setHours(0, 0, 0, 0); //đặt giờ về 0
-  const yyyy = d.getFullYear(); //lấy năm
-  const mm = String(d.getMonth() + 1).padStart(2, "0"); //lấy tháng
-  const dd = String(d.getDate()).padStart(2, "0"); //lấy ngày
-  return `${yyyy}-${mm}-${dd}T00:00`; //trả về định dạng YYYY-MM-DDTHH:mm
-} //hàm tính toán ngày và giờ tối thiểu cho thời gian phỏng vấn
-
-function maxDateTimeLocal(a: string, b: string): string {
-  // Works for YYYY-MM-DDTHH:mm
-  return a >= b ? a : b;
-}
-
-function addHoursToLocalDateTime(input: string, hours: number): string { //hàm tính toán ngày và giờ tối thiểu cho thời gian phỏng vấn
-  if (!input) return "";
-  const d = new Date(input);
-  if (Number.isNaN(d.getTime())) return "";
-  d.setHours(d.getHours() + hours);
-  // back to YYYY-MM-DDTHH:mm for datetime-local
-  return d.toISOString().slice(0, 16);
-}
-
 export default function ApplicantDetailPopup({ //component cho popup xem chi tiết ứng viên
   viewTarget,
   busy,
@@ -116,24 +91,26 @@ export default function ApplicantDetailPopup({ //component cho popup xem chi ti�
 }: Props) {
   const [aiOpen, setAiOpen] = useState(false);
 
-  if (!viewTarget) return null; //nếu không có ứng viên thì trả về null
+  if (!viewTarget) return null; 
 
   // keep unused props referenced to avoid lint/no-unused-vars in some configs
   void interviewProvinceName;
   void interviewWardName;
 
-  const minDateTime = tomorrowDateTimeLocalMin(); //ngày và giờ tối thiểu cho thời gian phỏng vấn
-  const minResponseDeadline = interviewAt
-    ? maxDateTimeLocal(minDateTime, addHoursToLocalDateTime(interviewAt, 1) || interviewAt)
-    : minDateTime; //ngày và giờ tối thiểu cho thời hạn phản hồi
-  const availableStatuses = getAvailableNextStatuses(viewTarget.status, viewTarget.response); //danh sách trạng thái tiếp theo có thể cập nhật
-  const canUpdate = availableStatuses.length > 0; //nếu có trạng thái tiếp theo có thể cập nhật thì trả về true
-  const canSave = canUpdate && viewTarget.internshipStatus === "NOT_STARTED"; //nếu có trạng thái tiếp theo có thể cập nhật và ứng viên chưa thực tập thì trả về true
+  const minDateTime = tomorrowDateTimeLocalMin();
+  const minResponseDeadline = minDateTime;
+  const maxResponseDeadline = interviewAt ? shiftLocalDateTimeHours(interviewAt, -1) : undefined;
+  const minInterviewAt = responseDeadline
+    ? maxDateTimeLocal(minDateTime, shiftLocalDateTimeHours(responseDeadline, 1))
+    : minDateTime;
+  const availableStatuses = getAvailableNextStatuses(viewTarget.status, viewTarget.response); 
+  const canUpdate = availableStatuses.length > 0; 
+  const canSave = canUpdate && viewTarget.internshipStatus === "NOT_STARTED"; 
 
-  const statusColors = applicationStatusColor[viewTarget.status]; //màu sắc cho trạng thái ứng viên
-  const student = viewTarget.student; //thông tin ứng viên
+  const statusColors = applicationStatusColor[viewTarget.status]; 
+  const student = viewTarget.student; 
 
-  return ( //render component
+  return ( 
     <>
     <FormPopup
       open
@@ -193,8 +170,8 @@ export default function ApplicantDetailPopup({ //component cho popup xem chi ti�
             <th scope="row">File CV đính kèm</th>
             <td>
               {viewTarget.cvPublicId ? (
-                <div className={aiStyles.cvActions}>
-                  <button type="button" className={adminStyles.textLinkBtn} onClick={() => openCvPreview(viewTarget.id)}>
+                <div className={aiTriggerStyles.cvActions}>
+                  <button type="button" className={adminStyles.textLinkBtn} onClick={() => void openCvPreview(viewTarget.id)}>
                     Xem CV
                   </button>
                   <a className={adminStyles.detailLink} href={`/api/files/job-application/${viewTarget.id}/cv?download=1`}>
@@ -202,11 +179,11 @@ export default function ApplicantDetailPopup({ //component cho popup xem chi ti�
                   </a>
                   <button
                     type="button"
-                    className={aiStyles.aiBtn}
+                    className={aiTriggerStyles.aiBtn}
                     onClick={() => setAiOpen(true)}
                     disabled={!viewTarget.cvPublicId}
                   >
-                    <span className={aiStyles.aiBtnIcon}>
+                    <span className={aiTriggerStyles.aiBtnIcon}>
                       <FiCpu aria-hidden />
                     </span>
                     Phân tích CV (AI)
@@ -394,7 +371,7 @@ export default function ApplicantDetailPopup({ //component cho popup xem chi ti�
                   className={adminStyles.textInputSearch}
                   type="datetime-local"
                   value={interviewAt}
-                  min={minDateTime}
+                  min={minInterviewAt}
                   onChange={(e) => onInterviewAtChange(e.target.value)}
                   disabled={busy}
                 />
@@ -491,11 +468,12 @@ export default function ApplicantDetailPopup({ //component cho popup xem chi ti�
                   type="datetime-local"
                   value={responseDeadline}
                   min={minResponseDeadline}
+                  max={maxResponseDeadline}
                   onChange={(e) => onResponseDeadlineChange(e.target.value)}
                   disabled={busy}
                 />
                 <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-                  Sau thời hạn này, nếu ứng viên chưa phản hồi, hệ thống sẽ tự động từ chối.
+                  Ứng viên phải phản hồi trước thời hạn này (sớm hơn buổi phỏng vấn ít nhất 1 tiếng). Quá hạn sẽ tự động từ chối.
                 </div>
               </div>
             </>

@@ -34,7 +34,8 @@ export default function MessagePopup({ //popup thông báo
   children,
   actions,
   onClose,
-  size = "normal"
+  size = "normal",
+  backdropZIndex
 }: {
   open: boolean;
   title?: string;
@@ -43,6 +44,8 @@ export default function MessagePopup({ //popup thông báo
   actions?: ReactNode;
   onClose?: () => void;
   size?: PopupSize;
+  /** Popup chồng popup (vd. AI trên chi tiết ứng viên) — mặc định 50 */
+  backdropZIndex?: number;
 }) {
   if (!open) return null;
 
@@ -53,7 +56,12 @@ export default function MessagePopup({ //popup thông báo
     size === "wide" ? adminStyles.modalWide : size === "extraWide" ? adminStyles.modalExtraWide : undefined; //kích thước popup
 
   return ( //render popup thông báo
-    <div className={adminStyles.modalBackdrop} role="dialog" aria-modal="true"> 
+    <div
+      className={adminStyles.modalBackdrop}
+      style={backdropZIndex != null ? { zIndex: backdropZIndex } : undefined}
+      role="dialog"
+      aria-modal="true"
+    > 
       <div className={`${adminStyles.modal} ${sizeClass || ""}`.trim()}>
         {title ? <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 16 }}>{title}</h2> : null}
 

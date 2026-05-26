@@ -67,3 +67,44 @@ export async function downloadWithCredentials( //tải file bằng fetch + blob
   }
   return { ok: true }; //trả về thành công  
 }
+
+/**
+ * Mở file xem trước trong tab mới (fetch + blob URL).
+ * Khác downloadWithCredentials: không revoke blob URL ngay — tab preview cần URL còn sống.
+ */
+export async function openFilePreviewWithCredentials(
+  url: string
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  let res: Response;
+  try {
+    res = await fetch(url, { credentials: "include", cache: "no-store" });
+  } catch {
+    return { ok: false, message: "Không kết nối được máy chủ." };
+  }
+  if (!res.ok) {
+    let message = `Lỗi ${res.status}`;
+    try {
+      const j = (await res.json()) as { message?: string };
+      if (typeof j.message === "string" && j.message.trim()) message = j.message.trim();
+    } catch {
+      /* ignore */
+    }
+    return { ok: false, message };
+  }
+  let blob: Blob;
+  try {
+    blob = await res.blob();
+  } catch {
+    return { ok: false, message: "Không đọc được nội dung file." };
+  }
+  if (blob.size === 0) {
+    return { ok: false, message: "File rỗng." };
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  const opened = window.open(objectUrl, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    URL.revokeObjectURL(objectUrl);
+    return { ok: false, message: "Trình duyệt đã chặn cửa sổ mới. Vui lòng cho phép popup." };
+  }
+  return { ok: true };
+}

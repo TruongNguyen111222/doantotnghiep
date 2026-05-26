@@ -1,25 +1,29 @@
+// gọi Gemini AI
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { AI_CV_SCREENING_MODEL } from "@/lib/constants/ai-cv-screening";
 import type { AiCvScreeningResult } from "@/lib/types/ai-cv-screening";
 
 function getGeminiApiKey(): string {
+  console.log("GEMINI KEY:", process.env.GEMINI_API_KEY);
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) throw new Error("GEMINI_API_KEY_MISSING");
   return key;
 }
 
 
-function clampScore(n: unknown): number {
+function clampScore(n: unknown): number { //ếp giới hạn điểm phù hợp
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(100, Math.round(v)));
 }
 
-function toStringArray(v: unknown): string[] {
+function toStringArray(v: unknown): string[] { //chuyển đổi dữ liệu thành string[]
   if (!Array.isArray(v)) return [];
   return v.map((x) => String(x ?? "").trim()).filter(Boolean);
 }
 
+//làm sạch kết quả phân tích
 function normalizeScreeningResult(raw: unknown): AiCvScreeningResult {
   const o = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   return {
@@ -46,7 +50,7 @@ export async function analyzeCvAgainstJobRequirements(input: {
   const model = genAI.getGenerativeModel({
     model: AI_CV_SCREENING_MODEL,
     generationConfig: {
-      responseMimeType: "application/json"
+      responseMimeType: "application/json" //định dạng response là JSON
     }
   });
 
@@ -72,10 +76,10 @@ export async function analyzeCvAgainstJobRequirements(input: {
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text); //chuyển đổi text thành JSON
   } catch {
     throw new Error("GEMINI_INVALID_JSON");
   }
 
-  return normalizeScreeningResult(parsed);
+  return normalizeScreeningResult(parsed); //làm sạch kết quả phân tích
 }

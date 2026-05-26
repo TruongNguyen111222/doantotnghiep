@@ -26,10 +26,7 @@ type AppStats = { //kiểu dữ liệu cho thống kê số lượng tin tuyển
 const EMPTY_APP_STATS: AppStats = { //giá trị mặc định cho thống kê số lượng tin tuyển dụng 
   PENDING_REVIEW: 0, INTERVIEW_INVITED: 0, OFFERED: 0, REJECTED: 0, STUDENT_DECLINED: 0
 };
-/**
- * Hàm hỗ trợ tạo Key Cache mặc định cho Trang 1 khi không áp dụng bộ lọc (Trạng thái khởi tạo).
- * Giúp lấy nhanh dữ liệu từ bộ nhớ cache phía Client để render ngay lập tức mà không chờ API.
- */
+ 
 function defaultListPage1CacheKey(): string | null {
   if (typeof window === "undefined") return null;
   const url = buildDoanhNghiepUngVienListUrl({
