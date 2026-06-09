@@ -85,6 +85,18 @@ export default function BaoCaoReviewPopup({
             >
               Tải BCTT: {reviewTarget.report.reportFileName}
             </a>
+            {reviewTarget.report.enterpriseEvalFileName ? (
+              <div style={{ marginTop: 8 }}>
+                <a
+                  className={adminStyles.detailLink}
+                  href={`/api/files/internship-report/${reviewTarget.report.id}?kind=enterprise-evaluation`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Tải phiếu đánh giá DN: {reviewTarget.report.enterpriseEvalFileName}
+                </a>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -139,8 +151,8 @@ export default function BaoCaoReviewPopup({
                     className={formStyles.input}
                     value={kthpPoint}
                     onChange={(e) => onKthpPointChange(e.target.value)}
-                    disabled={busy || !reviewTarget.enterprise}
-                    placeholder={reviewTarget.enterprise ? "KTHP (0-10)" : "—"}
+                    disabled={busy}
+                    placeholder="KTHP (1-10)"
                   />
                 </div>
               </div>

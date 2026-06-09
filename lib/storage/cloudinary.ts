@@ -56,6 +56,14 @@ export function buildInternshipReportPublicId(ownerId: string, originalName: str
   const safeName = nameNoExt.replace(/\s+/g, "_");
   return `internship_reports/${safeOwner}_${Date.now()}_${safeName}`;
 }
+
+export function buildEnterpriseEvalPublicId(ownerId: string, originalName: string): string {
+  const safeOwner = sanitizeSegment(ownerId) || "anonymous";
+  const safeOriginal = sanitizeSegment(originalName) || "enterprise_eval";
+  const nameNoExt = sanitizeSegment(removeExtension(safeOriginal)).slice(0, 80) || "enterprise_eval";
+  const safeName = nameNoExt.replace(/\s+/g, "_");
+  return `enterprise_evals/${safeOwner}_${Date.now()}_${safeName}`;
+}
 //lấy đuôi file giấy phép doanh nghiệp
 function licensePublicIdSuffix(originalName: string): string {
   const ext = path.extname(String(originalName || "").trim()).toLowerCase();
@@ -112,6 +120,20 @@ export async function uploadInternshipReportBytesToCloudinary(input: {
     bytes: input.bytes,
     mimeType: input.mimeType,
     publicId: buildInternshipReportPublicId(input.ownerId, input.originalName),
+    resourceType: "raw"
+  });
+}
+
+export async function uploadEnterpriseEvalBytesToCloudinary(input: {
+  bytes: Buffer;
+  mimeType: string;
+  ownerId: string;
+  originalName: string;
+}): Promise<CloudinaryUploadResult> {
+  return uploadBytesToCloudinary({
+    bytes: input.bytes,
+    mimeType: input.mimeType,
+    publicId: buildEnterpriseEvalPublicId(input.ownerId, input.originalName),
     resourceType: "raw"
   });
 }

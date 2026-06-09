@@ -12,7 +12,8 @@ export function buildEmptySupervisorFormState(): SupervisorFormState { //hàm t�
     permanentWardCode: "", //mã huyện
     faculty: "", //khoa
     facultyCustom: "", //khoa tùy chỉnh
-    degree: "" //bậc
+    degree: "", //bậc
+    isExternalTeacher: false
   };
 } //trả về dữ liệu rỗng cho form giảng viên
 

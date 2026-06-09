@@ -1,6 +1,8 @@
 export type Gender = "MALE" | "FEMALE" | "OTHER"; //giới tính nam, nữ, khác
 export type Degree = "MASTER" | "PHD" | "ASSOC_PROF" | "PROF";
 
+export type ExternalTeacherFilter = "all" | "internal" | "external";
+
 export type SupervisorListItem = { //type dữ liệu giảng viên  
   id: string;
   fullName: string;
@@ -8,6 +10,7 @@ export type SupervisorListItem = { //type dữ liệu giảng viên
   email: string;
   faculty: string;
   degree: Degree;
+  isExternalTeacher: boolean;
   birthDate: string | null;
   gender: Gender;
   permanentProvinceCode: string;
@@ -30,5 +33,6 @@ export type SupervisorFormState = { //type form giảng viên
   faculty: string;
   facultyCustom: string;
   degree: Degree | "";
+  isExternalTeacher: boolean;
 };
 

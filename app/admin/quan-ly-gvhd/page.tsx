@@ -9,8 +9,9 @@ import { FiUserCheck, FiUserX } from "react-icons/fi";
 import { AUTH_EMAIL_REGISTER_PATTERN } from "@/lib/constants/auth/patterns"; //hằng số email đăng ký
 import { ADMIN_SUPERVISOR_EXCEL_HEADER, ADMIN_SUPERVISOR_EXCEL_SAMPLE_ROWS } from "@/lib/constants/admin-supervisors-excel"; //hằng số excel giảng viên
 
-import type { //type dữ liệu giảng viên
+import type {
   Degree,
+  ExternalTeacherFilter,
   Province,
   SupervisorFormState,
   SupervisorListItem,
@@ -48,6 +49,7 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
   const [searchQ, setSearchQ] = useState("");
   const [filterFaculty, setFilterFaculty] = useState<string>("all");
   const [filterDegree, setFilterDegree] = useState<Degree | "all">("all");
+  const [filterExternalTeacher, setFilterExternalTeacher] = useState<ExternalTeacherFilter>("all");
 
   const [toastPopup, setToastPopup] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
   const showPopup = (message: string) => setToastPopup({ open: true, message });
@@ -137,6 +139,7 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
       if (searchQ.trim()) params.set("q", searchQ.trim()); //thêm từ khóa tìm kiếm vào URLSearchParams
       if (filterFaculty !== "all") params.set("faculty", filterFaculty);
       if (filterDegree !== "all") params.set("degree", filterDegree);
+      if (filterExternalTeacher !== "all") params.set("externalTeacher", filterExternalTeacher);
       params.set("page", String(targetPage));
       params.set("pageSize", String(ADMIN_QUAN_LY_GVHD_PAGE_SIZE));
       const url = `/api/admin/supervisors?${params.toString()}`; //tạo URL từ URLSearchParams
@@ -179,7 +182,7 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
     }, 30000);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQ, filterFaculty, filterDegree, page]);
+  }, [searchQ, filterFaculty, filterDegree, filterExternalTeacher, page]);
 
   useEffect(() => {  
     if (!items.length) return;
@@ -211,7 +214,8 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
       permanentWardCode: row.permanentWardCode,
       faculty: row.faculty,
       facultyCustom: "",
-      degree: row.degree
+      degree: row.degree,
+      isExternalTeacher: row.isExternalTeacher
     });
   };
 
@@ -273,7 +277,8 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
           permanentProvinceCode: form.permanentProvinceCode,
           permanentWardCode: form.permanentWardCode,
           faculty: (form.faculty === ADMIN_QUAN_LY_GVHD_FACULTY_CUSTOM_VALUE ? form.facultyCustom : form.faculty).trim(),
-          degree: form.degree
+          degree: form.degree,
+          isExternalTeacher: form.isExternalTeacher
         })
       });
       const data = await res.json(); //lấy dữ liệu từ API
@@ -317,7 +322,8 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
           permanentProvinceCode: form.permanentProvinceCode,
           permanentWardCode: form.permanentWardCode,
           faculty: (form.faculty === ADMIN_QUAN_LY_GVHD_FACULTY_CUSTOM_VALUE ? form.facultyCustom : form.faculty).trim(),
-          degree: form.degree
+          degree: form.degree,
+          isExternalTeacher: form.isExternalTeacher
         })
       });
       const data = await res.json();
@@ -544,11 +550,13 @@ export default function AdminQuanLyGVHDPage() { //component quan ly giảng viê
         searchQ={searchQ}
         filterFaculty={filterFaculty}
         filterDegree={filterDegree}
+        filterExternalTeacher={filterExternalTeacher}
         faculties={faculties}
         busy={busyId !== null}
         onChangeSearchQ={setSearchQ}
         onChangeFilterFaculty={setFilterFaculty}
         onChangeFilterDegree={setFilterDegree}
+        onChangeFilterExternalTeacher={setFilterExternalTeacher}
         onSearch={() => {
           setPage(1);
           void load({ force: true, targetPage: 1 });

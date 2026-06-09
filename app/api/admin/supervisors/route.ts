@@ -42,6 +42,7 @@ export async function GET(request: Request) { //hàm lấy danh sách giảng vi
     const q = searchParams.get("q")?.trim() || "";
     const faculty = searchParams.get("faculty")?.trim() || "all";
     const degree = (searchParams.get("degree")?.trim() || "all") as Degree | "all";
+    const externalTeacher = (searchParams.get("externalTeacher")?.trim() || "all") as "all" | "internal" | "external";
     const page = Math.max(Number(searchParams.get("page") || "1") || 1, 1);
     const pageSize = Math.max(Number(searchParams.get("pageSize") || String(ADMIN_QUAN_LY_GVHD_PAGE_SIZE)) || ADMIN_QUAN_LY_GVHD_PAGE_SIZE, 1);
 
@@ -51,6 +52,8 @@ export async function GET(request: Request) { //hàm lấy danh sách giảng vi
 
     if (faculty && faculty !== "all") andParts.push({ faculty });
     if (degree && degree !== "all") andParts.push({ degree });
+    if (externalTeacher === "internal") andParts.push({ isExternalTeacher: false });
+    if (externalTeacher === "external") andParts.push({ isExternalTeacher: true });
     if (q) {
       const isNumeric = /^\d+$/.test(q);
       const isEmailLike = q.includes("@") || q.includes(".");
@@ -75,6 +78,7 @@ export async function GET(request: Request) { //hàm lấy danh sách giảng vi
         userId: true,
         faculty: true,
         degree: true,
+        isExternalTeacher: true,
         birthDate: true,
         gender: true,
         permanentProvinceCode: true,
@@ -139,6 +143,7 @@ export async function GET(request: Request) { //hàm lấy danh sách giảng vi
         email: r.user?.email ?? "",
         faculty: r.faculty,
         degree: r.degree as Degree,
+        isExternalTeacher: Boolean(r.isExternalTeacher),
         birthDate: r.birthDate?.toISOString?.() ?? null,
         gender: r.gender as Gender,
         permanentProvinceCode: r.permanentProvinceCode,
@@ -167,6 +172,7 @@ type CreateSupervisorBody = { //type dữ liệu giảng viên hướng dẫn
   permanentWardCode: string;
   faculty: string;
   degree: Degree;
+  isExternalTeacher?: boolean;
 };
 
 function validateCreate(body: CreateSupervisorBody) { //hàm kiểm tra dữ liệu giảng viên hướng dẫn
@@ -256,6 +262,7 @@ export async function POST(request: Request) { //hàm tạo giảng viên hướ
       userId: user.id,
       faculty: body.faculty.trim(),
       degree: body.degree,
+      isExternalTeacher: Boolean(body.isExternalTeacher),
       gender: body.gender,
       birthDate: parseDateOnly(birthDateStr),
       permanentProvinceCode: body.permanentProvinceCode.trim(),

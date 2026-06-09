@@ -20,7 +20,11 @@ import {
   ADMIN_PHAN_CONG_GVHD_STATUS_LABEL
 } from "@/lib/constants/admin-phan-cong-gvhd";
 
-import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display"; //hàm hiển thị sinh viên và giảng viên hướng dẫn
+import { studentDisplay, supervisorDisplay } from "@/lib/utils/admin-phan-cong-gvhd-display";
+import {
+  ADMIN_PHAN_CONG_GVHD_MIN_STUDENTS,
+  validatePhanCongStudentCount
+} from "@/lib/utils/admin-phan-cong-gvhd-validate";
 import { getOrFetchCached, hasCachedValue } from "@/lib/utils/client-query-cache"; //hàm lấy dữ liệu từ cache hoặc từ API
 
 import AdminPhanCongGVHDTable from "./components/AdminPhanCongGVHDTable"; //component bảng phân công giảng viên hướng dẫn
@@ -211,14 +215,28 @@ export default function AdminPhanCongGVHDPage() { //page phân công giảng vi�
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentQ]);
 
-  function validateForm() { //hàm kiểm tra dữ liệu form
-    const next: Record<string, string> = {}; //dữ liệu form     
+  function validateForm() {
+    const next: Record<string, string> = {};
     if (!formFaculty) next.faculty = "Khoa bắt buộc.";
     if (!formBatchId) next.internshipBatchId = "Đợt thực tập bắt buộc.";
     if (!formSupervisorId) next.supervisorProfileId = "GVHD bắt buộc.";
     if (!formStudentIds.length) next.studentProfileIds = "Danh sách sinh viên hướng dẫn bắt buộc.";
+    else if (formStudentIds.length < ADMIN_PHAN_CONG_GVHD_MIN_STUDENTS) {
+      next.studentProfileIds = "Giảng viên phải được phân công tối thiểu 3 sinh viên.";
+    } else {
+      const selectedSupervisor = supervisorOptions.find((s) => s.id === formSupervisorId);
+      if (selectedSupervisor) {
+        const countError = validatePhanCongStudentCount({
+          supervisorFullName: selectedSupervisor.fullName,
+          supervisorDegree: selectedSupervisor.degree,
+          currentAssignedCount: selectedSupervisor.currentAssignedCount ?? 0,
+          newStudentCount: formStudentIds.length
+        });
+        if (countError) next.studentProfileIds = countError;
+      }
+    }
     setFieldErrors(next);
-    return Object.keys(next).length === 0; //trả về true nếu không có lỗi
+    return Object.keys(next).length === 0;
   }
 
   async function submitCreate() { //hàm submit form thêm phân công giảng viên hướng dẫn

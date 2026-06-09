@@ -29,7 +29,6 @@ export function validateGiangVienBaoCaoApprove(args: {
   const { reviewTarget, evaluation, dqtPoint, kthpPoint } = args;
 
   if (!reviewTarget?.report) return GIANGVIEN_BAO_CAO_VALIDATE_NO_REPORT;
-  const hasEnterprise = Boolean(reviewTarget.enterprise);
 
   if (evaluation.trim() && !noSpecialPattern.test(evaluation.trim())) return GIANGVIEN_BAO_CAO_VALIDATE_EVALUATION_SPECIAL;
 
@@ -39,13 +38,11 @@ export function validateGiangVienBaoCaoApprove(args: {
   const dqt = Number(dqtPoint.trim());
   if (Number.isNaN(dqt) || dqt < 1 || dqt > 10) return GIANGVIEN_BAO_CAO_VALIDATE_DQT_RANGE;
 
-  if (hasEnterprise) {
-    if (!kthpPoint.trim()) return GIANGVIEN_BAO_CAO_VALIDATE_KTHP_REQUIRED;
-    if (!pointPattern.test(kthpPoint.trim())) return GIANGVIEN_BAO_CAO_VALIDATE_KTHP_INVALID;
+  if (!kthpPoint.trim()) return GIANGVIEN_BAO_CAO_VALIDATE_KTHP_REQUIRED;
+  if (!pointPattern.test(kthpPoint.trim())) return GIANGVIEN_BAO_CAO_VALIDATE_KTHP_INVALID;
 
-    const kthp = Number(kthpPoint.trim());
-    if (Number.isNaN(kthp) || kthp < 1 || kthp > 10) return GIANGVIEN_BAO_CAO_VALIDATE_KTHP_RANGE;
-  }
+  const kthp = Number(kthpPoint.trim());
+  if (Number.isNaN(kthp) || kthp < 1 || kthp > 10) return GIANGVIEN_BAO_CAO_VALIDATE_KTHP_RANGE;
 
   return "";
 }

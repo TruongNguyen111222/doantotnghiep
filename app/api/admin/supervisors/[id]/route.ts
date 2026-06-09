@@ -41,6 +41,7 @@ type PatchSupervisorBody = {
   permanentWardCode: string;
   faculty: string;
   degree: Degree;
+  isExternalTeacher?: boolean;
 };
 
 function validateCommon(body: PatchSupervisorBody) { //hàm kiểm tra dữ liệu giảng viên hướng dẫn
@@ -92,6 +93,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
       userId: true,
       faculty: true,
       degree: true,
+      isExternalTeacher: true,
       gender: true,
       birthDate: true,
       permanentProvinceCode: true,
@@ -119,7 +121,8 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
       permanentWardCode: row.permanentWardCode,
       permanentWardName: row.permanentWardName ?? null,
       faculty: row.faculty,
-      degree: row.degree as Degree
+      degree: row.degree as Degree,
+      isExternalTeacher: Boolean(row.isExternalTeacher)
     }
   });
 }
@@ -165,6 +168,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     data: {
       faculty: body.faculty.trim(),
       degree: body.degree,
+      isExternalTeacher: Boolean(body.isExternalTeacher),
       gender: body.gender,
       birthDate: parseDateOnly(body.birthDate.trim()),
       permanentProvinceCode: body.permanentProvinceCode.trim(),

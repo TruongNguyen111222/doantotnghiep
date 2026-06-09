@@ -3,6 +3,7 @@
 import type { SupervisorListItem } from "@/lib/types/admin-quan-ly-gvhd";
 import {
   ADMIN_QUAN_LY_GVHD_DEGREE_LABEL,
+  ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL,
   ADMIN_QUAN_LY_GVHD_PAGE_SIZE
 } from "@/lib/constants/admin-quan-ly-gvhd";
 
@@ -41,13 +42,14 @@ export default function AdminGiangVienTableSection(props: Props) {
               <th>Email</th>
               <th>Khoa</th>
               <th>Bậc</th>
+              <th>Loại giảng viên</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={7} className={styles.modulePlaceholder}>
+                <td colSpan={8} className={styles.modulePlaceholder}>
                   Không có GVHD phù hợp.
                 </td>
               </tr>
@@ -60,6 +62,11 @@ export default function AdminGiangVienTableSection(props: Props) {
                   <td data-label="Email">{row.email}</td>
                   <td data-label="Khoa">{row.faculty}</td>
                   <td data-label="Bậc">{ADMIN_QUAN_LY_GVHD_DEGREE_LABEL[row.degree]}</td>
+                  <td data-label="Loại giảng viên">
+                    {row.isExternalTeacher
+                      ? ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL.external
+                      : ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL.internal}
+                  </td>
                   <td data-label="Thao tác">
                     <div className={styles.rowActions} style={{ gap: 6 }}>
                       <TableIconButton label="Xem chi tiết" disabled={busyId !== null} onClick={() => onView(row)}>

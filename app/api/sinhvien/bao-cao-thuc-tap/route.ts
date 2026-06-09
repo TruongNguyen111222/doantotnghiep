@@ -7,7 +7,12 @@ import { decodeEnterpriseFilePayload } from "@/lib/enterprise-register-files";
 import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF } from "@/lib/constants/school";
 import { sendMail } from "@/lib/mail";
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
-import { toCloudinaryRef, uploadInternshipReportBytesToCloudinary } from "@/lib/storage/cloudinary";
+import {
+  toCloudinaryRef,
+  uploadEnterpriseEvalBytesToCloudinary,
+  uploadInternshipReportBytesToCloudinary
+} from "@/lib/storage/cloudinary";
+import { studentRequiresEnterpriseEvaluation } from "@/lib/server/student-internship-enterprise-required";
 
 const BCTT_ALLOWED_MIMES = [  
   "application/pdf",
@@ -71,6 +76,7 @@ export async function GET() {
     where: { userId },
     select: {
       id: true,
+      userId: true,
       internshipStatus: true,
       internshipStatusHistory: {
         orderBy: { at: "desc" },
@@ -87,6 +93,9 @@ export async function GET() {
           supervisorRejectReason: true,
           supervisorEvaluation: true,
           enterpriseEvaluation: true,
+          enterpriseEvalFileName: true,
+          enterpriseEvalMime: true,
+          enterpriseEvalBase64: true
         }
       },
       assignmentLinks: {
@@ -132,6 +141,10 @@ export async function GET() {
         reportFileName: profile.internshipReport.reportFileName,
         reportMime: profile.internshipReport.reportMime,
         reportUrl: `/api/files/internship-report/${profile.internshipReport.id}`,
+        enterpriseEvalFileName: profile.internshipReport.enterpriseEvalFileName ?? null,
+        enterpriseEvalUrl: profile.internshipReport.enterpriseEvalFileName
+          ? `/api/files/internship-report/${profile.internshipReport.id}?kind=enterprise-evaluation`
+          : null,
         supervisorEvaluation: profile.internshipReport.supervisorEvaluation ?? null,
         enterpriseEvaluation: profile.internshipReport.enterpriseEvaluation ?? null,
         supervisorPoint: null as number | null,
@@ -162,11 +175,16 @@ export async function GET() {
 
   const internshipStatus = profile.internshipStatus as InternshipStatus; 
   const canSubmit = internshipStatus === "DOING" || internshipStatus === "SELF_FINANCED";
-  const canSubmitReport = canSubmit && !report; 
-  const canEditReport = Boolean(report && report.reviewStatus === "REJECTED"); 
+  const canSubmitReport = canSubmit && !report;
+  const canEditReport = Boolean(report && report.reviewStatus === "REJECTED");
+  const requiresEnterpriseEval =
+    internshipStatus === "DOING" ||
+    (profile.userId
+      ? await studentRequiresEnterpriseEvaluation(prismaAny, profile.id, profile.userId)
+      : false);
 
-  return NextResponse.json({ 
-    success: true, 
+  return NextResponse.json({
+    success: true,
     item: {
       internshipStatus,
       supervisor,
@@ -178,16 +196,20 @@ export async function GET() {
       })),
       ui: {
         canSubmitReport,
-        canEditReport
+        canEditReport,
+        requiresEnterpriseEval
       }
     }
   });
 }
 
-type SubmitBody = { 
+type SubmitBody = {
   reportFileName: string;
   reportMime: string;
   reportBase64: string;
+  enterpriseEvalFileName?: string;
+  enterpriseEvalMime?: string;
+  enterpriseEvalBase64?: string;
 };
 
 export async function POST(request: Request) { 
@@ -206,9 +228,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const profile = await prismaAny.studentProfile.findFirst({ //lấy hồ sơ sinh viên
+  const profile = await prismaAny.studentProfile.findFirst({
     where: { userId },
-    select: { id: true, internshipStatus: true }
+    select: { id: true, userId: true, internshipStatus: true }
   });
   if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy hồ sơ sinh viên." }, { status: 404 });
 
@@ -217,24 +239,67 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: "Chỉ cho phép nộp BCTT khi trạng thái thực tập là Đang thực tập / Thực tập tự túc." }, { status: 400 });
   }
 
-  const existing = await prismaAny.internshipReport.findFirst({ where: { studentProfileId: profile.id }, select: { id: true } }); //lấy thông tin báo cáo thực tập
+  const existing = await prismaAny.internshipReport.findFirst({ where: { studentProfileId: profile.id }, select: { id: true } });
   if (existing) return NextResponse.json({ success: false, message: "Bạn đã nộp BCTT trước đó." }, { status: 409 });
 
-  //upload file và lấy về đường dẫn id file
-  const uploaded = await uploadInternshipReportBytesToCloudinary({ 
+  const requiresEnterpriseEval =
+    internshipStatus === "DOING" ||
+    (profile.userId
+      ? await studentRequiresEnterpriseEvaluation(prismaAny, profile.id, profile.userId)
+      : false);
+
+  let enterpriseEvalData: {
+    enterpriseEvalFileName: string;
+    enterpriseEvalMime: string;
+    enterpriseEvalBase64: string;
+  } | null = null;
+
+  if (requiresEnterpriseEval) {
+    const evalFileName = (body.enterpriseEvalFileName || "").trim();
+    const evalDecoded = decodeEnterpriseFilePayload(
+      body.enterpriseEvalBase64,
+      body.enterpriseEvalMime,
+      BCTT_ALLOWED_MIMES
+    );
+    if (!evalFileName || !evalDecoded.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: evalDecoded.ok
+            ? "Vui lòng nộp phiếu đánh giá kết quả thực tập của doanh nghiệp."
+            : evalDecoded.message || "Phiếu đánh giá doanh nghiệp không hợp lệ."
+        },
+        { status: 400 }
+      );
+    }
+    const evalUploaded = await uploadEnterpriseEvalBytesToCloudinary({
+      bytes: Buffer.from(evalDecoded.base64, "base64"),
+      mimeType: evalDecoded.mime,
+      ownerId: profile.id,
+      originalName: evalFileName
+    });
+    enterpriseEvalData = {
+      enterpriseEvalFileName: evalFileName,
+      enterpriseEvalMime: evalDecoded.mime,
+      enterpriseEvalBase64: toCloudinaryRef(evalUploaded.publicId)
+    };
+  }
+
+  const uploaded = await uploadInternshipReportBytesToCloudinary({
     bytes: Buffer.from(decoded.base64, "base64"),
     mimeType: decoded.mime,
     ownerId: profile.id,
     originalName: fileName
   });
 
-  await prismaAny.$transaction(async (tx: any) => { //tạo báo cáo thực tập
+  await prismaAny.$transaction(async (tx: any) => {
     await tx.internshipReport.create({
       data: {
         studentProfileId: profile.id,
         reportFileName: fileName,
         reportMime: decoded.mime,
         reportBase64: toCloudinaryRef(uploaded.publicId),
+        ...(enterpriseEvalData ?? {}),
         reviewStatus: "PENDING",
         history: [
           {
@@ -289,10 +354,13 @@ export async function PATCH(request: Request) {
   if (auth.error) return auth.error;
   const userId = auth.userId as string;
   const prismaAny = prisma as any;
-  const body = (await request.json()) as { 
+  const body = (await request.json()) as {
     reportFileName: string;
     reportMime: string;
     reportBase64: string;
+    enterpriseEvalFileName?: string;
+    enterpriseEvalMime?: string;
+    enterpriseEvalBase64?: string;
     removeOld?: boolean;
   };
 
@@ -305,35 +373,84 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const profile = await prismaAny.studentProfile.findFirst({ 
+  const profile = await prismaAny.studentProfile.findFirst({
     where: { userId },
-    select: { id: true, internshipStatus: true }
+    select: { id: true, userId: true, internshipStatus: true }
   });
   if (!profile) return NextResponse.json({ success: false, message: "Không tìm thấy hồ sơ sinh viên." }, { status: 404 });
 
-  const report = await prismaAny.internshipReport.findFirst({ 
+  const report = await prismaAny.internshipReport.findFirst({
     where: { studentProfileId: profile.id },
-    select: { id: true, reviewStatus: true }
+    select: {
+      id: true,
+      reviewStatus: true,
+      enterpriseEvalFileName: true,
+      enterpriseEvalMime: true,
+      enterpriseEvalBase64: true
+    }
   });
   if (!report) return NextResponse.json({ success: false, message: "Chưa có BCTT để sửa." }, { status: 404 });
   if (report.reviewStatus !== "REJECTED") return NextResponse.json({ success: false, message: "Chỉ được sửa BCTT khi GVHD từ chối." }, { status: 400 });
 
   const prevInternshipStatus = profile.internshipStatus as InternshipStatus;
 
-  const uploaded = await uploadInternshipReportBytesToCloudinary({ 
+  const requiresEnterpriseEval = profile.userId
+    ? await studentRequiresEnterpriseEvaluation(prismaAny, profile.id, profile.userId)
+    : false;
+
+  let enterpriseEvalPatch: {
+    enterpriseEvalFileName: string;
+    enterpriseEvalMime: string;
+    enterpriseEvalBase64: string;
+  } | null = null;
+
+  if (requiresEnterpriseEval) {
+    const evalFileName = (body.enterpriseEvalFileName || "").trim();
+    const evalDecoded = decodeEnterpriseFilePayload(
+      body.enterpriseEvalBase64,
+      body.enterpriseEvalMime,
+      BCTT_ALLOWED_MIMES
+    );
+    if (evalFileName && evalDecoded.ok) {
+      const evalUploaded = await uploadEnterpriseEvalBytesToCloudinary({
+        bytes: Buffer.from(evalDecoded.base64, "base64"),
+        mimeType: evalDecoded.mime,
+        ownerId: profile.id,
+        originalName: evalFileName
+      });
+      enterpriseEvalPatch = {
+        enterpriseEvalFileName: evalFileName,
+        enterpriseEvalMime: evalDecoded.mime,
+        enterpriseEvalBase64: toCloudinaryRef(evalUploaded.publicId)
+      };
+    } else if (!report.enterpriseEvalFileName || !report.enterpriseEvalBase64) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: evalDecoded.ok
+            ? "Vui lòng nộp phiếu đánh giá kết quả thực tập của doanh nghiệp."
+            : evalDecoded.message || "Phiếu đánh giá doanh nghiệp không hợp lệ."
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  const uploaded = await uploadInternshipReportBytesToCloudinary({
     bytes: Buffer.from(decoded.base64, "base64"),
     mimeType: decoded.mime,
     ownerId: profile.id,
     originalName: fileName
   });
 
-  await prismaAny.$transaction(async (tx: any) => { 
+  await prismaAny.$transaction(async (tx: any) => {
     await tx.internshipReport.update({
       where: { id: report.id },
       data: {
         reportFileName: fileName,
         reportMime: decoded.mime,
         reportBase64: toCloudinaryRef(uploaded.publicId),
+        ...(enterpriseEvalPatch ?? {}),
         reviewStatus: "PENDING",
         supervisorRejectReason: null,
         reviewedAt: null,

@@ -27,6 +27,12 @@ export type AssignmentItem = { //phân công giảng viên hướng dẫn
   student: { id: string | null; msv: string; fullName: string; degree: StudentDegree | null }; //sinh viên
 };
 
-export type SupervisorOption = { id: string; fullName: string; degree: SupervisorDegree; faculty: string }; //giảng viên hướng dẫn
+export type SupervisorOption = {
+  id: string;
+  fullName: string;
+  degree: SupervisorDegree;
+  faculty: string;
+  currentAssignedCount: number;
+};
 export type StudentOption = { id: string; msv: string; fullName: string; degree: StudentDegree }; //sinh viên
 

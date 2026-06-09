@@ -96,6 +96,22 @@ export default function BaoCaoViewPopup({ viewTarget, onClose }: Props) { //hàm
               {viewTarget.report.reportFileName}
             </a>
           </div>
+          {viewTarget.report.enterpriseEvalFileName ? (
+            <div style={{ marginTop: 12 }}>
+              <div className={adminStyles.detailSectionTitle}>Phiếu đánh giá doanh nghiệp</div>
+              <div style={{ marginTop: 8 }}>
+                <a
+                  className={adminStyles.detailLink}
+                  href={`/api/files/internship-report/${viewTarget.report.id}?kind=enterprise-evaluation`}
+                  download={viewTarget.report.enterpriseEvalFileName}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {viewTarget.report.enterpriseEvalFileName}
+                </a>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -117,6 +133,22 @@ export default function BaoCaoViewPopup({ viewTarget, onClose }: Props) { //hàm
                       rel="noreferrer"
                     >
                       {viewTarget.report.reportFileName}
+                    </a>
+                  ) : "—"}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Phiếu đánh giá DN</th>
+                <td>
+                  {viewTarget.report?.enterpriseEvalFileName ? (
+                    <a
+                      className={adminStyles.detailLink}
+                      href={`/api/files/internship-report/${viewTarget.report.id}?kind=enterprise-evaluation`}
+                      download={viewTarget.report.enterpriseEvalFileName}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {viewTarget.report.enterpriseEvalFileName}
                     </a>
                   ) : "—"}
                 </td>

@@ -307,6 +307,7 @@ model SupervisorProfile {
   userId String @unique
   faculty String
   degree SupervisorDegree
+  isExternalTeacher Boolean @default(false)
 
   gender StudentGender
   birthDate DateTime
@@ -391,6 +392,10 @@ model InternshipReport {
 
   enterpriseEvaluation String?
   enterprisePoint Float?
+
+  enterpriseEvalFileName String?
+  enterpriseEvalMime String?
+  enterpriseEvalBase64 String?
 
   history Json?
 

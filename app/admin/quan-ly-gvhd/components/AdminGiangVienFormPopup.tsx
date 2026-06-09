@@ -237,6 +237,18 @@ export default function AdminGiangVienFormPopup(props: Props) {
           {fieldErrors.degree ? <p className={formStyles.error}>{fieldErrors.degree}</p> : null}
         </div>
       </div>
+
+      <div className={formStyles.field}>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={form.isExternalTeacher}
+            onChange={(e) => setForm((p) => ({ ...p, isExternalTeacher: e.target.checked }))}
+            disabled={busy}
+          />
+          Giảng viên ngoài trường
+        </label>
+      </div>
     </FormPopup>
   );
 }

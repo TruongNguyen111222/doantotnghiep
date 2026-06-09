@@ -27,21 +27,26 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
   const { sub, role } = sess;
 
   const { id } = await ctx.params; //lấy id báo cáo thực tập
-  const download = new URL(request.url).searchParams.get("download") === "1"; //kiểm tra url có trạng thái tải xuống
+  const urlObj = new URL(request.url);
+  const download = urlObj.searchParams.get("download") === "1";
+  const kind = (urlObj.searchParams.get("kind") || "report").trim();
 
   const prismaAny = prisma as any;
-  const report = await prismaAny.internshipReport.findFirst({ 
+  const report = await prismaAny.internshipReport.findFirst({
     where: { id },
     select: {
       id: true,
       reportFileName: true,
       reportMime: true,
       reportBase64: true,
+      enterpriseEvalFileName: true,
+      enterpriseEvalMime: true,
+      enterpriseEvalBase64: true,
       studentProfileId: true,
       studentProfile: { select: { userId: true } }
     }
   });
-  if (!report) return NextResponse.json({ success: false, message: "Không tìm thấy file BCTT." }, { status: 404 });
+  if (!report) return NextResponse.json({ success: false, message: "Không tìm thấy file." }, { status: 404 });
 
   let allowed = role === "admin" || (role === "sinhvien" && report.studentProfile?.userId === sub);
   if (!allowed && role === "giangvien") {
@@ -60,12 +65,22 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
 
   if (!allowed) return NextResponse.json({ success: false, message: "Không có quyền truy cập." }, { status: 403 });
 
-  const stored = String(report.reportBase64 || "").trim();
-  if (!stored) return NextResponse.json({ success: false, message: "Không có file BCTT." }, { status: 404 });
+  const isEnterpriseEval = kind === "enterprise-evaluation";
+  const stored = String(
+    isEnterpriseEval ? report.enterpriseEvalBase64 : report.reportBase64
+  ).trim();
+  if (!stored) {
+    return NextResponse.json(
+      { success: false, message: isEnterpriseEval ? "Không có phiếu đánh giá doanh nghiệp." : "Không có file BCTT." },
+      { status: 404 }
+    );
+  }
 
   let bytes: Buffer;
-  let mime = String(report.reportMime || "").trim() || "application/pdf";
-  const cloudPublicId = fromCloudinaryRef(stored); //lấy id file từ cloudinary
+  let mime = String(
+    isEnterpriseEval ? report.enterpriseEvalMime : report.reportMime
+  ).trim() || "application/pdf";
+  const cloudPublicId = fromCloudinaryRef(stored);
   if (cloudPublicId) {
     const fetched = await fetchCloudinaryBytesByPublicId(cloudPublicId);
     if (!fetched) {
@@ -82,7 +97,9 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
     }
   }
 
-  const filename = safeFilename(report.reportFileName || "bctt.pdf");
+  const filename = safeFilename(
+    (isEnterpriseEval ? report.enterpriseEvalFileName : report.reportFileName) || (isEnterpriseEval ? "phieu-danh-gia.pdf" : "bctt.pdf")
+  );
   const disposition = `${download ? "attachment" : "inline"}; filename="${filename}"`;
 
   return new NextResponse(new Uint8Array(bytes), { //trả về file báo cáo thực tập

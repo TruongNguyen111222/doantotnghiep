@@ -92,15 +92,11 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   const now = new Date();
   const historyPrev = Array.isArray(report.history) ? report.history : []; //hàm lấy lịch sử báo cáo thực tập
 
-  const enterpriseExists =
-    currentStudent?.userId
-      ? Boolean(
-          await prismaAny.jobApplication.findFirst({
-            where: { studentUserId: currentStudent.userId, status: "OFFERED", response: "ACCEPTED" }, //hàm lấy đơn ứng tuyển từ database
-            select: { id: true }
-          })
-        )
-      : false;
+  const selfFinancedHist = await prismaAny.internshipStatusHistory.findFirst({
+    where: { studentProfileId: report.studentProfileId, toStatus: "SELF_FINANCED" },
+    select: { id: true }
+  });
+  const isSelfFinancedInternship = Boolean(selfFinancedHist);
 
   if (action === "REJECT") { //hàm từ chối báo cáo thực tập
     const rejectReason = (body.rejectReason || "").trim();
@@ -180,18 +176,15 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ success: false, message: "Điểm GVHD phải nằm trong khoảng 1-10." }, { status: 400 });
   }
 
-  let enterprisePointNum: number | null = null;
-  if (enterpriseExists) {
-    if (!enterprisePointRaw) return NextResponse.json({ success: false, message: "Vui lòng nhập điểm DN." }, { status: 400 });
-    if (!pointPattern.test(enterprisePointRaw)) return NextResponse.json({ success: false, message: "Điểm DN không hợp lệ." }, { status: 400 });
-    enterprisePointNum = Number(enterprisePointRaw);
-    if (Number.isNaN(enterprisePointNum) || enterprisePointNum < 1 || enterprisePointNum > 10) {
-      return NextResponse.json({ success: false, message: "Điểm DN phải nằm trong khoảng 1-10." }, { status: 400 });
-    }
+  if (!enterprisePointRaw) return NextResponse.json({ success: false, message: "Vui lòng nhập điểm KTHP." }, { status: 400 });
+  if (!pointPattern.test(enterprisePointRaw)) return NextResponse.json({ success: false, message: "Điểm KTHP không hợp lệ." }, { status: 400 });
+  const enterprisePointNum = Number(enterprisePointRaw);
+  if (Number.isNaN(enterprisePointNum) || enterprisePointNum < 1 || enterprisePointNum > 10) {
+    return NextResponse.json({ success: false, message: "Điểm KTHP phải nằm trong khoảng 1-10." }, { status: 400 });
   }
 
   const supervisorEvaluation = supervisorEvaluationRaw || null;
-  const enterpriseEvaluation = enterpriseExists ? enterpriseEvaluationRaw || null : null;
+  const enterpriseEvaluation = isSelfFinancedInternship ? null : enterpriseEvaluationRaw || null;
 
   await prismaAny.$transaction(async (tx: any) => { //hàm xử lý transaction
     await tx.internshipReport.update({ //hàm cập nhật báo cáo thực tập
@@ -234,7 +227,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     if (svEmail) {
       const scoreLines = [ //hàm xử lý điểm
         `- Điểm ĐQT (GVHD): ${supervisorPointNum}`,
-        enterprisePointNum != null ? `- Điểm KTHP (GVHD): ${enterprisePointNum}` : null,
+        `- Điểm KTHP (GVHD): ${enterprisePointNum}`,
         supervisorEvaluation ? `- Đánh giá: ${supervisorEvaluation}` : null
       ]
         .filter(Boolean)

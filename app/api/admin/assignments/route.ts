@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/auth/admin-session";
 import { MAIL_PHONG_DAO_TAO_SUBJECT_PREFIX, MAIL_TRANSACTIONAL_SIGN_OFF } from "@/lib/constants/school";
 import { sendMail } from "@/lib/mail";
 import { getPublicAppUrl } from "@/lib/mail-enterprise";
+import { validatePhanCongStudentCount } from "@/lib/utils/admin-phan-cong-gvhd-validate";
 
 type AssignmentStatus = "GUIDING" | "COMPLETED";
 
@@ -123,6 +124,9 @@ export async function POST(request: Request) { //hàm thêm phân công giảng 
   if (!internshipBatchId) errors.internshipBatchId = "Đợt thực tập bắt buộc.";
   if (!supervisorProfileId) errors.supervisorProfileId = "Giảng viên hướng dẫn bắt buộc.";
   if (!studentProfileIds.length) errors.studentProfileIds = "Danh sách sinh viên hướng dẫn bắt buộc.";
+  if (studentProfileIds.length > 0 && studentProfileIds.length < 3) {
+    errors.studentProfileIds = "Giảng viên phải được phân công tối thiểu 3 sinh viên.";
+  }
   if (Object.keys(errors).length) return NextResponse.json({ success: false, errors }, { status: 400 });
 
   const prismaAny = prisma as any;
@@ -153,6 +157,25 @@ export async function POST(request: Request) { //hàm thêm phân công giảng 
     return NextResponse.json({ success: false, message: "Giảng viên hướng dẫn đã được phân công trong đợt thực tập này." }, { status: 400 });
   }
 
+  const currentAssignedCount = await prismaAny.supervisorAssignmentStudent.count({
+    where: {
+      supervisorAssignment: {
+        supervisorProfileId,
+        status: "GUIDING"
+      }
+    }
+  });
+
+  const countError = validatePhanCongStudentCount({
+    supervisorFullName: supervisor.user?.fullName ?? "Giảng viên",
+    supervisorDegree: supervisor.degree,
+    currentAssignedCount,
+    newStudentCount: studentProfileIds.length
+  });
+  if (countError) {
+    return NextResponse.json({ success: false, message: countError }, { status: 400 });
+  }
+
   const students = await prismaAny.studentProfile.findMany({ //lấy danh sách sinh viên
     where: { id: { in: studentProfileIds } },
     select: {
@@ -175,10 +198,15 @@ export async function POST(request: Request) { //hàm thêm phân công giảng 
     if (
       s.internshipStatus !== "NOT_STARTED" &&
       s.internshipStatus !== "DOING" &&
+      s.internshipStatus !== "SELF_FINANCED" &&
       s.internshipStatus !== "REPORT_SUBMITTED"
     ) {
-      return NextResponse.json( //nếu sinh viên không có trạng thái Chưa thực tập, Đang thực tập hoặc Đã nộp BCTT thì trả về lỗi
-        { success: false, message: "Chỉ được chọn sinh viên có trạng thái Chưa thực tập, Đang thực tập hoặc Đã nộp BCTT." },
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Chỉ được chọn sinh viên có trạng thái Chưa thực tập, Đang thực tập, Thực tập tự túc hoặc Đã nộp BCTT."
+        },
         { status: 400 }
       );
     }

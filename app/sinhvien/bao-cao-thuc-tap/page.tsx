@@ -21,6 +21,8 @@ import {
   SINHVIEN_BAO_CAO_THUC_TAP_SUBMIT_NEW_ERROR_DEFAULT,
   SINHVIEN_BAO_CAO_THUC_TAP_SUBMIT_NEW_SUCCESS_DEFAULT,
   BCTT_ERROR_INVALID_MIME,
+  BCTT_ERROR_INVALID_ENTERPRISE_EVAL_MIME,
+  BCTT_ERROR_REQUIRED_ENTERPRISE_EVAL,
   BCTT_ERROR_REQUIRED_FILE_BEFORE_EDIT,
   BCTT_ERROR_REQUIRED_FILE_BEFORE_SUBMIT
 } from "@/lib/constants/sinhvien-bao-cao-thuc-tap"; //hàm constants sinh viên báo cáo thực tập
@@ -45,7 +47,8 @@ function readSvBaoCaoThucTapSeed() { //hàm lấy seed sinh viên báo cáo th�
     report: (item.report ?? null) as Report | null,
     statusHistory: (Array.isArray(item.statusHistory) ? item.statusHistory : []) as StatusHistoryEvent[],
     canSubmitReport: Boolean((item.ui as { canSubmitReport?: boolean } | undefined)?.canSubmitReport),
-    canEditReport: Boolean((item.ui as { canEditReport?: boolean } | undefined)?.canEditReport)
+    canEditReport: Boolean((item.ui as { canEditReport?: boolean } | undefined)?.canEditReport),
+    requiresEnterpriseEval: Boolean((item.ui as { requiresEnterpriseEval?: boolean } | undefined)?.requiresEnterpriseEval)
   };
 }
 
@@ -62,6 +65,7 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
   const [statusHistory, setStatusHistory] = useState<StatusHistoryEvent[]>(seed?.statusHistory ?? []);
   const [canSubmitReport, setCanSubmitReport] = useState(seed?.canSubmitReport ?? false);
   const [canEditReport, setCanEditReport] = useState(seed?.canEditReport ?? false);
+  const [requiresEnterpriseEval, setRequiresEnterpriseEval] = useState(seed?.requiresEnterpriseEval ?? false);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -70,7 +74,11 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [selectedFileMime, setSelectedFileMime] = useState<string | null>(null);
   const [selectedFileBase64, setSelectedFileBase64] = useState<string | null>(null);
+  const [selectedEnterpriseEvalFileName, setSelectedEnterpriseEvalFileName] = useState<string | null>(null);
+  const [selectedEnterpriseEvalMime, setSelectedEnterpriseEvalMime] = useState<string | null>(null);
+  const [selectedEnterpriseEvalBase64, setSelectedEnterpriseEvalBase64] = useState<string | null>(null);
   const [deleteLocalFile, setDeleteLocalFile] = useState(false);
+  const [deleteLocalEnterpriseEval, setDeleteLocalEnterpriseEval] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function load(opts?: { force?: boolean; silent?: boolean }) { //hàm load sinh viên báo cáo thực tập
@@ -94,8 +102,9 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
       setSupervisor(item.supervisor ?? null); 
       setReport(item.report ?? null); 
       setStatusHistory(Array.isArray(item.statusHistory) ? item.statusHistory : []); 
-      setCanSubmitReport(Boolean(item.ui?.canSubmitReport)); 
-      setCanEditReport(Boolean(item.ui?.canEditReport)); 
+      setCanSubmitReport(Boolean(item.ui?.canSubmitReport));
+      setCanEditReport(Boolean(item.ui?.canEditReport));
+      setRequiresEnterpriseEval(Boolean(item.ui?.requiresEnterpriseEval));
       setBootstrapped(true);
     } catch (e: any) {
       setError(e?.message || SINHVIEN_BAO_CAO_THUC_TAP_LOAD_ERROR_DEFAULT); 
@@ -130,15 +139,19 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
     });
   }, [canShowResults, canSubmitReport, canEditReport, internshipStatus, report?.supervisorRejectReason, report?.reviewStatus, report]);
 
-  function resetUploadState() { 
+  function resetUploadState() {
     setSelectedFileName(null);
     setSelectedFileMime(null);
     setSelectedFileBase64(null);
+    setSelectedEnterpriseEvalFileName(null);
+    setSelectedEnterpriseEvalMime(null);
+    setSelectedEnterpriseEvalBase64(null);
     setDeleteLocalFile(false);
+    setDeleteLocalEnterpriseEval(false);
     setFieldErrors({});
   }
 
-  async function onChooseFile(file: File | null) { //hàm chọn file báo cáo thực tập
+  async function onChooseFile(file: File | null) {
     if (!file) return;
     const payload = await readFileAsBase64Payload(file);
     const mime = payload.mime;
@@ -153,20 +166,52 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
     setDeleteLocalFile(false);
   }
 
-  async function submitNewReport() { //hàm nộp báo cáo thực tập
+  async function onChooseEnterpriseEvalFile(file: File | null) {
+    if (!file) return;
+    const payload = await readFileAsBase64Payload(file);
+    const mime = payload.mime;
+    if (!isAllowedBcttMime(mime)) {
+      setFieldErrors((prev) => ({ ...prev, enterpriseEval: BCTT_ERROR_INVALID_ENTERPRISE_EVAL_MIME }));
+      return;
+    }
+    setFieldErrors((prev) => ({ ...prev, enterpriseEval: "" }));
+    setSelectedEnterpriseEvalFileName(file.name);
+    setSelectedEnterpriseEvalMime(mime);
+    setSelectedEnterpriseEvalBase64(payload.base64);
+    setDeleteLocalEnterpriseEval(false);
+  }
+
+  async function submitNewReport() {
+    const nextErrors: Record<string, string> = {};
     if (!selectedFileBase64 || !selectedFileMime || !selectedFileName || deleteLocalFile) {
-      setFieldErrors({ file: BCTT_ERROR_REQUIRED_FILE_BEFORE_SUBMIT });
+      nextErrors.file = BCTT_ERROR_REQUIRED_FILE_BEFORE_SUBMIT;
+    }
+    if (
+      requiresEnterpriseEval &&
+      (!selectedEnterpriseEvalBase64 || !selectedEnterpriseEvalMime || !selectedEnterpriseEvalFileName)
+    ) {
+      nextErrors.enterpriseEval = BCTT_ERROR_REQUIRED_ENTERPRISE_EVAL;
+    }
+    if (Object.keys(nextErrors).length) {
+      setFieldErrors(nextErrors);
       return;
     }
     setBusy(true);
     try {
-      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", { //hàm gửi request nộp báo cáo thực tập
+      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, //hàm gửi request nộp báo cáo thực tập
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reportFileName: selectedFileName,
           reportMime: selectedFileMime,
-          reportBase64: selectedFileBase64
+          reportBase64: selectedFileBase64,
+          ...(requiresEnterpriseEval
+            ? {
+                enterpriseEvalFileName: selectedEnterpriseEvalFileName,
+                enterpriseEvalMime: selectedEnterpriseEvalMime,
+                enterpriseEvalBase64: selectedEnterpriseEvalBase64
+              }
+            : {})
         })
       });
       const data = await res.json();
@@ -183,19 +228,42 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
   }
 
   async function submitEditReport() {
-    if (!selectedFileBase64 || !selectedFileMime || !selectedFileName || deleteLocalFile) { //hàm gửi request sửa báo cáo thực tập
-      setFieldErrors({ file: BCTT_ERROR_REQUIRED_FILE_BEFORE_EDIT });
+    const nextErrors: Record<string, string> = {};
+    const hasReportFile = selectedFileBase64 && selectedFileMime && selectedFileName && !deleteLocalFile;
+    const hasExistingReportFile = Boolean(report?.reportFileName) && !deleteLocalFile && !selectedFileBase64;
+    if (!hasReportFile) {
+      nextErrors.file = BCTT_ERROR_REQUIRED_FILE_BEFORE_EDIT;
+    }
+
+    const hasEnterpriseEvalFile =
+      selectedEnterpriseEvalBase64 && selectedEnterpriseEvalMime && selectedEnterpriseEvalFileName;
+    const hasExistingEnterpriseEval =
+      Boolean(report?.enterpriseEvalFileName) && !deleteLocalEnterpriseEval && !selectedEnterpriseEvalBase64;
+    if (requiresEnterpriseEval && !hasEnterpriseEvalFile && !hasExistingEnterpriseEval) {
+      nextErrors.enterpriseEval = BCTT_ERROR_REQUIRED_ENTERPRISE_EVAL;
+    }
+
+    if (Object.keys(nextErrors).length) {
+      setFieldErrors(nextErrors);
       return;
     }
+
     setBusy(true);
     try {
-      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", { //hàm gửi request sửa báo cáo thực tập
+      const res = await fetch("/api/sinhvien/bao-cao-thuc-tap", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" }, //hàm gửi request sửa báo cáo thực tập
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reportFileName: selectedFileName,
           reportMime: selectedFileMime,
-          reportBase64: selectedFileBase64
+          reportBase64: selectedFileBase64,
+          ...(requiresEnterpriseEval && hasEnterpriseEvalFile
+            ? {
+                enterpriseEvalFileName: selectedEnterpriseEvalFileName,
+                enterpriseEvalMime: selectedEnterpriseEvalMime,
+                enterpriseEvalBase64: selectedEnterpriseEvalBase64
+              }
+            : {})
         })
       });
       const data = await res.json();
@@ -212,6 +280,7 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
   }
 
   const reportFileLink = report?.reportUrl || null;
+  const enterpriseEvalFileLink = report?.enterpriseEvalUrl || null;
 
   return ( //hàm render trang sinh viên báo cáo thực tập
     <main className={styles.page}>
@@ -252,8 +321,11 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
       {uploadOpen ? (
         <BaoCaoThucTapUploadPopup
           busy={busy}
+          requiresEnterpriseEval={requiresEnterpriseEval}
           fieldError={fieldErrors.file ?? ""}
+          enterpriseEvalFieldError={fieldErrors.enterpriseEval ?? ""}
           onChooseFile={(f) => void onChooseFile(f)}
+          onChooseEnterpriseEvalFile={(f) => void onChooseEnterpriseEvalFile(f)}
           onClose={() => setUploadOpen(false)}
           onSubmit={() => void submitNewReport()}
         />
@@ -262,17 +334,29 @@ export default function SinhvienBaoCaoThucTapPage() { //hàm render trang sinh v
       {editOpen ? (
         <BaoCaoThucTapEditPopup
           busy={busy}
+          requiresEnterpriseEval={requiresEnterpriseEval}
           report={report}
           reportFileLink={reportFileLink}
+          enterpriseEvalFileLink={enterpriseEvalFileLink}
           selectedFileBase64={selectedFileBase64}
+          selectedEnterpriseEvalBase64={selectedEnterpriseEvalBase64}
           deleteLocalFile={deleteLocalFile}
+          deleteLocalEnterpriseEval={deleteLocalEnterpriseEval}
           fieldError={fieldErrors.file ?? ""}
+          enterpriseEvalFieldError={fieldErrors.enterpriseEval ?? ""}
           onChooseFile={(f) => void onChooseFile(f)}
+          onChooseEnterpriseEvalFile={(f) => void onChooseEnterpriseEvalFile(f)}
           onDeleteFile={() => {
             setDeleteLocalFile(true);
             setSelectedFileName(null);
             setSelectedFileMime(null);
             setSelectedFileBase64(null);
+          }}
+          onDeleteEnterpriseEvalFile={() => {
+            setDeleteLocalEnterpriseEval(true);
+            setSelectedEnterpriseEvalFileName(null);
+            setSelectedEnterpriseEvalMime(null);
+            setSelectedEnterpriseEvalBase64(null);
           }}
           onClose={() => setEditOpen(false)}
           onSubmit={() => void submitEditReport()}

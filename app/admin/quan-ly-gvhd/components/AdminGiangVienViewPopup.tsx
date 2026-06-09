@@ -3,6 +3,7 @@
 import type { SupervisorListItem } from "@/lib/types/admin-quan-ly-gvhd";
 import {
   ADMIN_QUAN_LY_GVHD_DEGREE_LABEL,
+  ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL,
   ADMIN_QUAN_LY_GVHD_GENDER_LABEL
 } from "@/lib/constants/admin-quan-ly-gvhd";
 import { toBirthDateInputValue } from "@/lib/utils/admin-quan-ly-gvhd-dates";
@@ -55,6 +56,14 @@ export default function AdminGiangVienViewPopup(props: Props) { //component popu
           <tr>
             <th scope="row">Bậc</th>
             <td>{ADMIN_QUAN_LY_GVHD_DEGREE_LABEL[item.degree]}</td>
+          </tr>
+          <tr>
+            <th scope="row">Loại giảng viên</th>
+            <td>
+              {item.isExternalTeacher
+                ? ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL.external
+                : ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL.internal}
+            </td>
           </tr>
         </tbody>
       </table>

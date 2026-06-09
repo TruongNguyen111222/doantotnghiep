@@ -1,7 +1,10 @@
 "use client";
 
-import type { Degree } from "@/lib/types/admin-quan-ly-gvhd";
-import { ADMIN_QUAN_LY_GVHD_DEGREE_OPTIONS } from "@/lib/constants/admin-quan-ly-gvhd"; //hằng số bậc giảng viên
+import type { Degree, ExternalTeacherFilter } from "@/lib/types/admin-quan-ly-gvhd";
+import {
+  ADMIN_QUAN_LY_GVHD_DEGREE_OPTIONS,
+  ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_FILTER_OPTIONS
+} from "@/lib/constants/admin-quan-ly-gvhd";
 
 import styles from "../../styles/dashboard.module.css";
 
@@ -9,11 +12,13 @@ type Props = { //type props toolbar giảng viên
   searchQ: string;
   filterFaculty: string;
   filterDegree: Degree | "all";
+  filterExternalTeacher: ExternalTeacherFilter;
   faculties: string[];
   busy: boolean;
   onChangeSearchQ: (v: string) => void;
   onChangeFilterFaculty: (v: string) => void;
   onChangeFilterDegree: (v: Degree | "all") => void;
+  onChangeFilterExternalTeacher: (v: ExternalTeacherFilter) => void;
   onSearch: () => void;
   onOpenAdd: () => void;
   onOpenImport: () => void;
@@ -24,11 +29,13 @@ export default function AdminGiangVienToolbar(props: Props) {
     searchQ,
     filterFaculty,
     filterDegree,
+    filterExternalTeacher,
     faculties,
     busy,
     onChangeSearchQ,
     onChangeFilterFaculty,
     onChangeFilterDegree,
+    onChangeFilterExternalTeacher,
     onSearch,
     onOpenAdd,
     onOpenImport
@@ -71,6 +78,20 @@ export default function AdminGiangVienToolbar(props: Props) {
           {ADMIN_QUAN_LY_GVHD_DEGREE_OPTIONS.map((d) => (
             <option key={d.value} value={d.value}>
               {d.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className={styles.searchField}>
+        <label>Loại giảng viên</label>
+        <select
+          className={styles.selectInput}
+          value={filterExternalTeacher}
+          onChange={(e) => onChangeFilterExternalTeacher(e.target.value as ExternalTeacherFilter)}
+        >
+          {ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
             </option>
           ))}
         </select>

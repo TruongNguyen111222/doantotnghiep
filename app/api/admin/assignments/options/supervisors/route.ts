@@ -34,19 +34,32 @@ export async function GET(request: Request) { //hàm lấy danh sách giảng vi
     where.AND = [{ user: { fullName: { contains: q, mode: "insensitive" } } }]; //điều kiện tìm kiếm
   }
 
-  const rows = await prismaAny.supervisorProfile.findMany({ //lấy danh sách giảng viên hướng dẫn      
+  const rows = await prismaAny.supervisorProfile.findMany({
     where,
     orderBy: { user: { fullName: "asc" } },
-    select: { id: true, faculty: true, degree: true, user: { select: { fullName: true } } }
+    select: {
+      id: true,
+      faculty: true,
+      degree: true,
+      user: { select: { fullName: true } },
+      assignments: {
+        where: { status: "GUIDING" },
+        select: { _count: { select: { students: true } } }
+      }
+    }
   });
 
-  return NextResponse.json({ //trả về danh sách giảng viên hướng dẫn
+  return NextResponse.json({
     success: true,
     items: rows.map((r: any) => ({
       id: r.id,
       fullName: r.user?.fullName ?? "",
       degree: r.degree,
-      faculty: r.faculty
+      faculty: r.faculty,
+      currentAssignedCount: (r.assignments || []).reduce(
+        (sum: number, a: { _count?: { students?: number } }) => sum + (a._count?.students ?? 0),
+        0
+      )
     }))
   });
 }

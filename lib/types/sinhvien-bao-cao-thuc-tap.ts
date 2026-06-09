@@ -33,6 +33,8 @@ export type Report = {
   reportFileName: string;
   reportMime: string;
   reportUrl: string;
+  enterpriseEvalFileName: string | null;
+  enterpriseEvalUrl: string | null;
   supervisorEvaluation: string | null;
   supervisorPoint: number | null;
   enterpriseEvaluation: string | null;
@@ -44,6 +46,10 @@ export type SinhVienBaoCaoThucTapOverviewItem = {
   supervisor: SupervisorInfo | null;
   report: Report | null;
   statusHistory: StatusHistoryEvent[];
-  ui?: { canSubmitReport?: boolean; canEditReport?: boolean };
+  ui?: {
+    canSubmitReport?: boolean;
+    canEditReport?: boolean;
+    requiresEnterpriseEval?: boolean;
+  };
 };
 

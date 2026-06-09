@@ -33,3 +33,17 @@ export const ADMIN_QUAN_LY_GVHD_GENDER_OPTIONS: Array<{ value: Gender; label: st
   { value: "OTHER", label: "Khác" }
 ];
 
+export const ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_LABEL = {
+  internal: "Giảng viên trong trường",
+  external: "Giảng viên ngoài trường"
+} as const;
+
+export const ADMIN_QUAN_LY_GVHD_EXTERNAL_TEACHER_FILTER_OPTIONS: Array<{
+  value: "all" | "internal" | "external";
+  label: string;
+}> = [
+  { value: "all", label: "Tất cả loại GV" },
+  { value: "internal", label: "Giảng viên trong trường" },
+  { value: "external", label: "Giảng viên ngoài trường" }
+];
+
